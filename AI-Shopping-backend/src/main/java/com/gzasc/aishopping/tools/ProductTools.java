@@ -20,7 +20,7 @@ public class ProductTools {
             特殊情况:如果能获取到商品列表，就按JSON格式返回给用户；否则提示用户'稍后再试'。
             """)
     public String getAllProducts() {
-        List<Product> products = productService.getAllProducts();
+        List<Product> products = productService.getAllProducts(0);
         return products.stream()
                 .map(p -> String.format("ID: %s, 名称: %s, 价格: %.2f, 标签: %s, 库存: %d",
                         p.getId(), p.getName(), p.getPrice(), p.getTags(), p.getStock()))
@@ -32,7 +32,7 @@ public class ProductTools {
             特殊情况:如果能获取到商品信息，就按JSON格式返回给用户；否则提示用户'id不存在或商品已下架'。
             """)
     public String getProductDetails(@P("商品ID，必须由用户提供方可使用该方法") String productId) {
-        Product product = productService.getProductDetails(productId);
+        Product product = productService.getProductById(productId);
         if (product == null) {
             return "id不存在或商品已下架";
         }
