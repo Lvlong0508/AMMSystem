@@ -8,8 +8,6 @@ import com.gzasc.aishopping.service.OrderService;
 import com.gzasc.aishopping.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,7 +34,7 @@ public class OrderUserController {
                 return Map.of("message", "创建订单错误：购买数量必须大于0（错误代码：O-004）");
             }
             
-            Product product = productService.getProductDetails(request.getProductId());
+            Product product = productService.getProductById(request.getProductId());
             if (product == null) {
                 return Map.of("message", "创建订单错误：商品不存在（错误代码：O-003）");
             }
