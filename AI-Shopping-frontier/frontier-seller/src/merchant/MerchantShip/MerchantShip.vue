@@ -102,18 +102,15 @@
 
           <!-- 订单操作 -->
           <div class="order-actions">
-            <button
-              class="action-btn view-btn"
-              @click="showOrderDetail(order)"
-            >
-              {{ T.BTN_DETAIL }}
+            <button class="action-btn view-btn" @click="showOrderDetail(order)">
+              👁️ {{ T.BTN_DETAIL }}
             </button>
             <button
               v-if="order.orderStatus === ORDER_STATUS.PAID"
               class="action-btn ship-btn"
               @click="showShipDialog(order)"
             >
-              {{ T.BTN_SHIP }}
+              🚚 {{ T.BTN_SHIP }}
             </button>
           </div>
         </div>

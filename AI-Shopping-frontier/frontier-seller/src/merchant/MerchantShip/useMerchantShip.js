@@ -94,7 +94,8 @@ export function useMerchantShip() {
             return enrichedOrder
           })
         )
-        orders.value = ordersWithDetails
+        // 按日期降序排序（最新的在前面）
+        orders.value = ordersWithDetails.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
       }
     } catch (error) {
       console.error('加载订单失败:', error)
@@ -154,12 +155,12 @@ export function useMerchantShip() {
             return enrichedOrder
           })
         )
-        // 显示待发货、已发货和已退货的订单
+        // 显示待发货、已发货和已退货的订单，按日期降序排序
         orders.value = ordersWithDetails.filter(o => 
           o.orderStatus === ORDER_STATUS.PAID || 
           o.orderStatus === ORDER_STATUS.SHIPPED ||
           o.orderStatus === ORDER_STATUS.RETURNED
-        )
+        ).sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
       }
     } catch (error) {
       console.error('搜索订单失败:', error)

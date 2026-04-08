@@ -62,6 +62,7 @@
 
           <!-- 订单内容 -->
           <div class="order-body">
+            <!-- 商品信息 -->
             <div class="product-section">
               <span class="section-icon">{{ T.ICON_PRODUCT }}</span>
               <div class="product-details">
@@ -70,11 +71,13 @@
               </div>
             </div>
 
+            <!-- 价格 -->
             <div class="price-section">
               <span class="price-label">{{ T.LABEL_TOTAL_PRICE }}</span>
               <span class="price-value">¥{{ order.totalPrice?.toFixed(2) }}</span>
             </div>
 
+            <!-- 收货信息 -->
             <div class="contact-section" v-if="order.contact">
               <div class="contact-item">
                 <span class="contact-icon">{{ T.ICON_CONTACT }}</span>
@@ -90,7 +93,7 @@
               </div>
             </div>
 
-            <!-- 物流信息 - 已发货及以上状态显示 -->
+            <!-- 物流信息 -->
             <div class="tracking-section" v-if="order.orderStatus === ORDER_STATUS.SHIPPED || order.orderStatus === ORDER_STATUS.DELIVERED || order.orderStatus === ORDER_STATUS.RETURNED">
               <div class="tracking-item">
                 <span class="tracking-label">{{ T.LABEL_TRACKING }}</span>
@@ -103,41 +106,38 @@
             </div>
           </div>
 
-          <!-- 订单操作 -->
+          <!-- 订单操作按钮 -->
           <div class="order-actions">
-            <button
-              class="action-btn view-btn"
-              @click="showOrderDetail(order)"
-            >
-              {{ T.BTN_DETAIL }}
+            <button class="action-btn view-btn" @click="showOrderDetail(order)">
+              👁️ {{ T.BTN_DETAIL }}
             </button>
             <button
               v-if="order.orderStatus === ORDER_STATUS.PENDING"
               class="action-btn pay-btn"
               @click="updateStatus(order.orderId, ORDER_STATUS.PAID)"
             >
-              {{ T.BTN_MARK_PAID }}
+              💳 {{ T.BTN_MARK_PAID }}
             </button>
             <button
               v-if="order.orderStatus === ORDER_STATUS.SHIPPED"
               class="action-btn complete-btn"
               @click="updateStatus(order.orderId, ORDER_STATUS.DELIVERED)"
             >
-              {{ T.BTN_COMPLETE }}
+              ✅ {{ T.BTN_COMPLETE }}
             </button>
             <button
               v-if="order.orderStatus === ORDER_STATUS.SHIPPED || order.orderStatus === ORDER_STATUS.DELIVERED"
               class="action-btn return-btn"
               @click="updateStatus(order.orderId, ORDER_STATUS.RETURNED)"
             >
-              {{ T.BTN_RETURN }}
+              ↩️ {{ T.BTN_RETURN }}
             </button>
             <button
               v-if="order.orderStatus === ORDER_STATUS.PENDING || order.orderStatus === ORDER_STATUS.PAID"
               class="action-btn cancel-btn"
               @click="updateStatus(order.orderId, ORDER_STATUS.CANCELLED)"
             >
-              {{ T.BTN_CANCEL }}
+              ❌ {{ T.BTN_CANCEL }}
             </button>
           </div>
         </div>
