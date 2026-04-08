@@ -29,7 +29,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getAllProducts(int page) {
         System.out.println(new Date()+"：run getAllProducts, page=" + page);
-        int offset = page * 50;
+        int offset = page * 20;
         return productMapper.selectProductsByPage(offset);
     }
 

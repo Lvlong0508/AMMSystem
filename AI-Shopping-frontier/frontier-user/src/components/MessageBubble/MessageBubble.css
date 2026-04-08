@@ -20,5 +20,8 @@
 }
 
 .bubble-content.bg-ai {
-  @apply bg-white text-gray-800 border border-gray-200 rounded-bl-none w-fit min-w-[200px] max-w-[80vw];
+  @apply bg-white text-gray-800 border border-gray-200 rounded-bl-none;
+  width: fit-content;
+  min-width: 200px;
+  max-width: min(90vw, 1200px);
 }
