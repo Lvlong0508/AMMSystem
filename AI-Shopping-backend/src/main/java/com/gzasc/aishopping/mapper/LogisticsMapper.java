@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.mapper;
 
-import com.gzasc.aishopping.model.child.Logistics;
+import com.gzasc.aishopping.model.Logistics;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;

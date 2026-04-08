@@ -2,7 +2,7 @@ package com.gzasc.aishopping.controller.seller;
 
 import com.gzasc.aishopping.mapper.LogisticsMapper;
 import com.gzasc.aishopping.model.Order;
-import com.gzasc.aishopping.model.child.Logistics;
+import com.gzasc.aishopping.model.Logistics;
 import com.gzasc.aishopping.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;

@@ -74,8 +74,8 @@ export function useChatLogic() {
   onMounted(async () => {
     try {
       const response = await getAllProducts()
-      allProducts.value = response.data || []
-      productMap = buildProductMap(response.data)
+      allProducts.value = response.data?.data || []
+      productMap = buildProductMap(response.data?.data)
       // 初始化推荐商品
       loadRecommendations()
     } catch (error) {
