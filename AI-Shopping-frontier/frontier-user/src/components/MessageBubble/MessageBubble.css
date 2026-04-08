@@ -1,0 +1,24 @@
+/* MessageBubble 组件样式 */
+.message-bubble {
+  @apply flex mb-4;
+}
+
+.message-bubble.role-user {
+  @apply justify-end;
+}
+
+.message-bubble.role-ai {
+  @apply justify-start;
+}
+
+.bubble-content {
+  @apply w-fit max-w-[80vw] px-4 py-3 rounded-lg shadow-md;
+}
+
+.bubble-content.bg-user {
+  @apply bg-blue-600 text-white rounded-br-none max-w-md;
+}
+
+.bubble-content.bg-ai {
+  @apply bg-white text-gray-800 border border-gray-200 rounded-bl-none w-fit min-w-[200px] max-w-[80vw];
+}
