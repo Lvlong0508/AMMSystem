@@ -8,6 +8,7 @@ import {
 } from '../../api/order.js'
 import { getContactById } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
+import { getProductById } from '../../api/product.js'
 import { showSuccess, showError, showConfirm } from '../../utils/swal.js'
 import { ORDER_MESSAGES } from '../../config/messages.js'
 import { ORDER_STATUS, STATUS_CLASS, STATUS_TEXT } from '../../config/orderStatus.js'
@@ -33,6 +34,17 @@ export function useOrderManager() {
         const ordersWithDetails = await Promise.all(
           res.data.orders.map(async (order) => {
             const enrichedOrder = { ...order }
+            // 加载商品信息
+            if (order.productId) {
+              try {
+                const productRes = await getProductById(order.productId)
+                if (productRes.data?.data) {
+                  enrichedOrder.productName = productRes.data.data.name
+                }
+              } catch (e) {
+                console.warn('加载商品信息失败:', e)
+              }
+            }
             // 加载联系人信息
             if (order.contactId) {
               try {
@@ -83,6 +95,17 @@ export function useOrderManager() {
         const ordersWithDetails = await Promise.all(
           res.data.orders.map(async (order) => {
             const enrichedOrder = { ...order }
+            // 加载商品信息
+            if (order.productId) {
+              try {
+                const productRes = await getProductById(order.productId)
+                if (productRes.data?.data) {
+                  enrichedOrder.productName = productRes.data.data.name
+                }
+              } catch (e) {
+                console.warn('加载商品信息失败:', e)
+              }
+            }
             if (order.contactId) {
               try {
                 const contactRes = await getContactById(order.contactId)
@@ -129,6 +152,17 @@ export function useOrderManager() {
         const ordersWithDetails = await Promise.all(
           res.data.orders.map(async (order) => {
             const enrichedOrder = { ...order }
+            // 加载商品信息
+            if (order.productId) {
+              try {
+                const productRes = await getProductById(order.productId)
+                if (productRes.data?.data) {
+                  enrichedOrder.productName = productRes.data.data.name
+                }
+              } catch (e) {
+                console.warn('加载商品信息失败:', e)
+              }
+            }
             if (order.contactId) {
               try {
                 const contactRes = await getContactById(order.contactId)

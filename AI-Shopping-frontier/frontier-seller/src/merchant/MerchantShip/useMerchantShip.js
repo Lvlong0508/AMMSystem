@@ -9,6 +9,7 @@ import {
 } from '../../api/order.js'
 import { getAllContacts, getContactById } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
+import { getProductById } from '../../api/product.js'
 import { showSuccess, showError } from '../../utils/swal.js'
 import { ORDER_STATUS, STATUS_CLASS, STATUS_TEXT } from '../../config/orderStatus.js'
 
@@ -57,6 +58,17 @@ export function useMerchantShip() {
         const ordersWithDetails = await Promise.all(
           res.data.orders.map(async (order) => {
             const enrichedOrder = { ...order }
+            // 加载商品信息
+            if (order.productId) {
+              try {
+                const productRes = await getProductById(order.productId)
+                if (productRes.data?.data) {
+                  enrichedOrder.productName = productRes.data.data.name
+                }
+              } catch (e) {
+                console.warn('加载商品信息失败:', e)
+              }
+            }
             // 加载联系人信息
             if (order.contactId) {
               try {
@@ -124,6 +136,17 @@ export function useMerchantShip() {
         const ordersWithDetails = await Promise.all(
           res.data.orders.map(async (order) => {
             const enrichedOrder = { ...order }
+            // 加载商品信息
+            if (order.productId) {
+              try {
+                const productRes = await getProductById(order.productId)
+                if (productRes.data?.data) {
+                  enrichedOrder.productName = productRes.data.data.name
+                }
+              } catch (e) {
+                console.warn('加载商品信息失败:', e)
+              }
+            }
             if (order.contactId) {
               try {
                 const contactRes = await getContactById(order.contactId)
@@ -186,6 +209,10 @@ export function useMerchantShip() {
       const res = await getAllContacts()
       if (res.data?.data) {
         contacts.value = res.data.data
+        // 如果有联系人，默认选择第一个
+        if (res.data.data.length > 0 && !shipForm.value.selectedContactId) {
+          shipForm.value.selectedContactId = res.data.data[0].id
+        }
       }
     } catch (error) {
       console.error('加载联系人失败:', error)

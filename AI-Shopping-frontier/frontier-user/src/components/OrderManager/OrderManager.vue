@@ -65,9 +65,13 @@
             <!-- 商品信息 -->
             <div class="product-section">
               <span class="section-icon">{{ T.ICON_PRODUCT }}</span>
-              <div class="product-details">
-                <span class="product-id">{{ T.LABEL_PRODUCT_ID }}{{ order.productId }}</span>
-                <span class="quantity">{{ T.LABEL_QUANTITY }}{{ order.quantity }}</span>
+              <div class="product-info-left">
+                <span class="product-id">ID:{{ order.productId }}</span>
+                <span class="product-name" v-if="order.productName">{{ order.productName }}</span>
+              </div>
+              <div class="product-info-right">
+                <span class="quantity-label">x</span>
+                <span class="quantity-value">{{ order.quantity }}</span>
               </div>
             </div>
 

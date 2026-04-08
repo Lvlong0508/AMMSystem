@@ -65,9 +65,13 @@
           <div class="order-body">
             <div class="product-section">
               <span class="section-icon">{{ T.ICON_PRODUCT }}</span>
-              <div class="product-details">
-                <span class="product-id">{{ T.LABEL_PRODUCT_ID }}{{ order.productId }}</span>
-                <span class="quantity">{{ T.LABEL_QUANTITY }}{{ order.quantity }}</span>
+              <div class="product-info-left">
+                <span class="product-id">ID:{{ order.productId }}</span>
+                <span class="product-name" v-if="order.productName">{{ order.productName }}</span>
+              </div>
+              <div class="product-info-right">
+                <span class="quantity-label">x</span>
+                <span class="quantity-value">{{ order.quantity }}</span>
               </div>
             </div>
 
@@ -202,20 +206,20 @@
         <div class="dialog-body">
           <div class="order-info-summary" v-if="selectedOrder">
             <p><strong>订单编号:</strong> {{ selectedOrder.orderId }}</p>
-            <p><strong>收货人:</strong> {{ selectedOrder.contact?.name }}</p>
+            <p><strong>收货人:</strong> {{ selectedOrder.contact?.name }} {{ selectedOrder.contact?.phone }}</p>
             <p><strong>收货地址:</strong> {{ selectedOrder.contact?.address }}</p>
           </div>
           <div class="form-group">
             <label>选择发货联系人 <span class="required">*</span></label>
-            <select 
-              v-model="shipForm.selectedContactId" 
+            <select
+              v-model="shipForm.selectedContactId"
               class="form-input"
               :disabled="contactsLoading"
             >
-              <option value="">{{ contactsLoading ? '加载中...' : '请选择发货联系人' }}</option>
-              <option 
-                v-for="contact in contacts" 
-                :key="contact.id" 
+              <option v-if="contactsLoading" value="">加载中...</option>
+              <option
+                v-for="contact in contacts"
+                :key="contact.id"
                 :value="contact.id"
               >
                 {{ contact.name }} - {{ contact.phone }} - {{ contact.address }}
