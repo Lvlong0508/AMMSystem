@@ -1,5 +1,6 @@
-package com.gzasc.aishopping.dto;
+package com.gzasc.aishopping.dto.child.PlaceOrderRequest;
 
+import com.gzasc.aishopping.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.model.Contact;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.model.child;
+package com.gzasc.aishopping.model;
 
 import lombok.Data;
 import java.sql.Timestamp;

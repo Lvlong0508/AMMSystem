@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.controller.user;
 
-import com.gzasc.aishopping.dto.PlaceOrderWithContactRequest;
+import com.gzasc.aishopping.dto.child.PlaceOrderRequest.PlaceOrderWithContactRequest;
 import com.gzasc.aishopping.mapper.ProductMapper;
 import com.gzasc.aishopping.model.Order;
 import com.gzasc.aishopping.model.Product;
