@@ -15,7 +15,7 @@ public class ProductQueryController {
     private final ProductService productService;
 
     @GetMapping("/all")
-    public Map<String, Object> getAllProducts(@RequestParam(value = "page", defaultValue = "0") int page) {
+    public Map<String, Object> getAllProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
         try {
             List<Product> products = productService.getAllProducts(page);
             return Map.of("message", "查询成功", "data", products, "page", page, "size", products.size());

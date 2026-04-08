@@ -3,10 +3,10 @@
   <div :class="['message-bubble', `role-${role}`]">
     <div :class="['bubble-content', `bg-${role}`]">
       <!-- Text content -->
-      <p class="text-sm leading-relaxed whitespace-pre-wrap">{{ message }}</p>
+      <p class="message-text leading-relaxed whitespace-pre-wrap">{{ message }}</p>
 
       <!-- Product cards -->
-      <div v-if="products && products.length > 0" class="mt-4 grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+      <div v-if="products && products.length > 0" class="mt-4 w-full grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <product-card
             v-for="product in products"
             :key="product.id"
