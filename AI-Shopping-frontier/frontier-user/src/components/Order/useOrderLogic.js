@@ -105,7 +105,8 @@ export function useOrderLogic(props, emit) {
       }
       const res = await placeOrder(props.product.id, quantity.value, contactData)
       if (res.data?.orderId) {
-        emit('success', {
+        // 创建订单成功，触发支付流程
+        emit('order-created', {
           orderId: res.data.orderId,
           product: props.product,
           quantity: quantity.value,

@@ -91,7 +91,16 @@
         :visible="orderDialogVisible"
         :product="selectedProduct"
         @close="orderDialogVisible = false"
-        @success="handleOrderSuccess"
+        @order-created="handleOrderCreated"
+    />
+
+    <!-- 支付对话框 -->
+    <payment-dialog
+        :visible="paymentDialogVisible"
+        :order-info="paymentOrderInfo"
+        @close="paymentDialogVisible = false"
+        @success="handlePaymentSuccess"
+        @cancel="handlePaymentCancel"
     />
     <div class="bg-white border-t border-gray-200 px-4 py-3 shadow-lg">
       <div class="flex gap-3 max-w-5xl mx-auto">
@@ -120,6 +129,7 @@ import { useChatLogic } from './useChatLogic.js'
 import { CHAT_TEXT as T } from './Text.js'
 import MessageBubble from '../MessageBubble/MessageBubble.vue'
 import OrderDialog from '../Order/OrderDialog.vue'
+import PaymentDialog from '../Payment/PaymentDialog.vue'
 
 const {
   messages,
@@ -130,8 +140,12 @@ const {
   selectedProduct,
   recommendedProducts,
   refreshing,
+  paymentDialogVisible,
+  paymentOrderInfo,
   handleShowOrderDialog,
-  handleOrderSuccess,
+  handleOrderCreated,
+  handlePaymentSuccess,
+  handlePaymentCancel,
   handleSendMessage,
   handleRefreshProducts,
   startNewChat

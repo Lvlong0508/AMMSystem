@@ -33,6 +33,8 @@ export function useChatLogic() {
   const messagesContainer = ref(null)
   const orderDialogVisible = ref(false)
   const selectedProduct = ref(null)
+  const paymentDialogVisible = ref(false)
+  const paymentOrderInfo = ref(null)
   
   // 推荐商品相关
   const allProducts = ref([])
@@ -95,19 +97,38 @@ export function useChatLogic() {
     orderDialogVisible.value = true
   }
 
-  const handleOrderSuccess = (orderInfo) => {
+  // 订单创建成功，打开支付弹窗
+  const handleOrderCreated = (orderInfo) => {
     orderDialogVisible.value = false
+    paymentOrderInfo.value = orderInfo
+    paymentDialogVisible.value = true
+  }
+
+  // 支付成功
+  const handlePaymentSuccess = (paymentResult) => {
+    paymentDialogVisible.value = false
     Swal.fire({
       icon: 'success',
-      title: '下单成功！',
+      title: '支付成功！',
       html: `
         <div style="text-align: left;">
-          <p><strong>订单编号：</strong>${orderInfo.orderId}</p>
-          <p><strong>商品：</strong>${orderInfo.product.name}</p>
-          <p><strong>数量：</strong>${orderInfo.quantity}</p>
-          <p><strong>总额：</strong>¥${orderInfo.totalPrice.toFixed(2)}</p>
+          <p><strong>订单编号：</strong>${paymentResult.orderId}</p>
+          <p><strong>支付金额：</strong>¥${paymentResult.totalPrice.toFixed(2)}</p>
+          <p style="color: #10b981; margin-top: 10px;">✓ 订单已确认，商家将尽快发货</p>
         </div>
       `,
+      confirmButtonText: '确定',
+      confirmButtonColor: '#3b82f6'
+    })
+  }
+
+  // 支付取消
+  const handlePaymentCancel = () => {
+    paymentDialogVisible.value = false
+    Swal.fire({
+      icon: 'info',
+      title: '支付已取消',
+      text: '订单已创建，您可以在订单管理中继续支付',
       confirmButtonText: '确定',
       confirmButtonColor: '#3b82f6'
     })
@@ -202,8 +223,12 @@ export function useChatLogic() {
     selectedProduct,
     recommendedProducts,
     refreshing,
+    paymentDialogVisible,
+    paymentOrderInfo,
     handleShowOrderDialog,
-    handleOrderSuccess,
+    handleOrderCreated,
+    handlePaymentSuccess,
+    handlePaymentCancel,
     handleSendMessage,
     handleRefreshProducts,
     startNewChat

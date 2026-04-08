@@ -36,5 +36,5 @@ export const ORDER_DIALOG_TEXT = {
   // 按钮
   BTN_CANCEL: '取消',
   BTN_SUBMITTING: '提交中...',
-  BTN_SUBMIT: '确认下单'
+  BTN_SUBMIT: '确认下单并支付'
 }

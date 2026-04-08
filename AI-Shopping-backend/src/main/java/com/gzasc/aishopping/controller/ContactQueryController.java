@@ -19,7 +19,7 @@ public class ContactQueryController {
      * 根据ID查询联系人
      */
     @GetMapping("/get/{id}")
-    public Map<String, Object> getContactById(@PathVariable int id) {
+    public Map<String, Object> getContactById(@PathVariable("id") int id) {
         try {
             Contact contact = contactService.getContactById(id);
             if (contact != null) {
@@ -49,7 +49,7 @@ public class ContactQueryController {
      * 根据姓名查询联系人
      */
     @GetMapping("/search/name")
-    public Map<String, Object> getContactsByName(@RequestParam String name) {
+    public Map<String, Object> getContactsByName(@RequestParam("name") String name) {
         if (name == null || name.trim().isEmpty()) {
             return Map.of("message", "查询错误：姓名为空（错误代码：Co-012）");
         }
@@ -65,7 +65,7 @@ public class ContactQueryController {
      * 根据电话查询联系人
      */
     @GetMapping("/search/phone")
-    public Map<String, Object> getContactByPhone(@RequestParam String phone) {
+    public Map<String, Object> getContactByPhone(@RequestParam("phone") String phone) {
         if (phone == null || phone.trim().isEmpty()) {
             return Map.of("message", "查询错误：电话为空（错误代码：Co-013）");
         }
