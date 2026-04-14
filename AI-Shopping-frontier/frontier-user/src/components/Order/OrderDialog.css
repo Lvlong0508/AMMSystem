@@ -227,6 +227,30 @@
 .contact-list {
   max-height: 200px;
   overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* 自定义滚动条样式 */
+.contact-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.contact-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.contact-list::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border-radius: 3px;
+}
+
+.contact-list::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+}
+
+.contact-list::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .contact-item {

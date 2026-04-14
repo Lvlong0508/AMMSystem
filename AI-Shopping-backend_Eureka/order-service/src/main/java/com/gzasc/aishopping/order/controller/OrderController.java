@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.dto.ProductDTO;
+import com.gzasc.aishopping.order.feign.LogisticsFeignClient;
 import com.gzasc.aishopping.order.feign.ProductFeignClient;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -18,6 +19,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final ProductFeignClient productFeignClient;
+    private final LogisticsFeignClient logisticsFeignClient;
 
     @GetMapping("/{orderId}")
     public Map<String, Object> getOrderById(@PathVariable("orderId") String orderId) {
@@ -150,6 +152,41 @@ public class OrderController {
             }
         } catch (Exception e) {
             return Map.of("message", "更新订单状态错误：" + e.getMessage());
+        }
+    }
+
+    // 发货：创建物流信息并更新订单
+    @PutMapping("/{orderId}/ship")
+    public Map<String, String> shipOrder(
+            @PathVariable("orderId") String orderId,
+            @RequestParam("trackingNumber") String trackingNumber,
+            @RequestParam("contactId") Integer contactId,
+            @RequestParam(value = "shippingDate", required = false) String shippingDate) {
+        try {
+            // 1. 创建物流记录
+            LogisticsFeignClient.LogisticsRequest request = new LogisticsFeignClient.LogisticsRequest();
+            request.setContactId(contactId);
+            request.setTrackingNumber(trackingNumber);
+            request.setShippingDate(shippingDate);
+
+            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(request);
+            Map<String, Object> logisticsData = (Map<String, Object>) logisticsResult.get("data");
+            Integer logisticsId = (Integer) ((Map<?, ?>) logisticsData).get("id");
+
+            // 2. 更新订单的 logistics_id 和状态
+            Order order = new Order();
+            order.setOrderId(orderId);
+            order.setLogisticsId(logisticsId);
+            order.setOrderStatus(Order.SHIPPED);
+            int result = orderService.updateOrder(order);
+
+            if (result > 0) {
+                return Map.of("message", "发货成功", "logisticsId", String.valueOf(logisticsId));
+            } else {
+                return Map.of("message", "发货失败：订单不存在");
+            }
+        } catch (Exception e) {
+            return Map.of("message", "发货错误：" + e.getMessage());
         }
     }
 }

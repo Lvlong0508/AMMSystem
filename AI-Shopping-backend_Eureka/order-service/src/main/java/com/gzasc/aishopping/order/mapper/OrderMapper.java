@@ -17,7 +17,7 @@ public interface OrderMapper {
     @Delete("DELETE FROM t_order WHERE order_id = #{orderId}")
     int deleteOrderById(String orderId);
 
-    @Update("UPDATE t_order SET contact_id = #{contactId}, logistics_id = #{logisticsId} WHERE order_id = #{orderId}")
+    @Update("UPDATE t_order SET logistics_id = #{logisticsId}, order_status = #{orderStatus} WHERE order_id = #{orderId}")
     int updateOrder(Order order);
 
     @Select("SELECT * FROM t_order WHERE order_id = #{orderId}")
