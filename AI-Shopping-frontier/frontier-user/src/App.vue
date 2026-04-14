@@ -37,7 +37,7 @@
     </nav>
     
     <!-- 页面内容 -->
-    <div class="flex-1 overflow-hidden bg-gray-50">
+    <div class="flex-1 overflow-auto bg-gray-50">
       <router-view />
     </div>
   </div>
@@ -57,6 +57,26 @@ html, body, #app {
   width: 100%;
   height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* 自定义滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 /* 导航栏样式 */
