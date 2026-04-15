@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.logistics.controller;
 
-import com.gzasc.aishopping.logistics.mapper.LogisticsMapper;
 import com.gzasc.aishopping.logistics.model.Logistics;
+import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class LogisticsController {
 
-    private final LogisticsMapper logisticsMapper;
+    private final LogisticsService logisticsService;
 
     @PostMapping("/create")
     public Map<String, Object> createLogistics(@RequestBody Logistics logistics) {
         try {
-            int result = logisticsMapper.insertLogistics(logistics);
+            int result = logisticsService.createLogistics(logistics);
             if (result > 0) {
                 return Map.of("message", "创建物流信息成功", "data", logistics);
             } else {
@@ -32,7 +32,7 @@ public class LogisticsController {
     @GetMapping("/get/{id}")
     public Map<String, Object> getLogisticsById(@PathVariable("id") Integer id) {
         try {
-            Logistics logistics = logisticsMapper.selectLogisticsById(id);
+            Logistics logistics = logisticsService.getLogisticsById(id);
             if (logistics != null) {
                 return Map.of("message", "查询成功", "data", logistics);
             } else {
@@ -46,7 +46,7 @@ public class LogisticsController {
     @GetMapping("/list")
     public Map<String, Object> getAllLogistics() {
         try {
-            List<Logistics> logistics = logisticsMapper.selectAllLogistics();
+            List<Logistics> logistics = logisticsService.getAllLogistics();
             return Map.of("message", "查询成功", "data", logistics, "total", logistics.size());
         } catch (Exception e) {
             return Map.of("message", "查询物流信息错误：" + e.getMessage());
@@ -56,7 +56,7 @@ public class LogisticsController {
     @GetMapping("/search/tracking")
     public Map<String, Object> getLogisticsByTrackingNumber(@RequestParam("trackingNumber") String trackingNumber) {
         try {
-            Logistics logistics = logisticsMapper.selectLogisticsByTrackingNumber(trackingNumber);
+            Logistics logistics = logisticsService.getLogisticsByTrackingNumber(trackingNumber);
             if (logistics != null) {
                 return Map.of("message", "查询成功", "data", logistics);
             } else {
@@ -70,7 +70,7 @@ public class LogisticsController {
     @PutMapping("/update")
     public Map<String, String> updateLogistics(@RequestBody Logistics logistics) {
         try {
-            int result = logisticsMapper.updateLogistics(logistics);
+            int result = logisticsService.updateLogistics(logistics);
             if (result > 0) {
                 return Map.of("message", "更新物流信息成功");
             } else {
@@ -84,7 +84,7 @@ public class LogisticsController {
     @DeleteMapping("/delete/{id}")
     public Map<String, String> deleteLogistics(@PathVariable("id") Integer id) {
         try {
-            int result = logisticsMapper.deleteLogisticsById(id);
+            int result = logisticsService.deleteLogisticsById(id);
             if (result > 0) {
                 return Map.of("message", "删除物流信息成功");
             } else {

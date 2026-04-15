@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.logistics.controller;
 
-import com.gzasc.aishopping.logistics.mapper.LogisticsMapper;
 import com.gzasc.aishopping.logistics.model.Logistics;
+import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class InternalLogisticsController {
 
-    private final LogisticsMapper logisticsMapper;
+    private final LogisticsService logisticsService;
 
     @PostMapping("/create")
     public Map<String, Object> createLogistics(@RequestBody Logistics logistics) {
         try {
-            int result = logisticsMapper.insertLogistics(logistics);
+            int result = logisticsService.createLogistics(logistics);
             if (result > 0) {
                 return Map.of("message", "创建物流信息成功", "data", logistics);
             } else {

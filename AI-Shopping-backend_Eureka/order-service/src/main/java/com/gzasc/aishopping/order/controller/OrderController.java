@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.controller;
 
+import com.gzasc.aishopping.order.dto.LogisticsRequest;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.dto.ProductDTO;
 import com.gzasc.aishopping.order.feign.LogisticsFeignClient;
@@ -164,7 +165,7 @@ public class OrderController {
             @RequestParam(value = "shippingDate", required = false) String shippingDate) {
         try {
             // 1. 创建物流记录
-            LogisticsFeignClient.LogisticsRequest request = new LogisticsFeignClient.LogisticsRequest();
+            LogisticsRequest request = new LogisticsRequest();
             request.setContactId(contactId);
             request.setTrackingNumber(trackingNumber);
             request.setShippingDate(shippingDate);
