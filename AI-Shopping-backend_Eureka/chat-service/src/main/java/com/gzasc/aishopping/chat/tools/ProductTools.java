@@ -3,7 +3,7 @@ package com.gzasc.aishopping.chat.tools;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.chat.feign.ProductFeignClient;
-import com.gzasc.aishopping.chat.model.Product;
+import com.gzasc.aishopping.product.model.Product;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;

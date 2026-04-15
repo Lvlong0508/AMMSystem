@@ -168,8 +168,21 @@ public class OrderController {
             LogisticsRequest request = new LogisticsRequest(contactId, trackingNumber, shippingDate);
 
             Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(request);
-            Map<String, Object> logisticsData = (Map<String, Object>) logisticsResult.get("data");
-            Integer logisticsId = (Integer) ((Map<?, ?>) logisticsData).get("id");
+            Object data = logisticsResult.get("data");
+            if (data == null) {
+                return Map.of("message", "发货失败：创建物流返回数据为空");
+            }
+            Integer logisticsId = null;
+            if (data instanceof java.util.Map) {
+                java.util.Map<?, ?> logisticsData = (java.util.Map<?, ?>) data;
+                Object id = logisticsData.get("id");
+                if (id instanceof Number) {
+                    logisticsId = ((Number) id).intValue();
+                }
+            }
+            if (logisticsId == null) {
+                return Map.of("message", "发货失败：无法获取物流ID");
+            }
 
             // 2. 更新订单的 logistics_id 和状态
             Order order = new Order();
