@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.logistics.controller;
 
+import com.gzasc.aishopping.logistics.dto.LogisticsRequest;
 import com.gzasc.aishopping.logistics.model.Logistics;
 import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
@@ -16,8 +17,15 @@ public class InternalLogisticsController {
     private final LogisticsService logisticsService;
 
     @PostMapping("/create")
-    public Map<String, Object> createLogistics(@RequestBody Logistics logistics) {
+    public Map<String, Object> createLogistics(@RequestBody LogisticsRequest request) {
         try {
+            Logistics logistics = new Logistics();
+            logistics.setContactId(request.getContactId());
+            logistics.setTrackingNumber(request.getTrackingNumber());
+            if (request.getShippingDate() != null) {
+                logistics.setShippingDate(Timestamp.valueOf(request.getShippingDate()));
+            }
+
             int result = logisticsService.createLogistics(logistics);
             if (result > 0) {
                 return Map.of("message", "创建物流信息成功", "data", logistics);
