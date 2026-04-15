@@ -1,7 +1,7 @@
-package com.gzasc.aishopping.utils;
+package com.gzasc.aishopping.chat.utils;
 
-import com.gzasc.aishopping.model.Contact;
-import com.gzasc.aishopping.model.Order;
+import com.gzasc.aishopping.contact.model.Contact;
+import com.gzasc.aishopping.order.model.Order;
 
 import java.util.List;
 import java.util.stream.Collectors;
