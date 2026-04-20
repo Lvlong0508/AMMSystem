@@ -47,7 +47,7 @@ public class ProductTools {
             """)
     public String getProductDetails(@P("商品ID，必须由用户提供方可使用该方法") String productId) {
         try {
-            Map<String, Object> response = productFeignClient.getProductById(productId);
+            Map<String, Object> response = productFeignClient.getProductByIdExternal(productId);
             if (response != null && "查询成功".equals(response.get("message"))) {
                 Object data = response.get("data");
                 ProductDTO product = objectMapper.convertValue(data, ProductDTO.class);
