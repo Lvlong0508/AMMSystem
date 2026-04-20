@@ -143,6 +143,13 @@
             >
               ❌ {{ T.BTN_CANCEL }}
             </button>
+            <button
+              v-if="order.orderStatus === ORDER_STATUS.CANCELLED || order.orderStatus === ORDER_STATUS.RETURNED || order.orderStatus === ORDER_STATUS.DELIVERED"
+              class="action-btn delete-btn"
+              @click="confirmDelete(order.orderId)"
+            >
+              🗑️ {{ T.BTN_DELETE }}
+            </button>
           </div>
         </div>
       </div>
@@ -232,7 +239,8 @@ const {
   formatDate,
   showOrderDetail,
   closeDetail,
-  updateStatus
+  updateStatus,
+  confirmDelete
 } = useOrderManager()
 </script>
 

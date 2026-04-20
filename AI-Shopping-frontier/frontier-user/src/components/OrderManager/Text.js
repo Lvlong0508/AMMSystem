@@ -46,6 +46,7 @@ export const ORDER_TEXT = {
   BTN_SHIP: '发货',
   BTN_COMPLETE: '确认送达',
   BTN_RETURN: '退货',
+  BTN_CANCEL: '取消订单',
   BTN_DELETE: '删除',
 
   // 详情弹窗
