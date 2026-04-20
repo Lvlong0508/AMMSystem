@@ -6,6 +6,8 @@ import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+
 import java.sql.Timestamp;
 import java.util.Map;
 
@@ -34,6 +36,45 @@ public class InternalLogisticsController {
             }
         } catch (Exception e) {
             return Map.of("message", "创建物流信息错误：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 关闭/取消物流记录（补偿用）
+     */
+    @PutMapping("/close/{id}")
+    public Map<String, Object> closeLogistics(@PathVariable("id") Integer id) {
+        try {
+            if (id == null) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("message", "关闭物流失败：ID不能为空");
+                result.put("success", false);
+                return result;
+            }
+
+            Logistics logistics = logisticsService.getLogisticsById(id);
+            if (logistics == null) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("message", "关闭物流失败：记录不存在");
+                result.put("success", false);
+                return result;
+            }
+
+            int deleteResult = logisticsService.deleteLogisticsById(id);
+            Map<String, Object> result = new HashMap<>();
+            if (deleteResult > 0) {
+                result.put("message", "关闭物流记录成功");
+                result.put("success", true);
+            } else {
+                result.put("message", "关闭物流记录失败");
+                result.put("success", false);
+            }
+            return result;
+        } catch (Exception e) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("message", "关闭物流记录错误：" + e.getMessage());
+            result.put("success", false);
+            return result;
         }
     }
 }

@@ -164,16 +164,50 @@ public class OrderController {
             @RequestParam("trackingNumber") String trackingNumber,
             @RequestParam("contactId") Integer contactId,
             @RequestParam(value = "shippingDate", required = false) String shippingDate) {
-        try {
-            // 1. 创建物流记录
-            LogisticsRequest request = new LogisticsRequest(contactId, trackingNumber, shippingDate);
 
+        // 1. 参数校验
+        if (orderId == null || orderId.trim().isEmpty()) {
+            return Map.of("message", "发货失败：订单ID不能为空");
+        }
+        if (trackingNumber == null || trackingNumber.trim().isEmpty()) {
+            return Map.of("message", "发货失败：物流单号不能为空");
+        }
+        if (contactId == null) {
+            return Map.of("message", "发货失败：联系人ID不能为空");
+        }
+
+        // 2. 查询订单并校验状态
+        Order order = orderService.getOrderById(orderId);
+        if (order == null) {
+            return Map.of("message", "发货失败：订单不存在");
+        }
+
+        // 3. 幂等性检查：已发货订单直接返回成功
+        if (Order.SHIPPED.equals(order.getOrderStatus())) {
+            return Map.of("message", "发货成功（已发货）", "logisticsId", String.valueOf(order.getLogisticsId()));
+        }
+
+        // 4. 状态流转校验：只有已支付订单才能发货
+        if (!Order.PAID.equals(order.getOrderStatus())) {
+            return Map.of("message", "发货失败：订单状态为【" + order.getOrderStatus() + "】，只有已支付订单才能发货");
+        }
+
+        // 5. 并发控制：检查是否已有物流ID（双重检查）
+        if (order.getLogisticsId() != null) {
+            return Map.of("message", "发货成功（已发货）", "logisticsId", String.valueOf(order.getLogisticsId()));
+        }
+
+        Integer logisticsId = null;
+        try {
+            // 6. 创建物流记录
+            LogisticsRequest request = new LogisticsRequest(contactId, trackingNumber, shippingDate);
             Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(request);
+
             Object data = logisticsResult.get("data");
             if (data == null) {
                 return Map.of("message", "发货失败：创建物流返回数据为空");
             }
-            Integer logisticsId = null;
+
             if (data instanceof java.util.Map) {
                 java.util.Map<?, ?> logisticsData = (java.util.Map<?, ?>) data;
                 Object id = logisticsData.get("id");
@@ -185,20 +219,38 @@ public class OrderController {
                 return Map.of("message", "发货失败：无法获取物流ID");
             }
 
-            // 2. 更新订单的 logistics_id 和状态
-            Order order = new Order();
-            order.setOrderId(orderId);
-            order.setLogisticsId(logisticsId);
-            order.setOrderStatus(Order.SHIPPED);
-            int result = orderService.updateOrder(order);
+            // 7. 更新订单的 logistics_id 和状态
+            Order updateOrder = new Order();
+            updateOrder.setOrderId(orderId);
+            updateOrder.setLogisticsId(logisticsId);
+            updateOrder.setOrderStatus(Order.SHIPPED);
+            int result = orderService.updateOrder(updateOrder);
 
             if (result > 0) {
                 return Map.of("message", "发货成功", "logisticsId", String.valueOf(logisticsId));
             } else {
-                return Map.of("message", "发货失败：订单不存在");
+                // 8. 补偿机制：更新订单失败，尝试关闭物流记录
+                compensateCloseLogistics(logisticsId);
+                return Map.of("message", "发货失败：更新订单状态失败，已回滚物流记录");
             }
         } catch (Exception e) {
+            // 9. 异常补偿：创建物流成功但后续失败，尝试关闭物流记录
+            if (logisticsId != null) {
+                compensateCloseLogistics(logisticsId);
+            }
             return Map.of("message", "发货错误：" + e.getMessage());
+        }
+    }
+
+    /**
+     * 补偿机制：关闭物流记录（用于发货失败时回滚）
+     */
+    private void compensateCloseLogistics(Integer logisticsId) {
+        try {
+            logisticsFeignClient.closeLogistics(logisticsId);
+        } catch (Exception ex) {
+            // 记录补偿失败日志，需人工介入或定时任务清理
+            System.err.println("[发货补偿失败] 物流ID=" + logisticsId + "，需要人工处理，错误：" + ex.getMessage());
         }
     }
 }
