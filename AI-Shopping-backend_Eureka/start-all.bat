@@ -12,7 +12,7 @@ timeout /t 1 /nobreak >nul
 start "contact-service" /D "%BASE_DIR%contact-service" cmd /c "mvn spring-boot:run"
 timeout /t 1 /nobreak >nul
 start "logistics-service" /D "%BASE_DIR%logistics-service" cmd /c "mvn spring-boot:run"
-timeout /t 3 /nobreak >nul
+timeout /t 1 /nobreak >nul
 start "order-service" /D "%BASE_DIR%order-service" cmd /c "mvn spring-boot:run"
 timeout /t 1 /nobreak >nul
 start "chat-service" /D "%BASE_DIR%chat-service" cmd /c "mvn spring-boot:run"

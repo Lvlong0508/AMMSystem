@@ -4,7 +4,6 @@ import {
   getAllOrders,
   getOrdersByStatus,
   getOrdersByCustomerName,
-  updateOrderStatus,
   shipOrder
 } from '../../api/order.js'
 import { getAllContacts, getContactById } from '../../api/contact.js'
@@ -286,7 +285,7 @@ export function useMerchantShip() {
 
     shipping.value = true
     try {
-      // 调用发货接口（创建物流信息并更新订单）
+      // 调用发货接口（创建物流信息并更新订单状态为已发货）
       const res = await shipOrder(
         shipForm.value.orderId,
         shipForm.value.trackingNumber,
@@ -294,8 +293,6 @@ export function useMerchantShip() {
         shipForm.value.shippingDate
       )
       if (res.data?.message?.includes('成功')) {
-        // 更新状态为已发货
-        await updateOrderStatus(shipForm.value.orderId, ORDER_STATUS.SHIPPED)
         showSuccess('发货成功')
         closeShipDialog()
         await loadOrders()

@@ -63,6 +63,7 @@ export const ORDER_TEXT = {
   SECTION_TRACKING: '物流信息',
   LABEL_TRACKING_NUMBER: '物流单号:',
   LABEL_SHIPPING_DATE_DETAIL: '发货时间:',
+  LABEL_SHIPPING_ADDRESS: '收货地址:',
   BTN_CLOSE: '×',
 
   // 发货弹窗

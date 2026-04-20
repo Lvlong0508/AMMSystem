@@ -212,6 +212,10 @@
               <span class="detail-label">{{ T.LABEL_SHIPPING_DATE_DETAIL }}</span>
               <span class="detail-value">{{ formatDate(selectedOrder.logistics.shippingDate) }}</span>
             </div>
+            <div class="detail-row" v-if="selectedOrder.contact?.address">
+              <span class="detail-label">{{ T.LABEL_SHIPPING_ADDRESS }}</span>
+              <span class="detail-value">{{ selectedOrder.contact.address }}</span>
+            </div>
           </div>
         </div>
       </div>
