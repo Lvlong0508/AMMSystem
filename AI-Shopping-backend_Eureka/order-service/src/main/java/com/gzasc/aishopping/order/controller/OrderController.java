@@ -6,6 +6,7 @@ import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
+import com.gzasc.aishopping.order.dto.ShipOrderRequest;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +63,7 @@ public class OrderController {
         if (request == null || request.getProductId() == null) {
             return Map.of("message", "创建订单错误：商品信息为空（错误代码：O-001）");
         }
-        if (request.getContact() == null || request.getContact().getId() == null) {
+        if (request.getContactId() == null) {
             return Map.of("message", "创建订单错误：收货人信息为空（错误代码：O-002）");
         }
         try {
@@ -82,7 +83,7 @@ public class OrderController {
             Order order = new Order();
             String orderId = orderService.generateOrderId();
             order = order.buildInitOrder(orderId, product.getId(), request.getQuantity(), product.getPrice() * request.getQuantity());
-            order.setContactId(request.getContact().getId());
+            order.setContactId(request.getContactId());
             orderService.createOrder(order);
             return Map.of("message", "创建订单成功", "orderId", orderId);
         } catch (Exception e) {
@@ -161,18 +162,19 @@ public class OrderController {
     @PutMapping("/{orderId}/ship")
     public Map<String, String> shipOrder(
             @PathVariable("orderId") String orderId,
-            @RequestParam("trackingNumber") String trackingNumber,
-            @RequestParam("contactId") Integer contactId,
-            @RequestParam(value = "shippingDate", required = false) String shippingDate) {
+            @RequestBody ShipOrderRequest request) {
 
         // 1. 参数校验
         if (orderId == null || orderId.trim().isEmpty()) {
             return Map.of("message", "发货失败：订单ID不能为空");
         }
-        if (trackingNumber == null || trackingNumber.trim().isEmpty()) {
+        if (request == null) {
+            return Map.of("message", "发货失败：请求体不能为空");
+        }
+        if (request.getTrackingNumber() == null || request.getTrackingNumber().trim().isEmpty()) {
             return Map.of("message", "发货失败：物流单号不能为空");
         }
-        if (contactId == null) {
+        if (request.getContactId() == null) {
             return Map.of("message", "发货失败：联系人ID不能为空");
         }
 
@@ -200,8 +202,12 @@ public class OrderController {
         Integer logisticsId = null;
         try {
             // 6. 创建物流记录
-            LogisticsRequest request = new LogisticsRequest(contactId, trackingNumber, shippingDate);
-            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(request);
+            LogisticsRequest logisticsRequest = new LogisticsRequest(
+                    request.getContactId(),
+                    request.getTrackingNumber(),
+                    request.getShippingDate()
+            );
+            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(logisticsRequest);
 
             Object data = logisticsResult.get("data");
             if (data == null) {

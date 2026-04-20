@@ -34,6 +34,8 @@ export const updateOrderStatus = (orderId, status) =>
 
 // 发货（创建物流信息）
 export const shipOrder = (orderId, trackingNumber, contactId, shippingDate) =>
-    request.put(`/order/${orderId}/ship`, null, {
-        params: { trackingNumber, contactId, shippingDate }
+    request.put(`/order/${orderId}/ship`, {
+        trackingNumber,
+        contactId,
+        shippingDate
     })

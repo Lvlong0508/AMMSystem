@@ -97,13 +97,7 @@ export function useOrderLogic(props, emit) {
 
     submitting.value = true
     try {
-      const contactData = {
-        id: selectedContact.value.id,
-        name: selectedContact.value.name,
-        phone: selectedContact.value.phone,
-        address: selectedContact.value.address
-      }
-      const res = await placeOrder(props.product.id, quantity.value, contactData)
+      const res = await placeOrder(props.product.id, quantity.value, selectedContact.value.id)
       if (res.data?.orderId) {
         // 创建订单成功，触发支付流程
         emit('order-created', {

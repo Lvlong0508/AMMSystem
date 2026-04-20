@@ -1,8 +1,8 @@
 import { request } from './request'
 
 // 创建订单
-export const placeOrder = (productId, quantity = 1, contact) =>
-    request.post('/order/place', { productId, quantity, contact })
+export const placeOrder = (productId, quantity = 1, contactId) =>
+    request.post('/order/place', { productId, quantity, contactId })
 
 // 删除订单
 export const deleteOrder = (orderId) =>
@@ -34,6 +34,8 @@ export const updateOrderStatus = (orderId, status) =>
 
 // 发货（创建物流信息）
 export const shipOrder = (orderId, trackingNumber, contactId, shippingDate) =>
-    request.put(`/order/${orderId}/ship`, null, {
-        params: { trackingNumber, contactId, shippingDate }
+    request.put(`/order/${orderId}/ship`, {
+        trackingNumber,
+        contactId,
+        shippingDate
     })
