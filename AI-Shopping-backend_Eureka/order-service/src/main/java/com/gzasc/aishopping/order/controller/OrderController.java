@@ -205,7 +205,9 @@ public class OrderController {
 
             Object data = logisticsResult.get("data");
             if (data == null) {
-                return Map.of("message", "发货失败：创建物流返回数据为空");
+                // 物流创建失败，返回物流服务的真实错误信息
+                String logisticsMessage = (String) logisticsResult.get("message");
+                return Map.of("message", "发货失败：" + (logisticsMessage != null ? logisticsMessage : "创建物流返回数据为空"));
             }
 
             if (data instanceof java.util.Map) {

@@ -43,6 +43,8 @@ export const ORDER_MESSAGES = {
   // 确认提示
   DELETE_CONFIRM_TITLE: '确认删除',
   DELETE_CONFIRM: '确定要删除该订单吗？此操作不可恢复。',
+  RETURN_CONFIRM_TITLE: '确认退货',
+  RETURN_CONFIRM: '确定要退货吗？退货后订单将标记为已退货状态。',
 
   // 按钮文字
   CONFIRM_BUTTON: '确定',

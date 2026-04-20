@@ -24,18 +24,23 @@ public class InternalLogisticsController {
             Logistics logistics = new Logistics();
             logistics.setContactId(request.getContactId());
             logistics.setTrackingNumber(request.getTrackingNumber());
-            if (request.getShippingDate() != null) {
-                logistics.setShippingDate(Timestamp.valueOf(request.getShippingDate()));
+            if (request.getShippingDate() != null && !request.getShippingDate().isEmpty()) {
+                // 前端传来的格式是 "2026-04-20T14:30" (datetime-local)，转换为 "2026-04-20 14:30:00"
+                String dateStr = request.getShippingDate().replace('T', ' ');
+                if (dateStr.length() == 16) { // "yyyy-MM-dd HH:mm"
+                    dateStr += ":00";
+                }
+                logistics.setShippingDate(Timestamp.valueOf(dateStr));
             }
 
             int result = logisticsService.createLogistics(logistics);
             if (result > 0) {
                 return Map.of("message", "创建物流信息成功", "data", logistics);
             } else {
-                return Map.of("message", "创建物流信息失败");
+                return Map.of("message", "创建物流信息失败", "success", false);
             }
         } catch (Exception e) {
-            return Map.of("message", "创建物流信息错误：" + e.getMessage());
+            return Map.of("message", "创建物流信息错误：" + e.getMessage(), "success", false);
         }
     }
 

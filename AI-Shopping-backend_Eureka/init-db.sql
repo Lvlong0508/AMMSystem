@@ -111,6 +111,20 @@ CREATE TABLE IF NOT EXISTS t_order (
     logistics_id INT COMMENT '物流信息ID'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 
+-- 已删除订单表（用于备份删除的订单）
+CREATE TABLE IF NOT EXISTS deleted_orders (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '自增ID',
+    order_id VARCHAR(20) NOT NULL COMMENT '订单ID',
+    product_id VARCHAR(16) NOT NULL COMMENT '商品ID',
+    quantity INT NOT NULL DEFAULT 1 COMMENT '购买数量',
+    total_price DECIMAL(10, 2) NOT NULL COMMENT '订单总价',
+    order_status VARCHAR(20) NOT NULL COMMENT '删除时的订单状态',
+    order_date TIMESTAMP NOT NULL COMMENT '原下单时间',
+    contact_id INT COMMENT '联系人ID',
+    logistics_id INT COMMENT '物流信息ID',
+    deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '删除时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='已删除订单备份表';
+
 -- ============================================
 -- 3. 联系人服务数据库 (eureka_contact)
 -- ============================================

@@ -1,6 +1,8 @@
 package com.gzasc.aishopping.order.service.impl;
 
+import com.gzasc.aishopping.order.mapper.DeletedOrderMapper;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
+import com.gzasc.aishopping.order.model.DeletedOrder;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
+    private final DeletedOrderMapper deletedOrderMapper;
     private final StringRedisTemplate redisTemplate;
 
     @Override
@@ -35,7 +38,37 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public int deleteOrder(String orderId) {
         System.out.println(new Date() + ": run deleteOrder");
-        return orderMapper.deleteOrderById(orderId);
+        try {
+            // 1. 先查询订单信息
+            Order order = orderMapper.selectOrderById(orderId);
+            if (order == null) {
+                System.out.println(new Date() + ": 订单不存在，无需删除: " + orderId);
+                return -1;
+            }
+
+            // 2. 将订单信息备份到 deleted_orders 表
+            DeletedOrder deletedOrder = DeletedOrder.fromOrder(order);
+            int backupResult = deletedOrderMapper.insertDeletedOrder(deletedOrder);
+            if (backupResult <= 0) {
+                System.err.println(new Date() + ": 备份订单到 deleted_orders 失败: " + orderId);
+                return -1;
+            }
+            System.out.println(new Date() + ": 订单已备份到 deleted_orders 表: " + orderId);
+
+            // 3. 从原表删除订单
+            int deleteResult = orderMapper.deleteOrderById(orderId);
+            if (deleteResult > 0) {
+                System.out.println(new Date() + ": 订单删除成功: " + orderId);
+                return deleteResult;
+            } else {
+                System.err.println(new Date() + ": 从 t_order 删除订单失败: " + orderId);
+                return -1;
+            }
+        } catch (Exception e) {
+            System.err.println(new Date() + ": 删除订单异常: " + e.getMessage());
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     @Override

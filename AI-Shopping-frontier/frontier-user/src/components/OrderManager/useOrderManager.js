@@ -277,6 +277,19 @@ export function useOrderManager() {
     }
   }
 
+  // 确认退货
+  const confirmReturn = async (orderId) => {
+    const result = await showConfirm(
+      ORDER_MESSAGES.RETURN_CONFIRM_TITLE || '智能购物系统',
+      ORDER_MESSAGES.RETURN_CONFIRM,
+      ORDER_MESSAGES.CONFIRM_BUTTON,
+      ORDER_MESSAGES.CANCEL_BUTTON
+    )
+    if (!result.isConfirmed) return
+
+    await updateStatus(orderId, ORDER_STATUS.RETURNED)
+  }
+
   // 初始化加载
   onMounted(() => {
     loadOrders()
@@ -298,6 +311,7 @@ export function useOrderManager() {
     showOrderDetail,
     closeDetail,
     updateStatus,
-    confirmDelete
+    confirmDelete,
+    confirmReturn
   }
 }
