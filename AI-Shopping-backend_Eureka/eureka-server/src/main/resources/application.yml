@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: eureka-server
+  security:
+    user:
+      name: admin
+      password: admin
 
 eureka:
   instance:
@@ -12,7 +16,7 @@ eureka:
     register-with-eureka: false
     fetch-registry: false
     service-url:
-      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+      defaultZone: http://admin:admin@${eureka.instance.hostname}:${server.port}/eureka/
   server:
     enable-self-preservation: true
     eviction-interval-timer-in-ms: 5000

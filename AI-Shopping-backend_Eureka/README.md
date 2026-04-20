@@ -4,6 +4,8 @@
 
 ## 架构概览
 
+### 核心服务
+
 | 服务 | 端口 | 职责 |
 |------|------|------|
 | eureka-server | 8761 | 服务注册与发现中心 |
@@ -12,6 +14,15 @@
 | contact-service | 8083 | 联系人/收货地址管理 |
 | logistics-service | 8084 | 物流跟踪、发货管理 |
 | chat-service | 8085 | AI智能对话（通义千问） |
+
+### API 模块
+
+| 模块 | 说明 |
+|------|------|
+| product-api | 商品服务 Feign 接口定义 |
+| order-api | 订单服务 Feign 接口定义 |
+| contact-api | 联系人服务 Feign 接口定义 |
+| logistics-api | 物流服务 Feign 接口定义 |
 
 ## 技术栈
 
@@ -40,35 +51,41 @@
 mysql -u root -p < init-db.sql
 ```
 
-### 3. 启动服务（按顺序）
+### 3. 一键启动（Windows）
+
+```bash
+start-all.bat
+```
+
+或手动按顺序启动：
 
 ```bash
 # 1. 注册中心
-cd eureka-server
-mvn spring-boot:run
+cd eureka-server && mvn spring-boot:run
 
 # 2. 商品服务
-cd ../product-service
-mvn spring-boot:run
+cd ../product-service && mvn spring-boot:run
 
 # 3. 订单服务
-cd ../order-service
-mvn spring-boot:run
+cd ../order-service && mvn spring-boot:run
 
 # 4. 联系人服务
-cd ../contact-service
-mvn spring-boot:run
+cd ../contact-service && mvn spring-boot:run
 
 # 5. 物流服务
-cd ../logistics-service
-mvn spring-boot:run
+cd ../logistics-service && mvn spring-boot:run
 
 # 6. AI聊天服务
-cd ../chat-service
-mvn spring-boot:run
+cd ../chat-service && mvn spring-boot:run
 ```
 
-### 4. 验证服务
+### 4. 停止所有服务（Windows）
+
+```bash
+stop-all.bat
+```
+
+### 5. 验证服务
 
 - Eureka 控制台：http://localhost:8761
 - 商品服务：http://localhost:8081/api/product/all
@@ -150,9 +167,13 @@ AI-Shopping/
 ├── AI-Shopping-backend_Eureka/   # 本微服务版本
 │   ├── eureka-server/
 │   ├── product-service/
+│   ├── product-api/
 │   ├── order-service/
+│   ├── order-api/
 │   ├── contact-service/
+│   ├── contact-api/
 │   ├── logistics-service/
+│   ├── logistics-api/
 │   └── chat-service/
 └── AI-Shopping-frontier/        # 前端（共用）
 ```
@@ -168,27 +189,35 @@ AI-Shopping/
 3. **Eureka 地址**：默认 http://localhost:8761/eureka/
 4. **LangChain4j API Key**：chat-service 中配置通义千问 API Key
 
-## 目录结构
+## 项目结构
 
 ```
 AI-Shopping-backend_Eureka/
 ├── pom.xml                      # 父工程POM
 ├── README.md                    # 本文件
 ├── init-db.sql                  # 数据库初始化脚本
+├── start-all.bat                # Windows一键启动脚本
+├── stop-all.bat                 # Windows一键停止脚本
 ├── eureka-server/               # 注册中心
-├── product-service/             # 商品服务
-├── order-service/               # 订单服务
-├── contact-service/            # 联系人服务
-├── logistics-service/          # 物流服务
-└── chat-service/               # AI聊天服务
+├── product-service/             # 商品服务实现
+├── product-api/                 # 商品服务API接口
+├── order-service/               # 订单服务实现
+├── order-api/                   # 订单服务API接口
+├── contact-service/             # 联系人服务实现
+├── contact-api/                  # 联系人服务API接口
+├── logistics-service/           # 物流服务实现
+├── logistics-api/               # 物流服务API接口
+└── chat-service/                # AI聊天服务
 ```
 
 ## 常见问题
 
-1. **服务注册不上**：检查 Eureka 是否已启动，网络是否连通
-2. **Feign 调用失败**：确认被调用服务已注册到 Eureka
-3. **数据库连接失败**：检查 MySQL 服务状态和连接配置
-4. **订单号生成失败**：确认 Redis 服务已启动
+| 问题 | 解决方案 |
+|------|----------|
+| 服务注册不上 | 检查 Eureka 是否已启动，网络是否连通 |
+| Feign 调用失败 | 确认被调用服务已注册到 Eureka |
+| 数据库连接失败 | 检查 MySQL 服务状态和连接配置 |
+| 订单号生成失败 | 确认 Redis 服务已启动 |
 
 ## 扩展建议
 
@@ -201,4 +230,4 @@ AI-Shopping-backend_Eureka/
 ---
 
 **版本**：v1.0  
-**创建日期**：2026-04-12
+**更新日期**：2026-04-20

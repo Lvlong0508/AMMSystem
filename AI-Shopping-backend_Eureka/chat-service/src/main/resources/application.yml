@@ -14,14 +14,14 @@ langchain4j:
   dashscope:
     chat-model:
       api-key: sk-04f193be640441ecb82410f96a686368
-      model-name: tongyi-qwen-turbo
+      model-name: glm-5.1
       enable-search: false
       temperature: 0.7
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://admin:admin@localhost:8761/eureka/
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
