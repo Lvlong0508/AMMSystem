@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.logistics.controller;
 
-import com.gzasc.aishopping.logistics.dto.LogisticsRequest;
+import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.logistics.model.Logistics;
 import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;

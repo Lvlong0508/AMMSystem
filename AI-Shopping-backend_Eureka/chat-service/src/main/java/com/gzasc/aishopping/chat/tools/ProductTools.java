@@ -2,8 +2,8 @@ package com.gzasc.aishopping.chat.tools;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gzasc.aishopping.chat.feign.ProductFeignClient;
-import com.gzasc.aishopping.product.model.Product;
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +29,7 @@ public class ProductTools {
             Map<String, Object> response = productFeignClient.getAllProducts(page);
             if (response != null && "查询成功".equals(response.get("message"))) {
                 Object data = response.get("data");
-                List<Product> products = objectMapper.convertValue(data, new TypeReference<List<Product>>() {});
+                List<ProductDTO> products = objectMapper.convertValue(data, new TypeReference<List<ProductDTO>>() {});
                 return products.stream()
                         .map(p -> String.format("ID: %s, 名称: %s, 价格: %.2f, 标签: %s, 库存: %d",
                                 p.getId(), p.getName(), p.getPrice(), p.getTags(), p.getStock()))
@@ -50,7 +50,7 @@ public class ProductTools {
             Map<String, Object> response = productFeignClient.getProductById(productId);
             if (response != null && "查询成功".equals(response.get("message"))) {
                 Object data = response.get("data");
-                Product product = objectMapper.convertValue(data, Product.class);
+                ProductDTO product = objectMapper.convertValue(data, ProductDTO.class);
                 return String.format("ID: %s, 名称: %s, 价格: %.2f, 标签: %s, 描述: %s, 库存: %d",
                         product.getId(), product.getName(), product.getPrice(), product.getTags(), product.getDescription(), product.getStock());
             }

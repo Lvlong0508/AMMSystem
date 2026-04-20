@@ -38,7 +38,7 @@
         </dependency>
         <dependency>
             <groupId>com.gzasc</groupId>
-            <artifactId>logistics-api</artifactId>
+            <artifactId>common-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

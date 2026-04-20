@@ -43,17 +43,7 @@
         </dependency>
         <dependency>
             <groupId>com.gzasc</groupId>
-            <artifactId>product-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.gzasc</groupId>
-            <artifactId>order-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.gzasc</groupId>
-            <artifactId>contact-api</artifactId>
+            <artifactId>common-api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

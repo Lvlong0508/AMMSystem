@@ -1,10 +1,11 @@
 package com.gzasc.aishopping.order.controller;
 
-import com.gzasc.aishopping.logistics.dto.LogisticsRequest;
+import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
+import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
+import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
-import com.gzasc.aishopping.order.dto.ProductDTO;
-import com.gzasc.aishopping.order.feign.LogisticsFeignClient;
-import com.gzasc.aishopping.order.feign.ProductFeignClient;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -95,7 +96,7 @@ public class OrderController {
             Order order = orderService.getOrderById(orderId);
             if (order != null) {
                 if (Order.PENDING.equals(order.getOrderStatus()) || Order.PAID.equals(order.getOrderStatus())) {
-                    productFeignClient.restoreStock(new ProductFeignClient.StockDeductRequest(order.getProductId(), order.getQuantity()));
+                    productFeignClient.restoreStock(new StockDeductRequest(order.getProductId(), order.getQuantity()));
                 }
             }
 
@@ -134,7 +135,7 @@ public class OrderController {
             }
 
             if (Order.PENDING.equals(order.getOrderStatus()) && Order.PAID.equals(status)) {
-                Map<String, Object> result = productFeignClient.deductStock(new ProductFeignClient.StockDeductRequest(order.getProductId(), order.getQuantity()));
+                Map<String, Object> result = productFeignClient.deductStock(new StockDeductRequest(order.getProductId(), order.getQuantity()));
                 Boolean success = (Boolean) result.get("success");
                 if (!Boolean.TRUE.equals(success)) {
                     return Map.of("message", "更新订单状态失败：商品库存不足");
@@ -142,7 +143,7 @@ public class OrderController {
             }
 
             if (Order.CANCELLED.equals(status) && (Order.PENDING.equals(order.getOrderStatus()) || Order.PAID.equals(order.getOrderStatus()))) {
-                productFeignClient.restoreStock(new ProductFeignClient.StockDeductRequest(order.getProductId(), order.getQuantity()));
+                productFeignClient.restoreStock(new StockDeductRequest(order.getProductId(), order.getQuantity()));
             }
 
             int result = orderService.updateOrderStatus(orderId, status);

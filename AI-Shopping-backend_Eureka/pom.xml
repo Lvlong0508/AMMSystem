@@ -13,10 +13,7 @@
 
     <modules>
         <module>eureka-server</module>
-        <module>logistics-api</module>
-        <module>product-api</module>
-        <module>order-api</module>
-        <module>contact-api</module>
+        <module>common-api</module>
         <module>product-service</module>
         <module>order-service</module>
         <module>contact-service</module>
