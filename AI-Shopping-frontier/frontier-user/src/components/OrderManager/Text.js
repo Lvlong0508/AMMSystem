@@ -71,7 +71,7 @@ export const ORDER_TEXT = {
   LABEL_TRACKING_INPUT: '物流单号',
   LABEL_SHIPPING_DATE_INPUT: '发货日期',
   PLACEHOLDER_TRACKING: '请输入物流单号',
-  BTN_CANCEL: '取消',
+  BTN_CANCEL_DIALOG: '取消',
   BTN_SHIPPING: '发货中...',
   BTN_CONFIRM_SHIP: '确认发货',
 
