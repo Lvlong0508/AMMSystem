@@ -18,10 +18,11 @@ spring:
       enabled: true
 
   # Redis 配置（测试用嵌入式或禁用）
-  redis:
-    host: localhost
-    port: 6379
-    database: 1  # 使用不同数据库避免污染
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 1  # 使用不同数据库避免污染
 
 # Sa-Token 配置（测试环境缩短有效期）
 sa-token:

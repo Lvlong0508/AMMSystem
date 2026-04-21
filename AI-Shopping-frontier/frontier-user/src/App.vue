@@ -33,6 +33,31 @@
           </svg>
           订单
         </router-link>
+
+        <!-- 用户信息和登出 -->
+        <div v-if="isLoggedIn" class="user-section">
+          <span class="user-name">👤 {{ userName }}</span>
+          <button class="nav-link logout-btn" @click="handleLogout">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            登出
+          </button>
+        </div>
+        <router-link 
+          v-else
+          :class="['nav-link', { active: $route.path === '/login' }]" 
+          to="/login"
+        >
+          <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+            <polyline points="10 17 15 12 10 7"></polyline>
+            <line x1="15" y1="12" x2="3" y2="12"></line>
+          </svg>
+          登录
+        </router-link>
       </div>
     </nav>
     
@@ -44,6 +69,67 @@
 </template>
 
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import Swal from 'sweetalert2'
+import { userLogout } from './api/auth'
+
+const router = useRouter()
+
+// 登录状态
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('satoken')
+})
+
+// 用户名
+const userName = computed(() => {
+  const userInfo = localStorage.getItem('userInfo')
+  if (userInfo) {
+    try {
+      const user = JSON.parse(userInfo)
+      return user.nickname || user.username || '用户'
+    } catch (e) {
+      return '用户'
+    }
+  }
+  return '用户'
+})
+
+// 登出处理
+const handleLogout = async () => {
+  const result = await Swal.fire({
+    icon: 'question',
+    title: '确认登出',
+    text: '确定要退出登录吗？',
+    showCancelButton: true,
+    confirmButtonText: '确认登出',
+    cancelButtonText: '取消',
+    confirmButtonColor: '#667eea',
+    cancelButtonColor: '#94a3b8'
+  })
+
+  if (result.isConfirmed) {
+    try {
+      await userLogout()
+    } catch (e) {
+      // 忽略 API 错误
+    }
+    // 清除本地存储
+    localStorage.removeItem('satoken')
+    localStorage.removeItem('userInfo')
+    
+    await Swal.fire({
+      icon: 'success',
+      title: '已登出',
+      text: '期待您的再次光临',
+      confirmButtonColor: '#667eea',
+      timer: 1500,
+      timerProgressBar: true
+    })
+    
+    router.push('/login')
+  }
+}
 </script>
 
 <style>
@@ -129,5 +215,31 @@ html, body, #app {
   color: white;
   background: rgba(255, 255, 255, 0.25);
   font-weight: 500;
+}
+
+/* 用户区域样式 */
+.user-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: 8px;
+  padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-name {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.logout-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fee2e2;
 }
 </style>
