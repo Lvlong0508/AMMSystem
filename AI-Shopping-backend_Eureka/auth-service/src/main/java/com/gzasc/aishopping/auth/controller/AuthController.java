@@ -113,24 +113,28 @@ public class AuthController {
             if (!StpUtil.isLogin()) {
                 return Map.of("message", "未登录", "code", 401);
             }
-            
+
             String loginId = (String) StpUtil.getLoginId();
             if (!loginId.startsWith("USER:")) {
                 return Map.of("message", "非用户账号", "code", 403);
             }
-            
+
             Integer userId = Integer.parseInt(loginId.replace("USER:", ""));
             User user = authService.getUserById(userId);
-            
+
             if (user == null) {
                 return Map.of("message", "用户不存在", "code", 404);
             }
-            
+
             return Map.of(
                 "message", "查询成功",
                 "userInfo", buildUserInfo(user)
             );
         } catch (Exception e) {
+            // Sa-Token 上下文异常视为未登录
+            if (e.getMessage() != null && e.getMessage().contains("上下文")) {
+                return Map.of("message", "未登录", "code", 401);
+            }
             return Map.of("message", "查询错误：" + e.getMessage());
         }
     }
@@ -240,24 +244,28 @@ public class AuthController {
             if (!StpUtil.isLogin()) {
                 return Map.of("message", "未登录", "code", 401);
             }
-            
+
             String loginId = (String) StpUtil.getLoginId();
             if (!loginId.startsWith("MERCHANT:")) {
                 return Map.of("message", "非商家账号", "code", 403);
             }
-            
+
             Integer merchantId = Integer.parseInt(loginId.replace("MERCHANT:", ""));
             Merchant merchant = authService.getMerchantById(merchantId);
-            
+
             if (merchant == null) {
                 return Map.of("message", "商家不存在", "code", 404);
             }
-            
+
             return Map.of(
                 "message", "查询成功",
                 "merchantInfo", buildMerchantInfo(merchant)
             );
         } catch (Exception e) {
+            // Sa-Token 上下文异常视为未登录
+            if (e.getMessage() != null && e.getMessage().contains("上下文")) {
+                return Map.of("message", "未登录", "code", 401);
+            }
             return Map.of("message", "查询错误：" + e.getMessage());
         }
     }

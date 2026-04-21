@@ -136,11 +136,12 @@ class BCryptUtilTest {
     @Test
     @DisplayName("从已有密文验证 - 模拟数据库验证场景")
     void testVerifyFromStoredHash() {
-        // 模拟数据库中存储的密文（密码: 123456）
-        String storedHash = "$2a$12$L69F5l0F8gB46Zi4W1xx6.nKdsV4B7vOERwO3iq0kXRwu8/H5L6q2";
+        // 先生成有效哈希模拟数据库存储
+        String password = "123456";
+        String storedHash = BCryptUtil.hashPassword(password);
 
         // 正确密码应通过
-        assertTrue(BCryptUtil.verifyPassword("123456", storedHash),
+        assertTrue(BCryptUtil.verifyPassword(password, storedHash),
             "数据库中的密文应能验证正确密码");
 
         // 错误密码应失败

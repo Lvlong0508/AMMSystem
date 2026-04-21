@@ -201,6 +201,7 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest();
         request.setUsername("merchant1");
         request.setPassword("Pass1234");
+        request.setPhone("13800138000");
 
         // Sa-Token 需要真实环境
         assertThrows(Exception.class, () -> {
