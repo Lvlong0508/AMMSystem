@@ -7,6 +7,9 @@ echo Starting services...
 start "eureka-server" /D "%BASE_DIR%eureka-server" cmd /c "mvn spring-boot:run"
 timeout /t 3 /nobreak >nul
 
+start "auth-service" /D "%BASE_DIR%auth-service" cmd /c "mvn spring-boot:run"
+timeout /t 1 /nobreak >nul
+
 start "product-service" /D "%BASE_DIR%product-service" cmd /c "mvn spring-boot:run"
 timeout /t 1 /nobreak >nul
 start "contact-service" /D "%BASE_DIR%contact-service" cmd /c "mvn spring-boot:run"

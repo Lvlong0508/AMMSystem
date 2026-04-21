@@ -1,0 +1,87 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: auth-service
+
+  # 数据源配置（用户库）- 基础配置，连接池参数在 DataSourceConfig 中设置
+  datasource:
+    url: jdbc:mysql://localhost:3306/eureka_user?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis 配置（Sa-Token 存储 Token）
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+    timeout: 5000ms
+    lettuce:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+
+  # 商家数据源配置（第二数据源）- 基础配置，连接池参数在 DataSourceConfig 中设置
+  second-datasource:
+    jdbc-url: jdbc:mysql://localhost:3306/eureka_merchant?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# Eureka 配置
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# ========== Sa-Token 配置 ==========
+sa-token:
+  # Token 名称
+  token-name: satoken
+  
+  # Token 有效期（单位：秒），默认30天
+  timeout: 2592000
+  
+  # Token 临时有效期（指定时间内无操作则视为过期），-1代表不限制
+  activity-timeout: -1
+  
+  # 是否允许同一账号并发登录（为 true 时允许一起登录，为 false 时新登录挤掉旧登录）
+  is-concurrent: true
+  
+  # 在多人登录同一账号时，是否共用一个 Token（为 true 时所有登录共用一个 Token，为 false 时每次登录新建一个 Token）
+  is-share: false
+  
+  # Token 生成风格（uuid、simple-uuid、random-32、random-64、random-128、tik）
+  token-style: uuid
+  
+  # 是否输出操作日志
+  is-log: true
+  
+  # 是否从 Cookie 中读取 Token
+  is-read-cookie: true
+  
+  # 是否从请求体中读取 Token
+  is-read-body: false
+  
+  # 是否从请求头中读取 Token
+  is-read-header: true
+
+# MyBatis 配置
+mybatis:
+  type-aliases-package: com.gzasc.aishopping.auth.model
+  configuration:
+    map-underscore-to-camel-case: true
+    default-executor-type: simple
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 日志配置
+logging:
+  level:
+    com.gzasc.aishopping.auth: info
+    org.springframework.security: debug

@@ -19,6 +19,7 @@
         <module>contact-service</module>
         <module>logistics-service</module>
         <module>chat-service</module>
+        <module>auth-service</module>
     </modules>
 
     <properties>
