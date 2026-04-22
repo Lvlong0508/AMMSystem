@@ -5,55 +5,18 @@ import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
- * 商品控制器（已废弃）
- * 请使用 ProductUserController 和 ProductSellerController
- * @deprecated 拆分用户端和商家端接口
+ * 商品商家端控制器
+ * 提供商品管理功能，供商家使用
  */
-@Deprecated
 @RestController
-@RequestMapping("/product")
+@RequestMapping("/api/seller/product")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductSellerController {
 
     private final ProductService productService;
-
-    @GetMapping("/all")
-    public Map<String, Object> getAllProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
-        try {
-            List<Product> products = productService.getAllProducts(page);
-            return Map.of("message", "查询成功", "data", products, "page", page, "size", products.size());
-        } catch (Exception e) {
-            return Map.of("message", "查询错误：" + e.getMessage());
-        }
-    }
-
-    @GetMapping("/{productId}")
-    public Map<String, Object> getProductById(@PathVariable("productId") String productId) {
-        try {
-            Product product = productService.getProductById(productId);
-            if (product != null) {
-                return Map.of("message", "查询成功", "data", product);
-            } else {
-                return Map.of("message", "查询失败：商品不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "查询错误：" + e.getMessage());
-        }
-    }
-
-    @GetMapping("/search")
-    public Map<String, Object> getProductsByName(@RequestParam("name") String name) {
-        try {
-            List<Product> products = productService.getProductsByName(name);
-            return Map.of("message", "查询成功", "data", products, "total", products.size());
-        } catch (Exception e) {
-            return Map.of("message", "查询错误：" + e.getMessage());
-        }
-    }
 
     @PostMapping("/create")
     public Map<String, String> createProduct(@RequestBody Product product) {
