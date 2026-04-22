@@ -36,14 +36,14 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://admin:admin@localhost:8761/eureka/
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
 # ========== Sa-Token 配置 ==========
 sa-token:
-  # Token 名称
+  # Token 名称（必须与Gateway一致）
   token-name: satoken
   
   # Token 有效期（单位：秒），默认30天
@@ -64,13 +64,13 @@ sa-token:
   # 是否输出操作日志
   is-log: true
   
-  # 是否从 Cookie 中读取 Token
-  is-read-cookie: true
+  # 是否从 Cookie 中读取 Token（Gateway不传递Cookie，所以关闭）
+  is-read-cookie: false
   
   # 是否从请求体中读取 Token
   is-read-body: false
   
-  # 是否从请求头中读取 Token
+  # 是否从请求头中读取 Token（Gateway传递header，所以开启）
   is-read-header: true
 
 # MyBatis 配置

@@ -8,6 +8,7 @@ import com.gzasc.aishopping.auth.model.dto.LoginResult;
 import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.AuthService;
 import com.gzasc.aishopping.auth.service.impl.AuthException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.BindingResult;

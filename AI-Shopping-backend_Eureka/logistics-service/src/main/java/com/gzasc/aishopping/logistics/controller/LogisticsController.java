@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/logistics")
+@RequestMapping("/logistics")
 @RequiredArgsConstructor
 public class LogisticsController {
 

@@ -28,30 +28,40 @@ spring:
           uri: lb://product-service
           predicates:
             - Path=/api/user/product/**
+          filters:
+            - RewritePath=/api/user/product/(?<segment>.*), /product/${segment}
         
         # 用户订单服务
         - id: user-order
           uri: lb://order-service
           predicates:
             - Path=/api/user/order/**
+          filters:
+            - RewritePath=/api/user/order/(?<segment>.*), /order/${segment}
         
         # 用户联系人服务
         - id: user-contact
           uri: lb://contact-service
           predicates:
             - Path=/api/user/contact/**
+          filters:
+            - RewritePath=/api/user/contact/(?<segment>.*), /contact/${segment}
         
         # 用户物流服务
         - id: user-logistics
           uri: lb://logistics-service
           predicates:
             - Path=/api/user/logistics/**
+          filters:
+            - RewritePath=/api/user/logistics/(?<segment>.*), /logistics/${segment}
         
         # 用户聊天服务
         - id: user-chat
           uri: lb://chat-service
           predicates:
             - Path=/api/user/chat/**
+          filters:
+            - RewritePath=/api/user/chat/(?<segment>.*), /chat/${segment}
         
         # ========== 商家端路由 ==========
         # 商家认证服务
@@ -65,41 +75,54 @@ spring:
           uri: lb://product-service
           predicates:
             - Path=/api/seller/product/**
+          filters:
+            - RewritePath=/api/seller/product/(?<segment>.*), /product/${segment}
         
         # 商家订单服务
         - id: seller-order
           uri: lb://order-service
           predicates:
             - Path=/api/seller/order/**
+          filters:
+            - RewritePath=/api/seller/order/(?<segment>.*), /order/${segment}
         
         # 商家联系人服务
         - id: seller-contact
           uri: lb://contact-service
           predicates:
             - Path=/api/seller/contact/**
+          filters:
+            - RewritePath=/api/seller/contact/(?<segment>.*), /contact/${segment}
         
         # 商家物流服务
         - id: seller-logistics
           uri: lb://logistics-service
           predicates:
             - Path=/api/seller/logistics/**
+          filters:
+            - RewritePath=/api/seller/logistics/(?<segment>.*), /logistics/${segment}
         
         # 商家聊天服务
         - id: seller-chat
           uri: lb://chat-service
           predicates:
             - Path=/api/seller/chat/**
+          filters:
+            - RewritePath=/api/seller/chat/(?<segment>.*), /chat/${segment}
 
-# Sa-Token配置
+# Sa-Token配置 (与auth-service保持一致)
 sa-token:
   token-name: satoken
   timeout: 2592000
   activity-timeout: -1
   is-concurrent: true
-  is-share: true
+  is-share: false
   token-style: uuid
   is-cookie: false
   is-header: true
+  is-read-cookie: false
+  is-read-header: true
+  is-read-body: false
 
 # IP限流配置
 ip-rate-limit:
@@ -118,7 +141,7 @@ auth:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://admin:admin@localhost:8761/eureka/
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}

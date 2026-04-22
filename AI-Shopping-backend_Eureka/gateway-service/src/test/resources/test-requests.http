@@ -9,7 +9,7 @@ POST http://localhost:8080/api/user/auth/login
 Content-Type: application/json
 
 {
-  "username": "testuser",
+  "username": "user001",
   "password": "123456"
 }
 
@@ -18,7 +18,7 @@ POST http://localhost:8080/api/seller/auth/login
 Content-Type: application/json
 
 {
-  "username": "testseller",
+  "username": "merchant001",
   "password": "123456"
 }
 
@@ -29,12 +29,12 @@ Content-Type: application/json
 {
   "username": "newuser",
   "password": "123456",
-  "phone": "13800138000"
+  "phone": "13800138001"
 }
 
 ### 5. 测试携带Token访问（登录后替换satoken值）
 GET http://localhost:8080/api/user/auth/info
-satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+satoken: ec00bd94-60cd-4a2c-8676-8064673c0a37
 Accept: application/json
 
 ### 6. 测试IP限流（快速发送多次，第31次应返回429）
@@ -42,11 +42,11 @@ GET http://localhost:8080/api/user/auth/login
 Accept: application/json
 
 ### 7. 测试路由转发到商品服务
-GET http://localhost:8080/api/user/product/list
-satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+GET http://localhost:8080/api/user/product/all
+satoken: ae6daac2-2a7c-4a29-98b9-a61ea84c9dab
 Accept: application/json
 
 ### 8. 测试商家端路由
-GET http://localhost:8080/api/seller/product/list
-satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+GET http://localhost:8080/api/seller/product/all
+satoken: a70fb379-6496-4211-9ac2-ee52ed909a93
 Accept: application/json
