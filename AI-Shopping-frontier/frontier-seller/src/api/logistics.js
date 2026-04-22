@@ -2,24 +2,24 @@ import { request } from './request'
 
 // 创建物流信息
 export const createLogistics = (logistics) =>
-    request.post('/logistics/create', logistics)
+    request.post('/api/seller/logistics/create', logistics)
 
 // 根据ID查询物流信息
 export const getLogisticsById = (id) =>
-    request.get(`/logistics/get/${id}`)
+    request.get(`/api/user/logistics/${id}`)
 
 // 查询所有物流信息
 export const getAllLogistics = () =>
-    request.get('/logistics/list')
+    request.get('/api/seller/logistics/list')
 
 // 根据快递单号查询物流信息
 export const getLogisticsByTrackingNumber = (trackingNumber) =>
-    request.get('/logistics/search/tracking', { params: { trackingNumber } })
+    request.get('/api/user/logistics/search/tracking', { params: { trackingNumber } })
 
 // 更新物流信息
 export const updateLogistics = (logistics) =>
-    request.put('/logistics/update', logistics)
+    request.put(`/api/seller/logistics/${logistics.id}`, logistics)
 
 // 删除物流信息
 export const deleteLogistics = (id) =>
-    request.delete(`/logistics/delete/${id}`)
+    request.delete(`/api/seller/logistics/${id}`)

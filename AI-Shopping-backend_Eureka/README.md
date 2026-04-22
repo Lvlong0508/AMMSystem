@@ -88,64 +88,124 @@ stop-all.bat
 ### 5. 验证服务
 
 - Eureka 控制台：http://localhost:8761
-- 商品服务：http://localhost:8081/api/product/all
-- 订单服务：http://localhost:8082/api/order/list
-- 联系人服务：http://localhost:8083/api/contact/list
-- 物流服务：http://localhost:8084/api/logistics/list
-- AI聊天：POST http://localhost:8085/api/chat
+- Eureka控制台：http://localhost:8761
+- 网关统一入口：http://localhost:8080
+- AI聊天：POST http://localhost:8085/chat
 
 ## API 接口
 
-### 商品服务 (8081)
+### 认证服务 (auth-service)
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /api/product/all | 查询所有商品 |
-| GET | /api/product/{id} | 根据ID查询商品 |
-| GET | /api/product/search?name=xxx | 根据名称搜索 |
-| POST | /api/product/create | 创建商品 |
-| PUT | /api/product/{id} | 更新商品 |
-| DELETE | /api/product/{id} | 删除商品 |
+| POST | /api/user/auth/register | 用户注册 |
+| POST | /api/user/auth/login | 用户登录 |
+| POST | /api/user/auth/logout | 用户登出 |
+| GET | /api/user/auth/info | 获取用户信息 |
+| POST | /api/seller/auth/register | 商家注册 |
+| POST | /api/seller/auth/login | 商家登录 |
+| POST | /api/seller/auth/logout | 商家登出 |
+| GET | /api/seller/auth/info | 获取商家信息 |
 
-### 订单服务 (8082)
+### 商品服务 (product-service)
 
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/order/list | 查询所有订单 |
-| GET | /api/order/{id} | 根据ID查询订单 |
-| GET | /api/order/status/{status} | 根据状态查询 |
-| POST | /api/order/place | 创建订单 |
-| PUT | /api/order/{id} | 更新订单 |
-| PUT | /api/order/{id}/status | 更新订单状态 |
-| DELETE | /api/order/{id} | 删除订单 |
-
-### 联系人服务 (8083)
+**用户端接口：**
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /api/contact/list | 查询所有联系人 |
-| GET | /api/contact/get/{id} | 根据ID查询 |
-| GET | /api/contact/search/name?name=xxx | 根据姓名搜索 |
-| POST | /api/contact/create | 创建联系人 |
-| PUT | /api/contact/update | 更新联系人 |
-| DELETE | /api/contact/delete/{id} | 删除联系人 |
+| GET | /api/user/product/all | 查询所有商品 |
+| GET | /api/user/product/{id} | 根据ID查询商品 |
+| GET | /api/user/product/search?name=xxx | 根据名称搜索 |
 
-### 物流服务 (8084)
+**商家端接口：**
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /api/logistics/list | 查询所有物流信息 |
-| GET | /api/logistics/get/{id} | 根据ID查询物流 |
-| GET | /api/logistics/search/tracking?trackingNumber=xxx | 根据快递单号查询 |
-| POST | /api/logistics/create | 创建物流信息 |
-| PUT | /api/logistics/update | 更新物流信息 |
-| DELETE | /api/logistics/delete/{id} | 删除物流信息 |
+| POST | /api/seller/product/create | 创建商品 |
+| PUT | /api/seller/product/{id} | 更新商品 |
+| DELETE | /api/seller/product/{id} | 删除商品 |
 
-### AI聊天服务 (8085)
+**废弃接口（向后兼容）：**
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | /api/chat | 发送消息，返回AI回复 |
+| GET | /product/all | 查询所有商品（已废弃）|
+| GET | /product/{id} | 根据ID查询商品（已废弃）|
+
+### 订单服务 (order-service)
+
+**用户端接口：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/user/order/list | 查询我的订单 |
+| GET | /api/user/order/{id} | 根据ID查询订单 |
+| POST | /api/user/order/place | 创建订单 |
+| DELETE | /api/user/order/{id} | 取消订单 |
+
+**商家端接口：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/seller/order/list | 查询所有订单 |
+| GET | /api/seller/order/status/{status} | 根据状态查询 |
+| PUT | /api/seller/order/{id}/ship | 订单发货 |
+| PUT | /api/seller/order/{id}/status | 更新订单状态 |
+
+**废弃接口（向后兼容）：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /order/list | 查询订单列表（已废弃）|
+
+### 联系人服务 (contact-service)
+
+**用户端接口：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/user/contact/list | 查询所有联系人 |
+| GET | /api/user/contact/{id} | 根据ID查询 |
+| GET | /api/user/contact/search/name?name=xxx | 根据姓名搜索 |
+| POST | /api/user/contact/create | 创建联系人 |
+| PUT | /api/user/contact/{id} | 更新联系人 |
+| DELETE | /api/user/contact/{id} | 删除联系人 |
+
+**废弃接口（向后兼容）：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /contact/list | 查询联系人（已废弃）|
+
+### 物流服务 (logistics-service)
+
+**用户端接口：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/user/logistics/{id} | 根据ID查询物流 |
+| GET | /api/user/logistics/search/tracking?trackingNumber=xxx | 根据快递单号查询 |
+
+**商家端接口：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/seller/logistics/list | 查询所有物流信息 |
+| POST | /api/seller/logistics/create | 创建物流信息 |
+| PUT | /api/seller/logistics/{id} | 更新物流信息 |
+| DELETE | /api/seller/logistics/{id} | 删除物流信息 |
+
+**废弃接口（向后兼容）：**
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /logistics/list | 查询物流列表（已废弃）|
+
+### AI聊天服务 (chat-service)
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /chat | 发送消息，返回AI回复 |
 
 请求体：
 ```json
@@ -229,5 +289,5 @@ AI-Shopping-backend_Eureka/
 
 ---
 
-**版本**：v1.0  
-**更新日期**：2026-04-20
+**版本**：v1.1  
+**更新日期**：2026-04-22（API拆分为user/seller端）

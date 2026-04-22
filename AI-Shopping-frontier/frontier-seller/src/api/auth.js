@@ -13,7 +13,7 @@ import { request } from './request'
  * @returns {Promise} - {message, token, merchantInfo}
  */
 export const merchantLogin = (data) =>
-  request.post('/auth/merchant/login', data)
+  request.post('/api/seller/auth/login', data)
 
 /**
  * 商家注册
@@ -21,14 +21,14 @@ export const merchantLogin = (data) =>
  * @returns {Promise} - {message, token, merchantInfo}
  */
 export const merchantRegister = (data) =>
-  request.post('/auth/merchant/register', data)
+  request.post('/api/seller/auth/register', data)
 
 /**
  * 商家登出
  * @returns {Promise} - {message}
  */
 export const merchantLogout = () =>
-  request.post('/auth/merchant/logout')
+  request.post('/api/seller/auth/logout')
 
 // ==================== 商家信息 ====================
 
@@ -37,7 +37,7 @@ export const merchantLogout = () =>
  * @returns {Promise} - {message, merchantInfo}
  */
 export const getMerchantInfo = () =>
-  request.get('/auth/merchant/info')
+  request.get('/api/seller/auth/info')
 
 // ==================== 校验接口 ====================
 
@@ -47,7 +47,7 @@ export const getMerchantInfo = () =>
  * @returns {Promise} - {available, message}
  */
 export const checkMerchantUsername = (username) =>
-  request.get('/auth/merchant/check-username', { params: { username } })
+  request.get('/api/seller/auth/check-username', { params: { username } })
 
 /**
  * 检查商家手机号是否可用
@@ -55,4 +55,4 @@ export const checkMerchantUsername = (username) =>
  * @returns {Promise} - {available, message}
  */
 export const checkMerchantPhone = (phone) =>
-  request.get('/auth/merchant/check-phone', { params: { phone } })
+  request.get('/api/seller/auth/check-phone', { params: { phone } })

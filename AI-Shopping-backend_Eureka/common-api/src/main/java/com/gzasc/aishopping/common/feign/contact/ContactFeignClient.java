@@ -14,8 +14,8 @@ import java.util.Map;
 public interface ContactFeignClient {
 
     /**
-     * 根据ID查询联系人
+     * 根据ID查询联系人（用户端接口）
      */
-    @GetMapping("/api/contact/get/{id}")
+    @GetMapping("/api/user/contact/{id}")
     Map<String, Object> getContactById(@PathVariable("id") int id);
 }

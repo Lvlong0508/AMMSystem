@@ -1,10 +1,7 @@
 import { ref, onMounted } from 'vue'
 import {
-  getAllOrders,
-  getOrdersByStatus,
-  getOrdersByCustomerName,
-  updateOrderStatus,
-  deleteOrder
+  getMyOrders,
+  cancelOrder
 } from '../../api/order.js'
 import { getContactById } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
@@ -28,7 +25,7 @@ export function useOrderManager() {
   const loadOrders = async () => {
     loading.value = true
     try {
-      const res = await getAllOrders()
+      const res = await getMyOrders()
       if (res.data?.orders) {
         // 为每个订单加载联系人和物流信息
         const ordersWithDetails = await Promise.all(
@@ -81,117 +78,26 @@ export function useOrderManager() {
     }
   }
 
-  // 按状态筛选
+  // 按状态筛选（客户端筛选，不再调用后端API）
   const handleStatusFilter = async () => {
-    if (!filterStatus.value) {
-      await loadOrders()
-      return
-    }
-    loading.value = true
-    try {
-      const res = await getOrdersByStatus(filterStatus.value)
-      if (res.data?.orders) {
-        // 为每个订单加载联系人和物流信息
-        const ordersWithDetails = await Promise.all(
-          res.data.orders.map(async (order) => {
-            const enrichedOrder = { ...order }
-            // 加载商品信息
-            if (order.productId) {
-              try {
-                const productRes = await getProductById(order.productId)
-                if (productRes.data?.data) {
-                  enrichedOrder.productName = productRes.data.data.name
-                }
-              } catch (e) {
-                console.warn('加载商品信息失败:', e)
-              }
-            }
-            if (order.contactId) {
-              try {
-                const contactRes = await getContactById(order.contactId)
-                if (contactRes.data?.data) {
-                  enrichedOrder.contact = contactRes.data.data
-                }
-              } catch (e) {
-                console.warn('加载联系人信息失败:', e)
-              }
-            }
-            if (order.logisticsId) {
-              try {
-                const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data?.data) {
-                  enrichedOrder.logistics = logisticsRes.data.data
-                }
-              } catch (e) {
-                console.warn('加载物流信息失败:', e)
-              }
-            }
-            return enrichedOrder
-          })
-        )
-        orders.value = ordersWithDetails.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
-      }
-    } catch (error) {
-      console.error('筛选订单失败:', error)
-    } finally {
-      loading.value = false
+    // 先加载所有订单
+    await loadOrders()
+    // 如果指定了状态，在前端进行筛选
+    if (filterStatus.value) {
+      orders.value = orders.value.filter(order => order.orderStatus === filterStatus.value)
     }
   }
 
-  // 按客户搜索
+  // 按客户搜索（客户端搜索，不再调用后端API）
   const handleCustomerSearch = async () => {
-    if (!searchCustomer.value.trim()) {
-      await loadOrders()
-      return
-    }
-    loading.value = true
-    try {
-      const res = await getOrdersByCustomerName(searchCustomer.value.trim())
-      if (res.data?.orders) {
-        // 为每个订单加载联系人和物流信息
-        const ordersWithDetails = await Promise.all(
-          res.data.orders.map(async (order) => {
-            const enrichedOrder = { ...order }
-            // 加载商品信息
-            if (order.productId) {
-              try {
-                const productRes = await getProductById(order.productId)
-                if (productRes.data?.data) {
-                  enrichedOrder.productName = productRes.data.data.name
-                }
-              } catch (e) {
-                console.warn('加载商品信息失败:', e)
-              }
-            }
-            if (order.contactId) {
-              try {
-                const contactRes = await getContactById(order.contactId)
-                if (contactRes.data?.data) {
-                  enrichedOrder.contact = contactRes.data.data
-                }
-              } catch (e) {
-                console.warn('加载联系人信息失败:', e)
-              }
-            }
-            if (order.logisticsId) {
-              try {
-                const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data?.data) {
-                  enrichedOrder.logistics = logisticsRes.data.data
-                }
-              } catch (e) {
-                console.warn('加载物流信息失败:', e)
-              }
-            }
-            return enrichedOrder
-          })
-        )
-        orders.value = ordersWithDetails.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
-      }
-    } catch (error) {
-      console.error('搜索订单失败:', error)
-    } finally {
-      loading.value = false
+    // 先加载所有订单
+    await loadOrders()
+    // 如果指定了搜索关键词，在前端进行筛选
+    if (searchCustomer.value.trim()) {
+      const keyword = searchCustomer.value.trim().toLowerCase()
+      orders.value = orders.value.filter(order => 
+        order.contact?.name?.toLowerCase().includes(keyword)
+      )
     }
   }
 
@@ -237,57 +143,33 @@ export function useOrderManager() {
     selectedOrder.value = null
   }
 
-  // 更新订单状态
-  const updateStatus = async (orderId, status) => {
-    try {
-      const res = await updateOrderStatus(orderId, status)
-      if (res.data?.message?.includes('成功')) {
-        showSuccess(ORDER_MESSAGES.UPDATE_SUCCESS)
-        await loadOrders()
-      } else {
-        showError(res.data?.message || ORDER_MESSAGES.OPERATION_FAILED)
-      }
-    } catch (error) {
-      console.error('更新状态失败:', error)
-      showError(ORDER_MESSAGES.UPDATE_FAILED)
-    }
-  }
-
-  // 确认删除
+  // 确认取消订单
   const confirmDelete = async (orderId) => {
     const result = await showConfirm(
       ORDER_MESSAGES.DELETE_CONFIRM_TITLE || '智能购物系统',
-      ORDER_MESSAGES.DELETE_CONFIRM,
+      '确定要取消这个订单吗？',
       ORDER_MESSAGES.CONFIRM_BUTTON,
       ORDER_MESSAGES.CANCEL_BUTTON
     )
     if (!result.isConfirmed) return
 
     try {
-      const res = await deleteOrder(orderId)
+      const res = await cancelOrder(orderId)
       if (res.data?.message?.includes('成功')) {
-        showSuccess(ORDER_MESSAGES.DELETE_SUCCESS)
+        showSuccess('订单已取消')
         await loadOrders()
       } else {
         showError(res.data?.message || ORDER_MESSAGES.OPERATION_FAILED)
       }
     } catch (error) {
-      console.error('删除订单失败:', error)
-      showError(ORDER_MESSAGES.DELETE_FAILED)
+      console.error('取消订单失败:', error)
+      showError('取消订单失败')
     }
   }
 
-  // 确认退货
+  // 确认退货（用户端暂不实现，需联系商家）
   const confirmReturn = async (orderId) => {
-    const result = await showConfirm(
-      ORDER_MESSAGES.RETURN_CONFIRM_TITLE || '智能购物系统',
-      ORDER_MESSAGES.RETURN_CONFIRM,
-      ORDER_MESSAGES.CONFIRM_BUTTON,
-      ORDER_MESSAGES.CANCEL_BUTTON
-    )
-    if (!result.isConfirmed) return
-
-    await updateStatus(orderId, ORDER_STATUS.RETURNED)
+    showError('如需退货，请联系商家处理')
   }
 
   // 初始化加载
@@ -310,7 +192,6 @@ export function useOrderManager() {
     formatDate,
     showOrderDetail,
     closeDetail,
-    updateStatus,
     confirmDelete,
     confirmReturn
   }

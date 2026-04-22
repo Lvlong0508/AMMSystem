@@ -20,15 +20,15 @@ import java.util.Map;
 public interface ProductFeignClient {
 
     /**
-     * 获取所有商品（外部接口）
+     * 获取所有商品（用户端接口）
      */
-    @GetMapping("/api/product/all")
+    @GetMapping("/api/user/product/all")
     Map<String, Object> getAllProducts(@RequestParam("page") int page);
 
     /**
-     * 根据ID查询商品（外部接口）
+     * 根据ID查询商品（用户端接口）
      */
-    @GetMapping("/api/product/{productId}")
+    @GetMapping("/api/user/product/{productId}")
     Map<String, Object> getProductByIdExternal(@PathVariable("productId") String productId);
 
     /**

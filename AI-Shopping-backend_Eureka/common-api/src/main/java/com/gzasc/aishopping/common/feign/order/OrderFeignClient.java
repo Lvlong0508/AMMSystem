@@ -14,20 +14,20 @@ import java.util.Map;
 public interface OrderFeignClient {
 
     /**
-     * 根据ID查询订单
+     * 根据ID查询订单（商家端接口）
      */
-    @GetMapping("/api/order/{orderId}")
+    @GetMapping("/api/seller/order/{orderId}")
     Map<String, Object> getOrderById(@PathVariable("orderId") String orderId);
 
     /**
-     * 获取所有订单列表
+     * 获取所有订单列表（商家端接口）
      */
-    @GetMapping("/api/order/list")
+    @GetMapping("/api/seller/order/list")
     Map<String, Object> getAllOrders();
 
     /**
-     * 根据状态查询订单
+     * 根据状态查询订单（商家端接口）
      */
-    @GetMapping("/api/order/status/{status}")
+    @GetMapping("/api/seller/order/status/{status}")
     Map<String, Object> getOrdersByStatus(@PathVariable("status") String status);
 }

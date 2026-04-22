@@ -24,7 +24,19 @@ timeout /t 1 /nobreak >nul
 start "chat-service" /D "%BASE_DIR%chat-service" cmd /c "mvn spring-boot:run"
 
 echo.
-echo Services started. Press Q to stop, or any key to exit.
+echo =========================================
+echo 微服务启动顺序：
+echo 1. Eureka Server (8761) - 服务注册中心
+echo 2. Gateway Service (8080) - API网关
+echo 3. Auth Service (8086) - 认证服务
+echo 4. Product Service (8081) - 商品服务
+echo 5. Contact Service (8083) - 联系人服务
+echo 6. Logistics Service (8084) - 物流服务
+echo 7. Order Service (8082) - 订单服务
+echo 8. Chat Service (8085) - AI聊天服务
+echo =========================================
+echo.
+echo 按 Q 停止所有服务，或按其他键退出（服务继续运行）
 echo.
 
 :wait_loop

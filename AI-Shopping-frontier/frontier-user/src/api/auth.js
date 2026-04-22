@@ -13,7 +13,7 @@ import { request } from './request'
  * @returns {Promise} - {message, token, userInfo}
  */
 export const userLogin = (data) =>
-  request.post('/auth/user/login', data)
+  request.post('/api/user/auth/login', data)
 
 /**
  * 用户注册
@@ -21,14 +21,14 @@ export const userLogin = (data) =>
  * @returns {Promise} - {message, token, userInfo}
  */
 export const userRegister = (data) =>
-  request.post('/auth/user/register', data)
+  request.post('/api/user/auth/register', data)
 
 /**
  * 用户登出
  * @returns {Promise} - {message}
  */
 export const userLogout = () =>
-  request.post('/auth/user/logout')
+  request.post('/api/user/auth/logout')
 
 // ==================== 用户信息 ====================
 
@@ -37,7 +37,7 @@ export const userLogout = () =>
  * @returns {Promise} - {message, userInfo}
  */
 export const getUserInfo = () =>
-  request.get('/auth/user/info')
+  request.get('/api/user/auth/info')
 
 // ==================== 校验接口 ====================
 
@@ -47,7 +47,7 @@ export const getUserInfo = () =>
  * @returns {Promise} - {available, message}
  */
 export const checkUsername = (username) =>
-  request.get('/auth/user/check-username', { params: { username } })
+  request.get('/api/user/auth/check-username', { params: { username } })
 
 /**
  * 检查手机号是否可用
@@ -55,4 +55,4 @@ export const checkUsername = (username) =>
  * @returns {Promise} - {available, message}
  */
 export const checkPhone = (phone) =>
-  request.get('/auth/user/check-phone', { params: { phone } })
+  request.get('/api/user/auth/check-phone', { params: { phone } })
