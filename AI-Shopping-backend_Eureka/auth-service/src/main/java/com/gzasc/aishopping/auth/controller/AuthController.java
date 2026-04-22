@@ -26,7 +26,6 @@ import java.util.Map;
  * 商家端接口: /api/auth/merchant/**
  */
 @RestController
-@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -36,9 +35,9 @@ public class AuthController {
 
     /**
      * 用户注册
-     * POST /api/auth/user/register
+     * POST /api/user/auth/register
      */
-    @PostMapping("/user/register")
+    @PostMapping("/api/user/auth/register")
     public Map<String, Object> userRegister(@RequestBody @Valid RegisterRequest request, 
                                                BindingResult bindingResult) {
         // 参数校验
@@ -63,9 +62,9 @@ public class AuthController {
 
     /**
      * 用户登录
-     * POST /api/auth/user/login
+     * POST /api/user/auth/login
      */
-    @PostMapping("/user/login")
+    @PostMapping("/api/user/auth/login")
     public Map<String, Object> userLogin(@RequestBody @Valid LoginRequest request,
                                           BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -90,9 +89,9 @@ public class AuthController {
 
     /**
      * 用户登出
-     * POST /api/auth/user/logout
+     * POST /api/user/auth/logout
      */
-    @PostMapping("/user/logout")
+    @PostMapping("/api/user/auth/logout")
     public Map<String, String> userLogout() {
         try {
             authService.logout();
@@ -104,9 +103,9 @@ public class AuthController {
 
     /**
      * 获取当前登录用户信息
-     * GET /api/auth/user/info
+     * GET /api/user/auth/info
      */
-    @GetMapping("/user/info")
+    @GetMapping("/api/user/auth/info")
     public Map<String, Object> getUserInfo() {
         try {
             // 检查是否登录且为用户类型
@@ -141,9 +140,9 @@ public class AuthController {
 
     /**
      * 检查用户用户名是否存在
-     * GET /api/auth/user/check-username?username=xxx
+     * GET /api/user/auth/check-username?username=xxx
      */
-    @GetMapping("/user/check-username")
+    @GetMapping("/api/user/auth/check-username")
     public Map<String, Object> checkUserUsername(@RequestParam String username) {
         boolean exists = authService.userExistsByUsername(username);
         return Map.of(
@@ -154,9 +153,9 @@ public class AuthController {
 
     /**
      * 检查用户手机号是否存在
-     * GET /api/auth/user/check-phone?phone=xxx
+     * GET /api/user/auth/check-phone?phone=xxx
      */
-    @GetMapping("/user/check-phone")
+    @GetMapping("/api/user/auth/check-phone")
     public Map<String, Object> checkUserPhone(@RequestParam String phone) {
         boolean exists = authService.userExistsByPhone(phone);
         return Map.of(
@@ -169,9 +168,9 @@ public class AuthController {
 
     /**
      * 商家注册
-     * POST /api/auth/merchant/register
+     * POST /api/seller/auth/register
      */
-    @PostMapping("/merchant/register")
+    @PostMapping("/api/seller/auth/register")
     public Map<String, Object> merchantRegister(@RequestBody @Valid RegisterRequest request,
                                                  BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -195,9 +194,9 @@ public class AuthController {
 
     /**
      * 商家登录
-     * POST /api/auth/merchant/login
+     * POST /api/seller/auth/login
      */
-    @PostMapping("/merchant/login")
+    @PostMapping("/api/seller/auth/login")
     public Map<String, Object> merchantLogin(@RequestBody @Valid LoginRequest request,
                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
@@ -221,9 +220,9 @@ public class AuthController {
 
     /**
      * 商家登出
-     * POST /api/auth/merchant/logout
+     * POST /api/seller/auth/logout
      */
-    @PostMapping("/merchant/logout")
+    @PostMapping("/api/seller/auth/logout")
     public Map<String, String> merchantLogout() {
         try {
             authService.logout();
@@ -235,9 +234,9 @@ public class AuthController {
 
     /**
      * 获取当前登录商家信息
-     * GET /api/auth/merchant/info
+     * GET /api/seller/auth/info
      */
-    @GetMapping("/merchant/info")
+    @GetMapping("/api/seller/auth/info")
     public Map<String, Object> getMerchantInfo() {
         try {
             // 检查是否登录且为商家类型
@@ -272,9 +271,9 @@ public class AuthController {
 
     /**
      * 检查商家用户名是否存在
-     * GET /api/auth/merchant/check-username?username=xxx
+     * GET /api/seller/auth/check-username?username=xxx
      */
-    @GetMapping("/merchant/check-username")
+    @GetMapping("/api/seller/auth/check-username")
     public Map<String, Object> checkMerchantUsername(@RequestParam String username) {
         boolean exists = authService.merchantExistsByUsername(username);
         return Map.of(
@@ -285,9 +284,9 @@ public class AuthController {
 
     /**
      * 检查商家手机号是否存在
-     * GET /api/auth/merchant/check-phone?phone=xxx
+     * GET /api/seller/auth/check-phone?phone=xxx
      */
-    @GetMapping("/merchant/check-phone")
+    @GetMapping("/api/seller/auth/check-phone")
     public Map<String, Object> checkMerchantPhone(@RequestParam String phone) {
         boolean exists = authService.merchantExistsByPhone(phone);
         return Map.of(

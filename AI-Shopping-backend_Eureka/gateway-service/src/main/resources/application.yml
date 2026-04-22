@@ -1,0 +1,129 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway-service
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # ========== 用户端路由 ==========
+        # 用户认证服务
+        - id: user-auth
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/user/auth/**
+        
+        # 用户商品服务
+        - id: user-product
+          uri: lb://product-service
+          predicates:
+            - Path=/api/user/product/**
+        
+        # 用户订单服务
+        - id: user-order
+          uri: lb://order-service
+          predicates:
+            - Path=/api/user/order/**
+        
+        # 用户联系人服务
+        - id: user-contact
+          uri: lb://contact-service
+          predicates:
+            - Path=/api/user/contact/**
+        
+        # 用户物流服务
+        - id: user-logistics
+          uri: lb://logistics-service
+          predicates:
+            - Path=/api/user/logistics/**
+        
+        # 用户聊天服务
+        - id: user-chat
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/user/chat/**
+        
+        # ========== 商家端路由 ==========
+        # 商家认证服务
+        - id: seller-auth
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/seller/auth/**
+        
+        # 商家商品服务
+        - id: seller-product
+          uri: lb://product-service
+          predicates:
+            - Path=/api/seller/product/**
+        
+        # 商家订单服务
+        - id: seller-order
+          uri: lb://order-service
+          predicates:
+            - Path=/api/seller/order/**
+        
+        # 商家联系人服务
+        - id: seller-contact
+          uri: lb://contact-service
+          predicates:
+            - Path=/api/seller/contact/**
+        
+        # 商家物流服务
+        - id: seller-logistics
+          uri: lb://logistics-service
+          predicates:
+            - Path=/api/seller/logistics/**
+        
+        # 商家聊天服务
+        - id: seller-chat
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/seller/chat/**
+
+# Sa-Token配置
+sa-token:
+  token-name: satoken
+  timeout: 2592000
+  activity-timeout: -1
+  is-concurrent: true
+  is-share: true
+  token-style: uuid
+  is-cookie: false
+  is-header: true
+
+# IP限流配置
+ip-rate-limit:
+  max-requests: 30
+  time-window-seconds: 60
+
+# 认证白名单配置
+auth:
+  whitelist:
+    paths:
+      - /api/user/auth/login
+      - /api/user/auth/register
+      - /api/seller/auth/login
+      - /api/seller/auth/register
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    com.gzasc.aishopping.gateway: DEBUG

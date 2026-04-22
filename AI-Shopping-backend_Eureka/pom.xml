@@ -13,6 +13,7 @@
 
     <modules>
         <module>eureka-server</module>
+        <module>gateway-service</module>
         <module>common-api</module>
         <module>product-service</module>
         <module>order-service</module>

@@ -1,0 +1,52 @@
+### Gateway服务测试请求
+
+### 1. 测试未认证访问（应返回401）
+GET http://localhost:8080/api/user/order/test
+Accept: application/json
+
+### 2. 测试用户登录（白名单，应成功）
+POST http://localhost:8080/api/user/auth/login
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "123456"
+}
+
+### 3. 测试商家登录（白名单，应成功）
+POST http://localhost:8080/api/seller/auth/login
+Content-Type: application/json
+
+{
+  "username": "testseller",
+  "password": "123456"
+}
+
+### 4. 测试用户注册（白名单）
+POST http://localhost:8080/api/user/auth/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "123456",
+  "phone": "13800138000"
+}
+
+### 5. 测试携带Token访问（登录后替换satoken值）
+GET http://localhost:8080/api/user/auth/info
+satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Accept: application/json
+
+### 6. 测试IP限流（快速发送多次，第31次应返回429）
+GET http://localhost:8080/api/user/auth/login
+Accept: application/json
+
+### 7. 测试路由转发到商品服务
+GET http://localhost:8080/api/user/product/list
+satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Accept: application/json
+
+### 8. 测试商家端路由
+GET http://localhost:8080/api/seller/product/list
+satoken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...
+Accept: application/json
