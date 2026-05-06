@@ -41,6 +41,9 @@ export function useChatLogic() {
   const recommendedProducts = ref([])
   const refreshing = ref(false)
   let productMap = {} // 动态商品映射表
+  let currentPage = 0 // 当前商品页码
+  let refreshCount = 0 // 换一换点击计数
+  const REFRESH_THRESHOLD = 3 // 换页阈值（点击3次后加载下一页）
 
   // 加载推荐商品
   const loadRecommendations = () => {
@@ -52,6 +55,33 @@ export function useChatLogic() {
     if (refreshing.value || allProducts.value.length === 0) return
     
     refreshing.value = true
+    refreshCount++
+    
+    // 检查是否需要加载更多页的商品
+    if (refreshCount >= REFRESH_THRESHOLD) {
+      try {
+        currentPage++
+        const response = await getAllProducts(currentPage, 50)
+        const newProducts = response?.data || []
+        
+        if (newProducts.length > 0) {
+          // 追加新商品到列表并去重
+          const existingIds = new Set(allProducts.value.map(p => p.id))
+          const uniqueNew = newProducts.filter(p => !existingIds.has(p.id))
+          allProducts.value = [...allProducts.value, ...uniqueNew]
+          productMap = buildProductMap(allProducts.value)
+          console.log(`已加载第 ${currentPage} 页商品，当前共 ${allProducts.value.length} 个商品`)
+        } else {
+          // 没有更多商品了，重置计数
+          currentPage = 0
+          refreshCount = 0
+        }
+      } catch (error) {
+        console.error('加载下一页商品失败:', error)
+      }
+      // 重置计数
+      refreshCount = 0
+    }
     
     // 模拟加载延迟，提升用户体验
     await new Promise(resolve => setTimeout(resolve, 300))
@@ -75,9 +105,11 @@ export function useChatLogic() {
   }, { deep: true })
   onMounted(async () => {
     try {
+      currentPage = 0
+      refreshCount = 0
       const response = await getAllProducts()
-      allProducts.value = response.data?.data || []
-      productMap = buildProductMap(response.data?.data)
+      allProducts.value = response?.data || []
+      productMap = buildProductMap(allProducts.value)
       // 初始化推荐商品
       loadRecommendations()
     } catch (error) {
@@ -188,6 +220,8 @@ export function useChatLogic() {
   const startNewChat = () => {
     messages.value = []
     localStorage.removeItem('chat_history')
+    currentPage = 0
+    refreshCount = 0
   }
 
   const parseAIResponse = (content) => {

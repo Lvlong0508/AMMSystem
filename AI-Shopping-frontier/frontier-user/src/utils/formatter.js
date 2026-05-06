@@ -19,6 +19,7 @@ export function extractProductIds(text) {
  */
 export function buildProductMap(products) {
     const map = {}
+    if (!products) return map
     products.forEach(product => {
         map[product.id] = product
     })

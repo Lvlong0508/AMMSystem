@@ -15,3 +15,7 @@ export const getOrderById = (orderId) =>
 // 查询我的订单列表
 export const getMyOrders = () =>
     request.get('/api/user/order/list')
+
+// 更新订单状态
+export const updateOrderStatus = (orderId, status) =>
+    request.put(`/api/user/order/${orderId}/status`, { status })

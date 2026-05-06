@@ -42,6 +42,11 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
         ServerHttpRequest request = exchange.getRequest();
         String path = request.getURI().getPath();
 
+        // 放行 CORS 预检请求
+        if (request.getMethod() == org.springframework.http.HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
+
         // 检查是否是白名单路径
         if (isWhiteList(path)) {
             log.debug("路径 {} 在白名单中，放行", path);
