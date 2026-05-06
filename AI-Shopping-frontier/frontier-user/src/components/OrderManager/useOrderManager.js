@@ -1,7 +1,8 @@
 import { ref, onMounted } from 'vue'
 import {
   getMyOrders,
-  cancelOrder
+  cancelOrder,
+  updateOrderStatus
 } from '../../api/order.js'
 import { getContactById } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
@@ -26,17 +27,17 @@ export function useOrderManager() {
     loading.value = true
     try {
       const res = await getMyOrders()
-      if (res.data?.orders) {
+      if (res?.orders) {
         // 为每个订单加载联系人和物流信息
         const ordersWithDetails = await Promise.all(
-          res.data.orders.map(async (order) => {
+          res.orders.map(async (order) => {
             const enrichedOrder = { ...order }
             // 加载商品信息
             if (order.productId) {
               try {
                 const productRes = await getProductById(order.productId)
-                if (productRes.data?.data) {
-                  enrichedOrder.productName = productRes.data.data.name
+                if (productRes.data) {
+                  enrichedOrder.productName = productRes.data.name
                 }
               } catch (e) {
                 console.warn('加载商品信息失败:', e)
@@ -46,8 +47,8 @@ export function useOrderManager() {
             if (order.contactId) {
               try {
                 const contactRes = await getContactById(order.contactId)
-                if (contactRes.data?.data) {
-                  enrichedOrder.contact = contactRes.data.data
+                if (contactRes.data) {
+                  enrichedOrder.contact = contactRes.data
                 }
               } catch (e) {
                 console.warn('加载联系人信息失败:', e)
@@ -57,8 +58,8 @@ export function useOrderManager() {
             if (order.logisticsId) {
               try {
                 const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data?.data) {
-                  enrichedOrder.logistics = logisticsRes.data.data
+                if (logisticsRes.data) {
+                  enrichedOrder.logistics = logisticsRes.data
                 }
               } catch (e) {
                 console.warn('加载物流信息失败:', e)
@@ -167,6 +168,22 @@ export function useOrderManager() {
     }
   }
 
+  // 更新订单状态
+  const updateStatus = async (orderId, status) => {
+    try {
+      const res = await updateOrderStatus(orderId, status)
+      if (res.data?.message?.includes('成功')) {
+        showSuccess('订单状态已更新')
+        await loadOrders()
+      } else {
+        showError(res.data?.message || '操作失败')
+      }
+    } catch (error) {
+      console.error('更新订单状态失败:', error)
+      showError('更新状态失败')
+    }
+  }
+
   // 确认退货（用户端暂不实现，需联系商家）
   const confirmReturn = async (orderId) => {
     showError('如需退货，请联系商家处理')
@@ -192,6 +209,7 @@ export function useOrderManager() {
     formatDate,
     showOrderDetail,
     closeDetail,
+    updateStatus,
     confirmDelete,
     confirmReturn
   }

@@ -47,7 +47,7 @@ export function useContactLogic() {
   const loadContacts = async () => {
     try {
       const res = await getAllContacts()
-      contacts.value = res.data?.data || []
+      contacts.value = res.data || []
     } catch (error) {
       console.error('获取联系人失败:', error)
       showError(CONTACT_MESSAGES.LOAD_FAILED)
@@ -63,13 +63,13 @@ export function useContactLogic() {
     try {
       // 先尝试按姓名搜索
       const res = await searchContactsByName(searchKeyword.value)
-      if (res.data?.data && res.data.data.length > 0) {
-        contacts.value = res.data.data
+      if (res.data && res.data.length > 0) {
+        contacts.value = res.data
       } else {
         // 如果没有结果，尝试按电话搜索
         const phoneRes = await getContactByPhone(searchKeyword.value)
-        if (phoneRes.data?.data) {
-          contacts.value = [phoneRes.data.data]
+        if (phoneRes.data) {
+          contacts.value = [phoneRes.data]
         } else {
           contacts.value = []
         }

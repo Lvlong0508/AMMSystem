@@ -17,16 +17,16 @@ import { request } from './request'
 
 // 根据ID查询联系人
 export const getContactById = (id) =>
-    request.get(`/api/user/contact/${id}`)
+    request.get(`/api/seller/contact/get/${id}`)
 
 // 查询所有联系人
 export const getAllContacts = () =>
-    request.get('/api/user/contact/list')
+    request.get('/api/seller/contact/list')
 
 // 根据姓名查询联系人
 export const searchContactsByName = (name) =>
-    request.get('/api/user/contact/search/name', { params: { name } })
+    request.get('/api/seller/contact/search/name', { params: { name } })
 
 // 根据电话查询联系人
 export const getContactByPhone = (phone) =>
-    request.get('/api/user/contact/search/phone', { params: { phone } })
+    request.get('/api/seller/contact/search/phone', { params: { phone } })

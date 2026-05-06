@@ -3,7 +3,6 @@ import { ref, onMounted, computed } from 'vue'
 import {
   getAllOrders,
   getOrdersByStatus,
-  getOrdersByCustomerName,
   shipOrder
 } from '../../api/order.js'
 import { getAllContacts, getContactById } from '../../api/contact.js'
@@ -52,17 +51,17 @@ export function useMerchantShip() {
       } else {
         res = await getAllOrders()
       }
-      if (res.data?.orders) {
+      if (res?.orders) {
         // 为每个订单加载联系人和物流信息
         const ordersWithDetails = await Promise.all(
-          res.data.orders.map(async (order) => {
+          res.orders.map(async (order) => {
             const enrichedOrder = { ...order }
             // 加载商品信息
             if (order.productId) {
               try {
                 const productRes = await getProductById(order.productId)
-                if (productRes.data?.data) {
-                  enrichedOrder.productName = productRes.data.data.name
+                if (productRes.data) {
+                  enrichedOrder.productName = productRes.data.name
                 }
               } catch (e) {
                 console.warn('加载商品信息失败:', e)
@@ -72,8 +71,8 @@ export function useMerchantShip() {
             if (order.contactId) {
               try {
                 const contactRes = await getContactById(order.contactId)
-                if (contactRes.data?.data) {
-                  enrichedOrder.contact = contactRes.data.data
+                if (contactRes.data) {
+                  enrichedOrder.contact = contactRes.data
                 }
               } catch (e) {
                 console.warn('加载联系人信息失败:', e)
@@ -83,15 +82,15 @@ export function useMerchantShip() {
             if (order.logisticsId) {
               try {
                 const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data?.data) {
-                  const logistics = logisticsRes.data.data
+                if (logisticsRes.data) {
+                  const logistics = logisticsRes.data
                   enrichedOrder.logistics = logistics
                   // 尝试加载发货人（物流中的联系人）信息，失败不影响物流信息显示
                   if (logistics.contactId) {
                     try {
                       const shipperRes = await getContactById(logistics.contactId)
-                      if (shipperRes.data?.data) {
-                        logistics.shipper = shipperRes.data.data
+                      if (shipperRes.data) {
+                        logistics.shipper = shipperRes.data
                       }
                     } catch (shipperErr) {
                       console.warn('加载发货人信息失败:', shipperErr)
@@ -123,71 +122,12 @@ export function useMerchantShip() {
 
   // 按客户搜索
   const handleCustomerSearch = async () => {
-    if (!searchCustomer.value.trim()) {
-      await loadOrders()
-      return
-    }
-    loading.value = true
-    try {
-      const res = await getOrdersByCustomerName(searchCustomer.value.trim())
-      if (res.data?.orders) {
-        // 为每个订单加载联系人和物流信息
-        const ordersWithDetails = await Promise.all(
-          res.data.orders.map(async (order) => {
-            const enrichedOrder = { ...order }
-            // 加载商品信息
-            if (order.productId) {
-              try {
-                const productRes = await getProductById(order.productId)
-                if (productRes.data?.data) {
-                  enrichedOrder.productName = productRes.data.data.name
-                }
-              } catch (e) {
-                console.warn('加载商品信息失败:', e)
-              }
-            }
-            if (order.contactId) {
-              try {
-                const contactRes = await getContactById(order.contactId)
-                if (contactRes.data?.data) {
-                  enrichedOrder.contact = contactRes.data.data
-                }
-              } catch (e) {
-                console.warn('加载联系人信息失败:', e)
-              }
-            }
-            if (order.logisticsId) {
-              try {
-                const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data?.data) {
-                  const logistics = logisticsRes.data.data
-                  // 加载发货人（物流中的联系人）信息
-                  if (logistics.contactId) {
-                    const shipperRes = await getContactById(logistics.contactId)
-                    if (shipperRes.data?.data) {
-                      logistics.shipper = shipperRes.data.data
-                    }
-                  }
-                  enrichedOrder.logistics = logistics
-                }
-              } catch (e) {
-                console.warn('加载物流信息失败:', e)
-              }
-            }
-            return enrichedOrder
-          })
-        )
-        // 显示待发货、已发货和已退货的订单，按日期降序排序
-        orders.value = ordersWithDetails.filter(o => 
-          o.orderStatus === ORDER_STATUS.PAID || 
-          o.orderStatus === ORDER_STATUS.SHIPPED ||
-          o.orderStatus === ORDER_STATUS.RETURNED
-        ).sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
-      }
-    } catch (error) {
-      console.error('搜索订单失败:', error)
-    } finally {
-      loading.value = false
+    await loadOrders()
+    if (searchCustomer.value.trim()) {
+      const keyword = searchCustomer.value.trim().toLowerCase()
+      orders.value = orders.value.filter(order => 
+        order.contact?.name?.toLowerCase().includes(keyword)
+      )
     }
   }
 
@@ -206,11 +146,11 @@ export function useMerchantShip() {
     contactsLoading.value = true
     try {
       const res = await getAllContacts()
-      if (res.data?.data) {
-        contacts.value = res.data.data
+      if (res?.data) {
+        contacts.value = res.data
         // 如果有联系人，默认选择第一个
-        if (res.data.data.length > 0 && !shipForm.value.selectedContactId) {
-          shipForm.value.selectedContactId = res.data.data[0].id
+        if (res.data.length > 0 && !shipForm.value.selectedContactId) {
+          shipForm.value.selectedContactId = res.data[0].id
         }
       }
     } catch (error) {
@@ -292,12 +232,12 @@ export function useMerchantShip() {
         shipForm.value.selectedContactId,
         shipForm.value.shippingDate
       )
-      if (res.data?.message?.includes('成功')) {
+      if (res?.message?.includes('成功')) {
         showSuccess('发货成功')
         closeShipDialog()
         await loadOrders()
       } else {
-        showError(res.data?.message || '发货失败')
+        showError(res?.message || '发货失败')
       }
     } catch (error) {
       console.error('发货失败:', error)

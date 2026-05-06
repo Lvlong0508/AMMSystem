@@ -134,7 +134,7 @@ sa-token:
 
 # IP限流配置
 ip-rate-limit:
-  max-requests: 30
+  max-requests: 300
   time-window-seconds: 60
 
 # 认证白名单配置

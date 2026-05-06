@@ -57,6 +57,7 @@
 <script setup>
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { showError } from '../../utils/swal.js'
 import { merchantLogin } from '../../api/auth'
 
 const router = useRouter()
@@ -115,13 +116,18 @@ const handleLogin = async () => {
       // 保存 Sa-Token
       localStorage.setItem('satoken', res.token)
       localStorage.setItem('merchantInfo', JSON.stringify(res.merchantInfo))
-      alert(res.message)
       router.push('/')
     } else {
-      alert(res.message || '登录失败')
+      showError(res.message || '登录失败')
     }
   } catch (e) {
-    alert('网络错误，请稍后重试')
+    let errorMsg = '网络错误，请稍后重试'
+    if (e.response?.data?.message) {
+      errorMsg = e.response.data.message
+    } else if (e.message) {
+      errorMsg = e.message
+    }
+    showError(errorMsg)
   } finally {
     loading.value = false
   }

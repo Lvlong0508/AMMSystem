@@ -6,7 +6,7 @@ export const createLogistics = (logistics) =>
 
 // 根据ID查询物流信息
 export const getLogisticsById = (id) =>
-    request.get(`/api/user/logistics/${id}`)
+    request.get(`/api/seller/logistics/get/${id}`)
 
 // 查询所有物流信息
 export const getAllLogistics = () =>
@@ -14,12 +14,12 @@ export const getAllLogistics = () =>
 
 // 根据快递单号查询物流信息
 export const getLogisticsByTrackingNumber = (trackingNumber) =>
-    request.get('/api/user/logistics/search/tracking', { params: { trackingNumber } })
+    request.get('/api/seller/logistics/search/tracking', { params: { trackingNumber } })
 
 // 更新物流信息
 export const updateLogistics = (logistics) =>
-    request.put(`/api/seller/logistics/${logistics.id}`, logistics)
+    request.put('/api/seller/logistics/update', logistics)
 
 // 删除物流信息
 export const deleteLogistics = (id) =>
-    request.delete(`/api/seller/logistics/${id}`)
+    request.delete(`/api/seller/logistics/delete/${id}`)

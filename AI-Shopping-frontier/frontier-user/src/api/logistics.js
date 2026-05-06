@@ -7,7 +7,7 @@ import { request } from './request'
 
 // 根据ID查询物流信息
 export const getLogisticsById = (id) =>
-    request.get(`/api/user/logistics/${id}`)
+    request.get(`/api/user/logistics/get/${id}`)
 
 // 查询所有物流信息
 // 查询所有物流信息（商家功能，用户端不可用）

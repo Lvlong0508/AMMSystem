@@ -103,6 +103,7 @@
 import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import Swal from 'sweetalert2'
+import { showSuccess, showError } from '../../utils/swal.js'
 import { userLogin, userRegister, checkUsername, checkPhone } from '../../api/auth'
 
 const router = useRouter()
@@ -279,22 +280,10 @@ const handleSubmit = async () => {
       // 保存 Sa-Token
       localStorage.setItem('satoken', res.token)
       localStorage.setItem('userInfo', JSON.stringify(res.userInfo))
-      await Swal.fire({
-        icon: 'success',
-        title: '登录成功',
-        text: res.message,
-        confirmButtonColor: '#667eea',
-        timer: 1500,
-        timerProgressBar: true
-      })
+      await showSuccess(res.message || '登录成功')
       router.push('/')
     } else {
-      await Swal.fire({
-        icon: 'error',
-        title: '操作失败',
-        text: res.message || '操作失败',
-        confirmButtonColor: '#667eea'
-      })
+      showError(res.message || '操作失败')
     }
   } catch (e) {
     // 显示详细错误信息
@@ -304,12 +293,7 @@ const handleSubmit = async () => {
     } else if (e.message) {
       errorMsg = e.message
     }
-    await Swal.fire({
-      icon: 'error',
-      title: '登录错误',
-      text: errorMsg,
-      confirmButtonColor: '#667eea'
-    })
+    showError(errorMsg)
   } finally {
     loading.value = false
   }

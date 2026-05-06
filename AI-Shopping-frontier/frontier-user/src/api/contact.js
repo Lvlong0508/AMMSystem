@@ -6,15 +6,15 @@ export const createContact = (contact) =>
 
 // 删除联系人
 export const deleteContact = (id) =>
-    request.delete(`/api/user/contact/${id}`)
+    request.delete(`/api/user/contact/delete/${id}`)
 
 // 更新联系人
 export const updateContact = (contact) =>
-    request.put('/api/user/contact/${contact.id}', contact)
+    request.put('/api/user/contact/update', contact)
 
 // 根据ID查询联系人
 export const getContactById = (id) =>
-    request.get(`/api/user/contact/${id}`)
+    request.get(`/api/user/contact/get/${id}`)
 
 // 查询所有联系人
 export const getAllContacts = () =>

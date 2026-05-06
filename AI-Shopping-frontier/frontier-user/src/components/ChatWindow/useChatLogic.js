@@ -5,7 +5,7 @@ import { sendMessage } from '../../api/chat.js'
 import { getAllProducts } from '../../api/product.js'
 import { buildProductMap } from '../../utils/formatter.js'
 import { initRecommendations, refreshRecommendations } from '../../utils/recommendation.js'
-import Swal from 'sweetalert2'
+import { showSuccess, showInfo, showError } from '../../utils/swal.js'
 import 'sweetalert2/dist/sweetalert2.min.css'
 
 export function useChatLogic() {
@@ -139,31 +139,16 @@ export function useChatLogic() {
   // 支付成功
   const handlePaymentSuccess = (paymentResult) => {
     paymentDialogVisible.value = false
-    Swal.fire({
-      icon: 'success',
-      title: '支付成功！',
-      html: `
-        <div style="text-align: left;">
-          <p><strong>订单编号：</strong>${paymentResult.orderId}</p>
-          <p><strong>支付金额：</strong>¥${paymentResult.totalPrice.toFixed(2)}</p>
-          <p style="color: #10b981; margin-top: 10px;">✓ 订单已确认，商家将尽快发货</p>
-        </div>
-      `,
-      confirmButtonText: '确定',
-      confirmButtonColor: '#3b82f6'
-    })
+    showSuccess(
+      `订单编号：${paymentResult.orderId}，支付金额：¥${paymentResult.totalPrice.toFixed(2)}\n✓ 订单已确认，商家将尽快发货`,
+      '确定'
+    )
   }
 
   // 支付取消
   const handlePaymentCancel = () => {
     paymentDialogVisible.value = false
-    Swal.fire({
-      icon: 'info',
-      title: '支付已取消',
-      text: '订单已创建，您可以在订单管理中继续支付',
-      confirmButtonText: '确定',
-      confirmButtonColor: '#3b82f6'
-    })
+    showInfo('订单已创建，您可以在订单管理中继续支付', '确定')
   }
 
   const handleSendMessage = async () => {
@@ -185,7 +170,7 @@ export function useChatLogic() {
 
     try {
       const response = await sendMessage(userMsg)
-      const aiReply = response.data.reply
+      const aiReply = response.reply
 
       const { pureText, jsonProducts } = parseAIResponse(aiReply)
 
@@ -206,12 +191,7 @@ export function useChatLogic() {
 
       await scrollToBottom()
     } catch (error) {
-      Swal.fire({
-        icon: 'error',
-        title: '请求失败',
-        text: '抱歉，我遇到了一些问题。请稍后重试。',
-        confirmButtonText: '确定'
-      })
+      showError('抱歉，我遇到了一些问题。请稍后重试。')
     } finally {
       loading.value = false
     }

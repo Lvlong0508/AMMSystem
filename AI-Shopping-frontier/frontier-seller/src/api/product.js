@@ -2,7 +2,7 @@ import { request } from './request'
 
 // 根据商品ID获取商品详情
 export const getProductById = (productId) =>
-    request.get(`/api/user/product/${productId}`)
+    request.get(`/api/seller/product/${productId}`)
 
 // 创建商品
 export const createProduct = (product) =>
