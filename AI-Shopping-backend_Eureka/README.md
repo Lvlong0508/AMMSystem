@@ -9,6 +9,8 @@
 | 服务 | 端口 | 职责 |
 |------|------|------|
 | eureka-server | 8761 | 服务注册与发现中心 |
+| gateway-service | 8080 | API网关（统一入口、路由转发） |
+| auth-service | 8086 | 认证服务（用户/商家登录鉴权） |
 | product-service | 8081 | 商品管理（CRUD、库存） |
 | order-service | 8082 | 订单管理（下单、状态流转） |
 | contact-service | 8083 | 联系人/收货地址管理 |
