@@ -3,9 +3,11 @@ package com.gzasc.aishopping.common.feign.product;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -48,4 +50,22 @@ public interface ProductFeignClient {
      */
     @PostMapping("/internal/product/restore-stock")
     Map<String, Object> restoreStock(@RequestBody StockDeductRequest request);
+
+    /**
+     * 创建商品（内部服务调用）
+     */
+    @PostMapping("/internal/product/create")
+    ProductDTO createProduct(@RequestBody ProductDTO request);
+
+    /**
+     * 更新商品（内部服务调用）
+     */
+    @PutMapping("/internal/product/{id}")
+    ProductDTO updateProduct(@PathVariable("id") Integer id, @RequestBody ProductDTO request);
+
+    /**
+     * 删除商品（内部服务调用）
+     */
+    @DeleteMapping("/internal/product/{id}")
+    void deleteProduct(@PathVariable("id") Integer id);
 }

@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -22,6 +23,7 @@ public class OrderUserController {
 
     private final OrderService orderService;
     private final ProductFeignClient productFeignClient;
+    private final ShopFeignClient shopFeignClient;
 
     @GetMapping("/{orderId}")
     public Map<String, Object> getOrderById(@PathVariable("orderId") String orderId) {
@@ -74,6 +76,17 @@ public class OrderUserController {
             order = order.buildInitOrder(orderId, product.getId(), request.getQuantity(), product.getPrice() * request.getQuantity());
             order.setContactId(request.getContactId());
             orderService.createOrder(order);
+
+            try {
+                Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(product.getId());
+                if (shopResult != null && Boolean.TRUE.equals(shopResult.get("success"))) {
+                    String shopId = String.valueOf(shopResult.get("shopId"));
+                    shopFeignClient.associateOrder(orderId, shopId);
+                }
+            } catch (Exception e) {
+                System.err.println("关联订单到店铺失败: " + e.getMessage());
+            }
+
             return Map.of("message", "创建订单成功", "orderId", orderId);
         } catch (Exception e) {
             return Map.of("message", "创建订单错误：" + e.getMessage());

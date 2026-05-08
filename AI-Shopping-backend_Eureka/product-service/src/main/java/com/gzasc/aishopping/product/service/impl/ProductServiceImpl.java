@@ -64,4 +64,13 @@ public class ProductServiceImpl implements ProductService {
         System.out.println(new Date() + "：run restoreStock, id=" + productId + ", quantity=" + quantity);
         return productMapper.restoreStock(productId, quantity) > 0;
     }
+
+    @Override
+    public List<Product> getProductsByIds(List<String> ids) {
+        System.out.println(new Date() + "：run getProductsByIds, ids=" + ids);
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        return productMapper.selectProductsByIds(ids);
+    }
 }

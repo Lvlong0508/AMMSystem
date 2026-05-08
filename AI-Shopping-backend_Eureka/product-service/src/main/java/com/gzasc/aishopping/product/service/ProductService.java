@@ -13,4 +13,5 @@ public interface ProductService {
     int updateProduct(Product product);
     boolean deductStock(String productId, int quantity);
     boolean restoreStock(String productId, int quantity);
+    List<Product> getProductsByIds(List<String> ids);
 }

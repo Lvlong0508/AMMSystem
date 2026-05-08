@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.gzasc.aishopping.shop.mapper.ProductShopMapper">
+
+    <resultMap id="BaseResultMap" type="com.gzasc.aishopping.shop.model.ProductShop">
+        <id column="id" property="id"/>
+        <result column="product_id" property="productId"/>
+        <result column="shop_id" property="shopId"/>
+        <result column="created_at" property="createdAt"/>
+    </resultMap>
+
+</mapper>

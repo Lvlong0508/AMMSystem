@@ -64,4 +64,22 @@ public interface OrderMapper {
 
     @Update("UPDATE t_order SET logistics_id = #{logisticsId} WHERE order_id = #{orderId}")
     int updateOrderLogisticsId(@Param("orderId") String orderId, @Param("logisticsId") Integer logisticsId);
+
+    @Select("<script>" +
+            "SELECT * FROM t_order WHERE order_id IN " +
+            "<foreach collection='orderIds' item='orderId' open='(' separator=',' close=')'>" +
+            "#{orderId}" +
+            "</foreach>" +
+            "</script>")
+    @Results({
+            @Result(property = "orderId", column = "order_id"),
+            @Result(property = "productId", column = "product_id"),
+            @Result(property = "quantity", column = "quantity"),
+            @Result(property = "totalPrice", column = "total_price"),
+            @Result(property = "orderStatus", column = "order_status"),
+            @Result(property = "orderDate", column = "order_date"),
+            @Result(property = "contactId", column = "contact_id"),
+            @Result(property = "logisticsId", column = "logistics_id")
+    })
+    List<Order> selectOrdersByIds(@Param("orderIds") List<String> orderIds);
 }

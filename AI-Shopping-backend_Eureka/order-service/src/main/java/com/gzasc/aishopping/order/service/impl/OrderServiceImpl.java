@@ -114,6 +114,15 @@ public class OrderServiceImpl implements OrderService {
         return currentDate + seqStr + randomChars;
     }
 
+    @Override
+    public List<Order> getOrdersByIds(List<String> orderIds) {
+        System.out.println(new Date() + ": run getOrdersByIds");
+        if (orderIds == null || orderIds.isEmpty()) {
+            return List.of();
+        }
+        return orderMapper.selectOrdersByIds(orderIds);
+    }
+
     private String generateRandomLetters() {
         Random random = new Random();
         StringBuilder sb = new StringBuilder();

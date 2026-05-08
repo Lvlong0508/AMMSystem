@@ -34,4 +34,12 @@ public interface ProductMapper {
             "description = #{description}, stock = #{stock}, updated_at = NOW() " +
             "WHERE id = #{id}")
     int updateProduct(Product product);
+
+    @Select("<script>" +
+            "SELECT * FROM products WHERE id IN " +
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            "</script>")
+    List<Product> selectProductsByIds(@Param("ids") List<String> ids);
 }

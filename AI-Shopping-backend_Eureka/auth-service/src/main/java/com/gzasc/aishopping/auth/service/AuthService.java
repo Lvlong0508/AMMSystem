@@ -74,6 +74,15 @@ public interface AuthService {
      */
     boolean merchantExistsByPhone(String phone);
 
+    // ==================== 店员接口 ====================
+
+    /**
+     * 注册店员（内部接口，无店铺）
+     * @param request 注册请求
+     * @return 店员ID
+     */
+    Integer registerEmployee(com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest request);
+
     // ==================== 通用接口 ====================
 
     /**

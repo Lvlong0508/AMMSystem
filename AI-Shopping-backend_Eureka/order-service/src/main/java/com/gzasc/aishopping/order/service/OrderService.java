@@ -13,4 +13,5 @@ public interface OrderService {
     List<Order> getOrdersByStatus(String status);
     int updateOrderStatus(String orderId, String status);
     String generateOrderId();
+    List<Order> getOrdersByIds(List<String> orderIds);
 }

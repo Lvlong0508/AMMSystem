@@ -7,6 +7,7 @@ import com.gzasc.aishopping.auth.model.Merchant;
 import com.gzasc.aishopping.auth.model.User;
 import com.gzasc.aishopping.auth.model.dto.LoginResult;
 import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest;
 import com.gzasc.aishopping.auth.service.AuthService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
 import lombok.RequiredArgsConstructor;
@@ -210,6 +211,37 @@ public class AuthServiceImpl implements AuthService {
             return false;
         }
         return merchantMapper.countByPhone(phone) > 0;
+    }
+
+    // ==================== 店员接口实现 ====================
+
+    @Override
+    @Transactional
+    public Integer registerEmployee(RegisterEmployeeRequest request) {
+        System.out.println(new Date() + ": run registerEmployee, username=" + request.getUsername());
+
+        if (merchantMapper.countByUsername(request.getUsername()) > 0) {
+            throw new AuthException("用户名已存在");
+        }
+
+        if (StringUtils.hasText(request.getPhone()) &&
+                merchantMapper.countByPhone(request.getPhone()) > 0) {
+            throw new AuthException("手机号已被注册");
+        }
+
+        Merchant employee = new Merchant();
+        employee.setUsername(request.getUsername());
+        employee.setShopName(""); // 无店铺
+        employee.setPhone(request.getPhone());
+        employee.setStatus(1);
+
+        String password = StringUtils.hasText(request.getPassword()) ? request.getPassword() : "123456";
+        employee.setPassword(BCryptUtil.hashPassword(password));
+
+        merchantMapper.insert(employee);
+        System.out.println(new Date() + ": employee created, id=" + employee.getId());
+
+        return employee.getId();
     }
 
     // ==================== 通用接口实现 ====================

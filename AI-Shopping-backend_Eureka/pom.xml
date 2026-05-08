@@ -21,6 +21,7 @@
         <module>logistics-service</module>
         <module>chat-service</module>
         <module>auth-service</module>
+        <module>shop-service</module>
     </modules>
 
     <properties>

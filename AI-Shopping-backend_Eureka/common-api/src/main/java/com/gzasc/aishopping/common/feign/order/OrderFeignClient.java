@@ -1,9 +1,12 @@
 package com.gzasc.aishopping.common.feign.order;
 
+import com.gzasc.aishopping.common.dto.order.OrderDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,4 +33,16 @@ public interface OrderFeignClient {
      */
     @GetMapping("/api/seller/order/status/{status}")
     Map<String, Object> getOrdersByStatus(@PathVariable("status") String status);
+
+    /**
+     * 根据商品ID获取店铺ID（内部服务调用）
+     */
+    @GetMapping("/internal/order/shop-id-by-product/{productId}")
+    Integer getShopIdByProductId(@PathVariable("productId") Integer productId);
+
+    /**
+     * 批量查询订单（内部服务调用）
+     */
+    @GetMapping("/internal/order/batch")
+    List<OrderDTO> getOrdersByIds(@RequestParam("orderIds") List<String> orderIds);
 }
