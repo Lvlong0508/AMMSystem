@@ -7,6 +7,7 @@ echo - 8761  (Eureka Server)
 echo - 8080  (Gateway Service)
 echo - 8086  (Auth Service)
 echo - 8081  (Product Service)
+echo - 8087  (Shop Service)
 echo - 8082  (Order Service)
 echo - 8083  (Contact Service)
 echo - 8084  (Logistics Service)
@@ -17,6 +18,7 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8761') do taskkill /F /PID %%
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8080') do taskkill /F /PID %%a 2>nul
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8086') do taskkill /F /PID %%a 2>nul
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8081') do taskkill /F /PID %%a 2>nul
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8087') do taskkill /F /PID %%a 2>nul
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8082') do taskkill /F /PID %%a 2>nul
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8084') do taskkill /F /PID %%a 2>nul
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8083') do taskkill /F /PID %%a 2>nul
