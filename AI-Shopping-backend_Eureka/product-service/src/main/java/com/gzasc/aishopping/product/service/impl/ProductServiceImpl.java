@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service.impl;
 
+import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -37,7 +38,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public int createProduct(Product product) {
         System.out.println(new Date() + "：run createProduct");
-        product.setId(java.util.UUID.randomUUID().toString().replace("-", "").substring(0, 16));
+        product.setId(SnowflakeIdGenerator.nextIdStr());
         return productMapper.insertProduct(product);
     }
 

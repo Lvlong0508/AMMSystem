@@ -37,7 +37,7 @@ public interface ProductFeignClient {
      * 根据ID查询商品（内部服务调用）
      */
     @GetMapping("/internal/product/{productId}")
-    ProductDTO getProductById(@PathVariable("productId") String productId);
+    Map<String, Object> getProductById(@PathVariable("productId") String productId);
 
     /**
      * 扣减库存
@@ -55,17 +55,17 @@ public interface ProductFeignClient {
      * 创建商品（内部服务调用）
      */
     @PostMapping("/internal/product/create")
-    ProductDTO createProduct(@RequestBody ProductDTO request);
+    Map<String, Object> createProduct(@RequestBody ProductDTO request);
 
     /**
      * 更新商品（内部服务调用）
      */
-    @PutMapping("/internal/product/{id}")
-    ProductDTO updateProduct(@PathVariable("id") Integer id, @RequestBody ProductDTO request);
+    @PutMapping("/internal/product/{productId}")
+    Map<String, Object> updateProduct(@PathVariable("productId") String productId, @RequestBody ProductDTO request);
 
     /**
      * 删除商品（内部服务调用）
      */
-    @DeleteMapping("/internal/product/{id}")
-    void deleteProduct(@PathVariable("id") Integer id);
+    @DeleteMapping("/internal/product/{productId}")
+    Map<String, Object> deleteProduct(@PathVariable("productId") String productId);
 }

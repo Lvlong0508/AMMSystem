@@ -91,7 +91,17 @@ public class ShopUserController {
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }
-            ProductDTO product = productFeignClient.getProductById(productId);
+            Map<String, Object> productMap = productFeignClient.getProductById(productId);
+            if (productMap == null) {
+                return Map.of("success", false, "message", "商品不存在");
+            }
+            // 从 Map 转换为 ProductDTO
+            ProductDTO product = new ProductDTO();
+            product.setId((String) productMap.get("id"));
+            product.setName((String) productMap.get("name"));
+            product.setDescription((String) productMap.get("description"));
+            product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
+            product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
             return Map.of("success", true, "product", product);
         } catch (Exception e) {
             return Map.of("success", false, "message", "查询商品失败");

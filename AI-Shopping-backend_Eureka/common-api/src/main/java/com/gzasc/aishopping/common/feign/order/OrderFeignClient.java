@@ -38,7 +38,7 @@ public interface OrderFeignClient {
      * 根据商品ID获取店铺ID（内部服务调用）
      */
     @GetMapping("/internal/order/shop-id-by-product/{productId}")
-    Integer getShopIdByProductId(@PathVariable("productId") Integer productId);
+    String getShopIdByProductId(@PathVariable("productId") String productId);
 
     /**
      * 批量查询订单（内部服务调用）

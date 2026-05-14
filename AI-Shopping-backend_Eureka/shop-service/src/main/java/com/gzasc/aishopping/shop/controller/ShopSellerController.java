@@ -152,14 +152,15 @@ public class ShopSellerController {
             return Map.of("success", false, "message", "无权限操作");
         }
         try {
-            ProductDTO result = productFeignClient.createProduct(productDTO);
-            if (result != null && result.getId() != null) {
+            Map<String, Object> result = productFeignClient.createProduct(productDTO);
+            if (result != null && "创建商品成功".equals(result.get("message"))) {
+                String productId = (String) result.get("id");
                 ProductShop ps = new ProductShop();
                 ps.setId(UUID.randomUUID().toString().replace("-", ""));
-                ps.setProductId(result.getId());
+                ps.setProductId(productId);
                 ps.setShopId(shopId);
                 productShopMapper.insert(ps);
-                return Map.of("success", true, "message", "创建商品成功", "id", result.getId());
+                return Map.of("success", true, "message", "创建商品成功", "id", productId);
             }
             return Map.of("success", false, "message", "创建商品失败");
         } catch (Exception e) {
@@ -176,7 +177,17 @@ public class ShopSellerController {
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }
-            ProductDTO product = productFeignClient.getProductById(productId);
+            Map<String, Object> productMap = productFeignClient.getProductById(productId);
+            if (productMap == null) {
+                return Map.of("success", false, "message", "商品不存在");
+            }
+            // 从 Map 转换为 ProductDTO
+            ProductDTO product = new ProductDTO();
+            product.setId((String) productMap.get("id"));
+            product.setName((String) productMap.get("name"));
+            product.setDescription((String) productMap.get("description"));
+            product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
+            product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
             return Map.of("success", true, "product", product);
         } catch (Exception e) {
             return Map.of("success", false, "message", "查询商品失败");
@@ -200,7 +211,7 @@ public class ShopSellerController {
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }
-            productFeignClient.updateProduct(Integer.parseInt(productId), productDTO);
+            productFeignClient.updateProduct(productId, productDTO);
             return Map.of("success", true, "message", "更新商品成功");
         } catch (Exception e) {
             return Map.of("success", false, "message", "更新商品失败");
@@ -220,7 +231,7 @@ public class ShopSellerController {
         }
         try {
             productShopMapper.deleteByShopAndProduct(shopId, productId);
-            productFeignClient.deleteProduct(Integer.parseInt(productId));
+            productFeignClient.deleteProduct(productId);
             return Map.of("success", true, "message", "删除商品成功");
         } catch (Exception e) {
             return Map.of("success", false, "message", "删除商品失败");

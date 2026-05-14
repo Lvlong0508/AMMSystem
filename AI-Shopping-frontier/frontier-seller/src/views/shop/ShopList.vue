@@ -28,7 +28,7 @@
       <div v-else class="shops-grid">
         <div
           v-for="shop in shops"
-          :key="shop.shopId"
+          :key="shop.id"
           class="shop-card"
         >
           <div class="shop-header">
@@ -36,8 +36,8 @@
               <h3 class="shop-name">{{ shop.name }}</h3>
               <span v-if="shop.description" class="shop-desc">{{ shop.description }}</span>
             </div>
-            <span class="status-badge" :class="shop.status?.toLowerCase()">
-              {{ getStatusText(shop.status) }}
+            <span class="status-badge" :class="shop.status === 1 ? 'active' : 'closed'">
+              {{ shop.status === 1 ? '营业中' : '已关闭' }}
             </span>
           </div>
 
@@ -61,13 +61,13 @@
           </div>
 
           <div class="shop-actions">
-            <button class="action-btn" @click="goToProducts(shop.shopId)">
+            <button class="action-btn" @click="goToProducts(shop.id)">
               商品管理
             </button>
-            <button class="action-btn" @click="goToOrders(shop.shopId)">
+            <button class="action-btn" @click="goToOrders(shop.id)">
               订单管理
             </button>
-            <button class="action-btn" @click="goToEmployees(shop.shopId)">
+            <button class="action-btn" @click="goToEmployees(shop.id)">
               店员管理
             </button>
           </div>
@@ -92,16 +92,18 @@ const loadShops = async () => {
   loading.value = true
   try {
     const res = await shopApi.list()
-    if (res?.data) {
-      shops.value = Array.isArray(res.data) ? res.data : []
-    } else if (res?.shops) {
+    // 后端返回: {success: true, shops: [...]}
+    if (res?.success && res?.shops) {
       shops.value = res.shops
+    } else if (res?.data?.shops) {
+      shops.value = res.data.shops
     } else {
+      showError(res?.message || '加载失败')
       shops.value = []
     }
   } catch (error) {
     console.error('加载店铺列表失败:', error)
-    showError('加载失败')
+    showError('加载失败，请稍后重试')
     shops.value = []
   } finally {
     loading.value = false

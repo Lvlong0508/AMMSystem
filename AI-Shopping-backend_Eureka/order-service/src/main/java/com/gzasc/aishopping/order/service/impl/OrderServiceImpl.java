@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.service.impl;
 
+import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.order.mapper.DeletedOrderMapper;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +25,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderMapper orderMapper;
     private final DeletedOrderMapper deletedOrderMapper;
     private final StringRedisTemplate redisTemplate;
+    private final ShopFeignClient shopFeignClient;
 
     @Override
     public int createOrder(Order order) {
@@ -121,6 +124,16 @@ public class OrderServiceImpl implements OrderService {
             return List.of();
         }
         return orderMapper.selectOrdersByIds(orderIds);
+    }
+
+    @Override
+    public String getShopIdByProductId(String productId) {
+        System.out.println(new Date() + ": run getShopIdByProductId, productId=" + productId);
+        Map<String, Object> result = shopFeignClient.getShopIdByProductId(productId);
+        if (result != null && result.get("shopId") != null) {
+            return result.get("shopId").toString();
+        }
+        return null;
     }
 
     private String generateRandomLetters() {

@@ -62,11 +62,19 @@ public class OrderUserController {
                 return Map.of("message", "创建订单错误：购买数量必须大于0（错误代码：O-004）");
             }
 
-            ProductDTO product = productFeignClient.getProductById(request.getProductId());
-            if (product == null) {
+Map<String, Object> productMap = productFeignClient.getProductById(request.getProductId());
+            if (productMap == null) {
                 return Map.of("message", "创建订单错误：商品不存在（错误代码：O-003）");
             }
-
+            // 从 Map 中提取商品数据
+            ProductDTO product = new ProductDTO();
+            product.setId((String) productMap.get("id"));
+            product.setName((String) productMap.get("name"));
+            product.setPrice(productMap.get("price") != null ? 
+                ((Number) productMap.get("price")).doubleValue() : 0.0);
+            product.setStock(productMap.get("stock") != null ? 
+                ((Number) productMap.get("stock")).intValue() : 0);
+            
             if (product.getStock() < request.getQuantity()) {
                 return Map.of("message", "创建订单错误：商品库存不足，当前库存：" + product.getStock() + "（错误代码：O-005）");
             }

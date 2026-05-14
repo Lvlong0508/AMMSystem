@@ -20,4 +20,9 @@ public class InternalOrderController {
         List<String> idList = Arrays.asList(orderIds.split(","));
         return orderService.getOrdersByIds(idList);
     }
+
+    @GetMapping("/shop-id-by-product/{productId}")
+    public String getShopIdByProductId(@PathVariable("productId") String productId) {
+        return orderService.getShopIdByProductId(productId);
+    }
 }
