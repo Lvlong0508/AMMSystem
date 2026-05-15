@@ -1,6 +1,7 @@
 import { ref, watch } from 'vue'
 import { updateOrderStatus } from '../../api/order.js'
 import { ORDER_STATUS } from '../../config/orderStatus.js'
+import { showSuccess, showError } from '../../utils/swal.js'
 
 export function usePaymentLogic(props, emit, T) {
   // 响应式数据
@@ -44,7 +45,7 @@ export function usePaymentLogic(props, emit, T) {
       // 调用后端更新订单状态为已支付 (PAID)
       const res = await updateOrderStatus(props.orderInfo.orderId, ORDER_STATUS.PAID)
       
-      if (res.data?.message?.includes('成功')) {
+      if (res?.message?.includes('成功')) {
         emit('success', {
           orderId: props.orderInfo.orderId,
           paymentMethod: selectedMethod.value,
@@ -52,11 +53,11 @@ export function usePaymentLogic(props, emit, T) {
         })
         emit('close')
       } else {
-        alert(res.data?.message || T.PAYMENT_FAILED)
+        showError(res?.message || T.PAYMENT_FAILED)
       }
     } catch (error) {
       console.error('支付失败:', error)
-      alert(error.response?.data?.message || T.PAYMENT_ERROR)
+      showError(error.message || T.PAYMENT_ERROR)
     } finally {
       processing.value = false
     }
