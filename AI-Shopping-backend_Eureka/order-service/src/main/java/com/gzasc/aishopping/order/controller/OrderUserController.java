@@ -26,13 +26,19 @@ public class OrderUserController {
     private final ShopFeignClient shopFeignClient;
 
     @GetMapping("/{orderId}")
-    public Map<String, Object> getOrderById(@PathVariable("orderId") String orderId) {
+    public Map<String, Object> getOrderById(
+            @PathVariable("orderId") String orderId,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "查询订单错误：未登录（错误代码：O-006）");
+        }
         try {
-            Order order = orderService.getOrderById(orderId);
+            Order order = orderService.getOrderByUserId(userId, orderId);
             if (order != null) {
                 return Map.of("message", "查询成功", "order", order);
             } else {
-                return Map.of("message", "查询失败：订单不存在");
+                return Map.of("message", "查询失败：订单不存在或无权限查看");
             }
         } catch (Exception e) {
             return Map.of("message", "查询订单错误：" + e.getMessage());
@@ -40,9 +46,14 @@ public class OrderUserController {
     }
 
     @GetMapping("/list")
-    public Map<String, Object> getUserOrders() {
+    public Map<String, Object> getUserOrders(
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "查询订单错误：未登录（错误代码：O-007）");
+        }
         try {
-            List<Order> orders = orderService.getAllOrders();
+            List<Order> orders = orderService.getOrdersByUserId(userId);
             return Map.of("message", "查询成功", "orders", orders, "total", orders.size());
         } catch (Exception e) {
             return Map.of("message", "查询订单错误：" + e.getMessage());
@@ -50,7 +61,13 @@ public class OrderUserController {
     }
 
     @PostMapping("/place")
-    public Map<String, String> placeOrder(@RequestBody PlaceOrderRequest request) {
+    public Map<String, String> placeOrder(
+            @RequestBody PlaceOrderRequest request,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "创建订单错误：未登录（错误代码：O-008）");
+        }
         if (request == null || request.getProductId() == null) {
             return Map.of("message", "创建订单错误：商品信息为空（错误代码：O-001）");
         }
@@ -70,11 +87,11 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
             ProductDTO product = new ProductDTO();
             product.setId((String) productMap.get("id"));
             product.setName((String) productMap.get("name"));
-            product.setPrice(productMap.get("price") != null ? 
+            product.setPrice(productMap.get("price") != null ?
                 ((Number) productMap.get("price")).doubleValue() : 0.0);
-            product.setStock(productMap.get("stock") != null ? 
+            product.setStock(productMap.get("stock") != null ?
                 ((Number) productMap.get("stock")).intValue() : 0);
-            
+
             if (product.getStock() < request.getQuantity()) {
                 return Map.of("message", "创建订单错误：商品库存不足，当前库存：" + product.getStock() + "（错误代码：O-005）");
             }
@@ -84,6 +101,9 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
             order = order.buildInitOrder(orderId, product.getId(), request.getQuantity(), product.getPrice() * request.getQuantity());
             order.setContactId(request.getContactId());
             orderService.createOrder(order);
+
+            // 创建用户订单关联
+            orderService.createUserOrder(userId, orderId);
 
             try {
                 Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(product.getId());
@@ -102,13 +122,22 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
     }
 
     @DeleteMapping("/{orderId}")
-    public Map<String, String> cancelOrder(@PathVariable("orderId") String orderId) {
+    public Map<String, String> cancelOrder(
+            @PathVariable("orderId") String orderId,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "取消订单错误：未登录（错误代码：O-009）");
+        }
         try {
-            Order order = orderService.getOrderById(orderId);
-            if (order != null) {
-                if (Order.PENDING.equals(order.getOrderStatus()) || Order.PAID.equals(order.getOrderStatus())) {
-                    productFeignClient.restoreStock(new com.gzasc.aishopping.common.dto.product.StockDeductRequest(order.getProductId(), order.getQuantity()));
-                }
+            // 验证用户是否有权限删除该订单
+            Order order = orderService.getOrderByUserId(userId, orderId);
+            if (order == null) {
+                return Map.of("message", "取消订单失败：订单不存在或无权限操作");
+            }
+
+            if (Order.PENDING.equals(order.getOrderStatus()) || Order.PAID.equals(order.getOrderStatus())) {
+                productFeignClient.restoreStock(new com.gzasc.aishopping.common.dto.product.StockDeductRequest(order.getProductId(), order.getQuantity()));
             }
 
             int result = orderService.deleteOrder(orderId);
@@ -119,6 +148,42 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
             }
         } catch (Exception e) {
             return Map.of("message", "取消订单错误：" + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{orderId}/status")
+    public Map<String, String> updateOrderStatus(
+            @PathVariable("orderId") String orderId,
+            @RequestParam("status") String status,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "更新订单状态错误：未登录（错误代码：O-010）");
+        }
+        try {
+            Order order = orderService.getOrderByUserId(userId, orderId);
+            if (order == null) {
+                return Map.of("message", "更新订单状态失败：订单不存在或无权限操作");
+            }
+            int result = orderService.updateOrderStatus(orderId, status);
+            if (result > 0) {
+                return Map.of("message", "更新订单状态成功");
+            } else {
+                return Map.of("message", "更新订单状态失败：订单不存在");
+            }
+        } catch (Exception e) {
+            return Map.of("message", "更新订单状态错误：" + e.getMessage());
+        }
+    }
+
+    private Integer parseUserId(String userIdStr) {
+        if (userIdStr == null || userIdStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(userIdStr);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }
