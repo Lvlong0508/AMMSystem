@@ -3,8 +3,10 @@ package com.gzasc.aishopping.order.service.impl;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.order.mapper.DeletedOrderMapper;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
+import com.gzasc.aishopping.order.mapper.UserOrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
 import com.gzasc.aishopping.order.model.Order;
+import com.gzasc.aishopping.order.model.UserOrder;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,6 +26,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
     private final DeletedOrderMapper deletedOrderMapper;
+    private final UserOrderMapper userOrderMapper;
     private final StringRedisTemplate redisTemplate;
     private final ShopFeignClient shopFeignClient;
 
@@ -61,6 +64,8 @@ public class OrderServiceImpl implements OrderService {
             // 3. 从原表删除订单
             int deleteResult = orderMapper.deleteOrderById(orderId);
             if (deleteResult > 0) {
+                // 4. 删除用户订单关联
+                userOrderMapper.deleteByOrderId(orderId);
                 System.out.println(new Date() + ": 订单删除成功: " + orderId);
                 return deleteResult;
             } else {
@@ -134,6 +139,46 @@ public class OrderServiceImpl implements OrderService {
             return result.get("shopId").toString();
         }
         return null;
+    }
+
+    @Override
+    public int createUserOrder(Integer userId, String orderId) {
+        System.out.println(new Date() + ": run createUserOrder, userId=" + userId + ", orderId=" + orderId);
+        try {
+            UserOrder userOrder = new UserOrder();
+            userOrder.setUserId(userId);
+            userOrder.setOrderId(orderId);
+            return userOrderMapper.insert(userOrder);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    @Override
+    public List<Order> getOrdersByUserId(Integer userId) {
+        System.out.println(new Date() + ": run getOrdersByUserId, userId=" + userId);
+        List<String> orderIds = userOrderMapper.selectOrderIdsByUserId(userId);
+        if (orderIds == null || orderIds.isEmpty()) {
+            return List.of();
+        }
+        return orderMapper.selectOrdersByIds(orderIds);
+    }
+
+    @Override
+    public Order getOrderByUserId(Integer userId, String orderId) {
+        System.out.println(new Date() + ": run getOrderByUserId, userId=" + userId + ", orderId=" + orderId);
+        UserOrder userOrder = userOrderMapper.selectByUserIdAndOrderId(userId, orderId);
+        if (userOrder == null) {
+            return null;
+        }
+        return orderMapper.selectOrderById(orderId);
+    }
+
+    @Override
+    public int deleteUserOrder(String orderId) {
+        System.out.println(new Date() + ": run deleteUserOrder, orderId=" + orderId);
+        return userOrderMapper.deleteByOrderId(orderId);
     }
 
     private String generateRandomLetters() {
