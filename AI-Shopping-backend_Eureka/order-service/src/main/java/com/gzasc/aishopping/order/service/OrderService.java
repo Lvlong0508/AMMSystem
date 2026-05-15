@@ -15,4 +15,8 @@ public interface OrderService {
     String generateOrderId();
     List<Order> getOrdersByIds(List<String> orderIds);
     String getShopIdByProductId(String productId);
+    int createUserOrder(Integer userId, String orderId);
+    List<Order> getOrdersByUserId(Integer userId);
+    Order getOrderByUserId(Integer userId, String orderId);
+    int deleteUserOrder(String orderId);
 }
