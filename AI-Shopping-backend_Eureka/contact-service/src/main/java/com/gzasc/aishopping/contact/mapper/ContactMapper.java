@@ -63,4 +63,20 @@ public interface ContactMapper {
             @Result(property = "updatedAt", column = "updated_at")
     })
     Contact selectContactByPhone(String phone);
+
+    @Select("<script>" +
+            "SELECT c.id, c.name, c.phone, c.address, c.created_at, c.updated_at " +
+            "FROM t_contact c " +
+            "INNER JOIN user_contact uc ON c.id = uc.contact_id " +
+            "WHERE uc.user_id = #{userId}" +
+            "</script>")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at")
+    })
+    List<Contact> selectByUserId(int userId);
 }

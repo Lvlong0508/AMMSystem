@@ -1,6 +1,14 @@
 // OrderDialog 页面文本配置
 // 统一在此修改页面文字，无需改动组件代码
 
+// 订单相关错误消息
+export const ORDER_MESSAGES = {
+  CREATE_FAILED: '下单失败',
+  CREATE_ERROR: '下单失败，请稍后重试',
+  UPDATE_FAILED: '更新订单状态失败',
+  UPDATE_ERROR: '更新订单状态失败，请稍后重试'
+}
+
 export const ORDER_DIALOG_TEXT = {
   // 弹窗标题
   DIALOG_TITLE: '确认订单',

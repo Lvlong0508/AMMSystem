@@ -2,9 +2,11 @@ package com.gzasc.aishopping.auth.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.gzasc.aishopping.auth.mapper.merchant.MerchantMapper;
+import com.gzasc.aishopping.auth.mapper.user.UserInfoMapper;
 import com.gzasc.aishopping.auth.mapper.user.UserMapper;
 import com.gzasc.aishopping.auth.model.Merchant;
 import com.gzasc.aishopping.auth.model.User;
+import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.model.dto.LoginResult;
 import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest;
@@ -30,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserMapper userMapper;
     private final MerchantMapper merchantMapper;
+    private final UserInfoMapper userInfoMapper;
 
     // ==================== 用户接口实现 ====================
 
@@ -49,6 +52,15 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("手机号已被注册");
         }
 
+        // 创建用户基础信息
+        Integer infoId = null;
+        if (StringUtils.hasText(request.getNickname())) {
+            UserInfo userInfo = new UserInfo();
+            userInfo.setNickname(request.getNickname());
+            userInfoMapper.insert(userInfo);
+            infoId = userInfo.getId();
+        }
+
         // 创建用户实体
         User user = new User();
         user.setUsername(request.getUsername());
@@ -60,8 +72,8 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(encryptedPassword);
         // =============================================
 
-        user.setNickname(request.getNickname());
         user.setPhone(request.getPhone());
+        user.setInfoId(infoId);
         user.setStatus(1);
 
         userMapper.insert(user);
@@ -144,6 +156,15 @@ public class AuthServiceImpl implements AuthService {
             throw new AuthException("手机号已被注册");
         }
 
+        // 创建商家基础信息
+        Integer infoId = null;
+        if (StringUtils.hasText(request.getNickname())) {
+            UserInfo userInfo = new UserInfo();
+            userInfo.setNickname(request.getNickname());
+            userInfoMapper.insert(userInfo);
+            infoId = userInfo.getId();
+        }
+
         // 创建商家实体
         Merchant merchant = new Merchant();
         merchant.setUsername(request.getUsername());
@@ -153,8 +174,8 @@ public class AuthServiceImpl implements AuthService {
         merchant.setPassword(encryptedPassword);
         // =============================================
 
-        merchant.setShopName(request.getNickname()); // 昵称作为店铺名
         merchant.setPhone(request.getPhone());
+        merchant.setInfoId(infoId);
         merchant.setStatus(1);
 
         merchantMapper.insert(merchant);
@@ -231,7 +252,6 @@ public class AuthServiceImpl implements AuthService {
 
         Merchant employee = new Merchant();
         employee.setUsername(request.getUsername());
-        employee.setShopName(""); // 无店铺
         employee.setPhone(request.getPhone());
         employee.setStatus(1);
 

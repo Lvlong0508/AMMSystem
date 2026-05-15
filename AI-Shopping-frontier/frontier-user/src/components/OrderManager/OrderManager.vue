@@ -139,7 +139,7 @@
             <button
               v-if="order.orderStatus === ORDER_STATUS.PENDING || order.orderStatus === ORDER_STATUS.PAID"
               class="action-btn cancel-btn"
-              @click="updateStatus(order.orderId, ORDER_STATUS.CANCELLED)"
+              @click="confirmCancel(order.orderId)"
             >
               ❌ {{ T.BTN_CANCEL }}
             </button>
@@ -240,6 +240,7 @@ const {
   showOrderDetail,
   closeDetail,
   updateStatus,
+  confirmCancel,
   confirmDelete,
   confirmReturn
 } = useOrderManager()

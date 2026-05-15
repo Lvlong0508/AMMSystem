@@ -6,12 +6,23 @@ export const request = axios.create({
     timeout: 30000
 })
 
-// 请求拦截器：自动添加 Sa-Token
+// 请求拦截器：自动添加 Sa-Token 和用户ID
 request.interceptors.request.use(
     config => {
         const token = localStorage.getItem('satoken')
         if (token) {
             config.headers['satoken'] = token
+        }
+        const userInfo = localStorage.getItem('userInfo')
+        if (userInfo) {
+            try {
+                const user = JSON.parse(userInfo)
+                if (user.id) {
+                    config.headers['X-User-Id'] = user.id
+                }
+            } catch (e) {
+                // ignore
+            }
         }
         return config
     },

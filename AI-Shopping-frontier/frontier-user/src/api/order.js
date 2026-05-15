@@ -18,4 +18,4 @@ export const getMyOrders = () =>
 
 // 更新订单状态
 export const updateOrderStatus = (orderId, status) =>
-    request.put(`/api/user/order/${orderId}/status`, { status })
+    request.put(`/api/user/order/${orderId}/status`, null, { params: { status } })

@@ -1,6 +1,7 @@
 import { ref, computed, watch } from 'vue'
 import { placeOrder } from '../../api/order.js'
 import { getAllContacts } from '../../api/contact.js'
+import { showSuccess, showError } from '../../utils/swal.js'
 
 export function useOrderLogic(props, emit) {
   // 响应式数据
@@ -98,21 +99,20 @@ export function useOrderLogic(props, emit) {
     submitting.value = true
     try {
       const res = await placeOrder(props.product.id, quantity.value, selectedContact.value.id)
-      if (res.data?.orderId) {
-        // 创建订单成功，触发支付流程
+      if (res?.orderId) {
         emit('order-created', {
-          orderId: res.data.orderId,
+          orderId: res.orderId,
           product: props.product,
           quantity: quantity.value,
           totalPrice: totalPrice.value,
           contact: selectedContact.value
         })
       } else {
-        alert(res.data?.message || '下单失败')
+        showError(res?.message || '下单失败')
       }
     } catch (error) {
       console.error('下单错误:', error)
-      alert(error.response?.data?.message || '下单失败，请稍后重试')
+      showError(error.response?.data?.message || '下单失败，请稍后重试')
     } finally {
       submitting.value = false
     }

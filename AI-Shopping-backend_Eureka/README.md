@@ -56,7 +56,7 @@ mysql -u root -p < init-db.sql
 ### 3. 一键启动（Windows）
 
 ```bash
-start-all.bat
+start-end.bat
 ```
 
 或手动按顺序启动：
@@ -84,7 +84,7 @@ cd ../chat-service && mvn spring-boot:run
 ### 4. 停止所有服务（Windows）
 
 ```bash
-stop-all.bat
+stop-end.bat
 ```
 
 ### 5. 验证服务

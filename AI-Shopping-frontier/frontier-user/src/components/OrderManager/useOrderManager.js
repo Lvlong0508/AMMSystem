@@ -156,15 +156,39 @@ export function useOrderManager() {
 
     try {
       const res = await cancelOrder(orderId)
-      if (res.data?.message?.includes('成功')) {
-        showSuccess('订单已取消')
+      if (res?.message?.includes('成功')) {
+        showSuccess(ORDER_MESSAGES.DELETE_SUCCESS)
         await loadOrders()
       } else {
-        showError(res.data?.message || ORDER_MESSAGES.OPERATION_FAILED)
+        showError(res?.message || ORDER_MESSAGES.DELETE_FAILED)
       }
     } catch (error) {
       console.error('取消订单失败:', error)
-      showError('取消订单失败')
+      showError(ORDER_MESSAGES.DELETE_FAILED)
+    }
+  }
+
+  // 确认取消订单（带二次确认）
+  const confirmCancel = async (orderId) => {
+    const result = await showConfirm(
+      ORDER_MESSAGES.CANCEL_CONFIRM_TITLE || '智能购物系统',
+      ORDER_MESSAGES.CANCEL_CONFIRM || '确定要取消该订单吗？',
+      ORDER_MESSAGES.CONFIRM_BUTTON,
+      ORDER_MESSAGES.CANCEL_BUTTON
+    )
+    if (!result.isConfirmed) return
+
+    try {
+      const res = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED)
+      if (res?.message?.includes('成功')) {
+        showSuccess(ORDER_MESSAGES.CANCEL_SUCCESS)
+        await loadOrders()
+      } else {
+        showError(res?.message || ORDER_MESSAGES.CANCEL_FAILED)
+      }
+    } catch (error) {
+      console.error('取消订单失败:', error)
+      showError(ORDER_MESSAGES.CANCEL_FAILED)
     }
   }
 
@@ -172,15 +196,15 @@ export function useOrderManager() {
   const updateStatus = async (orderId, status) => {
     try {
       const res = await updateOrderStatus(orderId, status)
-      if (res.data?.message?.includes('成功')) {
-        showSuccess('订单状态已更新')
+      if (res?.message?.includes('成功')) {
+        showSuccess(ORDER_MESSAGES.UPDATE_SUCCESS)
         await loadOrders()
       } else {
-        showError(res.data?.message || '操作失败')
+        showError(res?.message || ORDER_MESSAGES.UPDATE_FAILED)
       }
     } catch (error) {
       console.error('更新订单状态失败:', error)
-      showError('更新状态失败')
+      showError(ORDER_MESSAGES.UPDATE_FAILED)
     }
   }
 
@@ -210,6 +234,7 @@ export function useOrderManager() {
     showOrderDetail,
     closeDetail,
     updateStatus,
+    confirmCancel,
     confirmDelete,
     confirmReturn
   }

@@ -48,4 +48,4 @@ if errorlevel 2 goto wait_loop
 if errorlevel 1 goto stop_services
 
 :stop_services
-call "%~dp0stop-all.bat"
+call "%~dp0stop-end.bat"

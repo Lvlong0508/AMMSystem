@@ -9,14 +9,21 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/contact")
+@RequestMapping("/api/user/contact")
 @RequiredArgsConstructor
 public class ContactController {
 
     private final ContactService contactService;
 
     @PostMapping("/create")
-    public Map<String, String> createContact(@RequestBody Contact contact) {
+    public Map<String, String> createContact(
+            @RequestBody Contact contact,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "创建联系人错误：未登录（错误代码：Co-000）");
+        }
+
         if (contact == null || contact.getName() == null || contact.getName().trim().isEmpty()) {
             return Map.of("message", "创建联系人错误：姓名为空（错误代码：Co-001）");
         }
@@ -27,7 +34,7 @@ public class ContactController {
             return Map.of("message", "创建联系人错误：地址为空（错误代码：Co-003）");
         }
         try {
-            int result = contactService.createContact(contact);
+            int result = contactService.createContact(contact, userId);
             if (result > 0) {
                 return Map.of("message", "创建联系人成功", "id", String.valueOf(contact.getId()));
             } else {
@@ -39,13 +46,20 @@ public class ContactController {
     }
 
     @DeleteMapping("/delete/{id}")
-    public Map<String, String> deleteContact(@PathVariable int id) {
+    public Map<String, String> deleteContact(
+            @PathVariable int id,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "删除联系人错误：未登录（错误代码：Co-000）");
+        }
+
         try {
-            int result = contactService.deleteContact(id);
+            int result = contactService.deleteContact(id, userId);
             if (result > 0) {
                 return Map.of("message", "删除联系人成功");
             } else {
-                return Map.of("message", "删除联系人失败：联系人不存在（错误代码：Co-005）");
+                return Map.of("message", "删除联系人失败：联系人不存在或无权限（错误代码：Co-005）");
             }
         } catch (Exception e) {
             return Map.of("message", "删除联系人错误：" + e.getMessage());
@@ -53,7 +67,14 @@ public class ContactController {
     }
 
     @PutMapping("/update")
-    public Map<String, String> updateContact(@RequestBody Contact contact) {
+    public Map<String, String> updateContact(
+            @RequestBody Contact contact,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "更新联系人错误：未登录（错误代码：Co-000）");
+        }
+
         if (contact == null || contact.getId() <= 0) {
             return Map.of("message", "更新联系人错误：ID无效（错误代码：Co-006）");
         }
@@ -67,11 +88,11 @@ public class ContactController {
             return Map.of("message", "更新联系人错误：地址为空（错误代码：Co-009）");
         }
         try {
-            int result = contactService.updateContact(contact);
+            int result = contactService.updateContact(contact, userId);
             if (result > 0) {
                 return Map.of("message", "更新联系人成功");
             } else {
-                return Map.of("message", "更新联系人失败：联系人不存在（错误代码：Co-010）");
+                return Map.of("message", "更新联系人失败：联系人不存在或无权限（错误代码：Co-010）");
             }
         } catch (Exception e) {
             return Map.of("message", "更新联系人错误：" + e.getMessage());
@@ -79,9 +100,16 @@ public class ContactController {
     }
 
     @GetMapping("/get/{id}")
-    public Map<String, Object> getContactById(@PathVariable("id") int id) {
+    public Map<String, Object> getContactById(
+            @PathVariable("id") int id,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "查询联系人错误：未登录（错误代码：Co-000）");
+        }
+
         try {
-            Contact contact = contactService.getContactById(id);
+            Contact contact = contactService.getContactById(id, userId);
             if (contact != null) {
                 return Map.of("message", "查询成功", "data", contact);
             } else {
@@ -93,9 +121,15 @@ public class ContactController {
     }
 
     @GetMapping("/list")
-    public Map<String, Object> getAllContacts() {
+    public Map<String, Object> getContacts(
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            return Map.of("message", "查询联系人错误：未登录（错误代码：Co-000）");
+        }
+
         try {
-            List<Contact> contacts = contactService.getAllContacts();
+            List<Contact> contacts = contactService.getContactsByUserId(userId);
             return Map.of("message", "查询成功", "data", contacts, "total", contacts.size());
         } catch (Exception e) {
             return Map.of("message", "查询联系人列表错误：" + e.getMessage());
@@ -129,6 +163,17 @@ public class ContactController {
             }
         } catch (Exception e) {
             return Map.of("message", "查询联系人错误：" + e.getMessage());
+        }
+    }
+
+    private Integer parseUserId(String userIdStr) {
+        if (userIdStr == null || userIdStr.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Integer.parseInt(userIdStr);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }

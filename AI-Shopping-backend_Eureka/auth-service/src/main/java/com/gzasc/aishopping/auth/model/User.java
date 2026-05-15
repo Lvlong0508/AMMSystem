@@ -19,7 +19,7 @@ public class User {
     private String password;      // BCrypt加密密码（含Salt）
     private String phone;         // 手机号
     private String email;         // 邮箱
-    private String nickname;      // 昵称
+    private Integer infoId;       // 用户信息ID（关联user_info表）
     private Integer status;       // 状态：0禁用 1启用
     private Date createdAt;       // 创建时间
     private Date updatedAt;       // 更新时间

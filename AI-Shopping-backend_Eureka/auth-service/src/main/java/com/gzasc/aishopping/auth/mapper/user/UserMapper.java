@@ -33,8 +33,8 @@ public interface UserMapper {
     /**
      * 插入用户
      */
-    @Insert("INSERT INTO t_user (username, password, phone, email, nickname, status, created_at, updated_at) " +
-            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{nickname}, #{status}, NOW(), NOW())")
+    @Insert("INSERT INTO t_user (username, password, phone, email, info_id, status, created_at, updated_at) " +
+            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(User user);
 
@@ -44,7 +44,7 @@ public interface UserMapper {
     @Update("UPDATE t_user SET " +
             "phone = #{phone}, " +
             "email = #{email}, " +
-            "nickname = #{nickname}, " +
+            "info_id = #{infoId}, " +
             "status = #{status}, " +
             "updated_at = NOW() " +
             "WHERE id = #{id}")

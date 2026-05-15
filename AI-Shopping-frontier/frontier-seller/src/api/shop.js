@@ -1,4 +1,4 @@
-import axios from './request'
+import { request as axios } from './request'
 
 export const shopApi = {
   register: (data) => axios.post('/api/seller/shop/register', data),

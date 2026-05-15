@@ -33,8 +33,8 @@ public interface MerchantMapper {
     /**
      * 插入商家
      */
-    @Insert("INSERT INTO t_merchant (username, password, shop_name, phone, email, status, created_at, updated_at) " +
-            "VALUES (#{username}, #{password}, #{shopName}, #{phone}, #{email}, #{status}, NOW(), NOW())")
+    @Insert("INSERT INTO t_merchant (username, password, phone, email, info_id, status, created_at, updated_at) " +
+            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Merchant merchant);
 
@@ -42,9 +42,9 @@ public interface MerchantMapper {
      * 更新商家信息
      */
     @Update("UPDATE t_merchant SET " +
-            "shop_name = #{shopName}, " +
             "phone = #{phone}, " +
             "email = #{email}, " +
+            "info_id = #{infoId}, " +
             "status = #{status}, " +
             "updated_at = NOW() " +
             "WHERE id = #{id}")

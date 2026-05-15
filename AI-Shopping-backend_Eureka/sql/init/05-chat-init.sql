@@ -1,0 +1,20 @@
+-- AI聊天服务数据库
+CREATE DATABASE IF NOT EXISTS eureka_chat CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+USE eureka_chat;
+
+CREATE TABLE IF NOT EXISTS chat_session (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '会话ID',
+    user_id VARCHAR(50) COMMENT '用户ID',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '聊天会话表';
+
+CREATE TABLE IF NOT EXISTS chat_history (
+    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '记录ID',
+    session_id INT NOT NULL COMMENT '会话ID',
+    role VARCHAR(20) NOT NULL COMMENT '角色：user/assistant',
+    content TEXT NOT NULL COMMENT '聊天内容',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT '聊天历史表';
+
+SELECT 'AI聊天服务数据库初始化完成' AS message;

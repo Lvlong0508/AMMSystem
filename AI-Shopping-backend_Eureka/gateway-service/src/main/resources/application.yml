@@ -37,7 +37,7 @@ spring:
           predicates:
             - Path=/api/user/product/**
           filters:
-            - RewritePath=/api/user/product/(?<segment>.*), /product/${segment}
+            - RewritePath=/api/user/product/(?<segment>.*), /api/user/product/${segment}
         
         # 用户订单服务
         - id: user-order
@@ -45,7 +45,7 @@ spring:
           predicates:
             - Path=/api/user/order/**
           filters:
-            - RewritePath=/api/user/order/(?<segment>.*), /order/${segment}
+            - RewritePath=/api/user/order/(?<segment>.*), /api/user/order/${segment}
         
         # 用户联系人服务
         - id: user-contact
@@ -53,7 +53,7 @@ spring:
           predicates:
             - Path=/api/user/contact/**
           filters:
-            - RewritePath=/api/user/contact/(?<segment>.*), /contact/${segment}
+            - RewritePath=/api/user/contact/(?<segment>.*), /api/user/contact/${segment}
         
         # 用户物流服务
         - id: user-logistics
@@ -61,7 +61,7 @@ spring:
           predicates:
             - Path=/api/user/logistics/**
           filters:
-            - RewritePath=/api/user/logistics/(?<segment>.*), /logistics/${segment}
+            - RewritePath=/api/user/logistics/(?<segment>.*), /api/user/logistics/${segment}
         
         # 用户聊天服务
         - id: user-chat
@@ -69,7 +69,7 @@ spring:
           predicates:
             - Path=/api/user/chat/**
           filters:
-            - RewritePath=/api/user/chat/(?<segment>.*), /chat/${segment}
+            - RewritePath=/api/user/chat/(?<segment>.*), /api/user/chat/${segment}
         
         # ========== 商家端路由 ==========
         # 商家认证服务
@@ -78,13 +78,13 @@ spring:
           predicates:
             - Path=/api/seller/auth/**
         
-        # 商家商品服务
+# 商家商品服务
         - id: seller-product
           uri: lb://product-service
           predicates:
             - Path=/api/seller/product/**
           filters:
-            - RewritePath=/api/seller/product/(?<segment>.*), /product/${segment}
+            - RewritePath=/api/seller/product/(?<segment>.*), /api/seller/product/${segment}
         
         # 商家订单服务
         - id: seller-order
@@ -92,7 +92,7 @@ spring:
           predicates:
             - Path=/api/seller/order/**
           filters:
-            - RewritePath=/api/seller/order/(?<segment>.*), /order/${segment}
+            - RewritePath=/api/seller/order/(?<segment>.*), /api/seller/order/${segment}
         
         # 商家联系人服务
         - id: seller-contact
@@ -100,7 +100,7 @@ spring:
           predicates:
             - Path=/api/seller/contact/**
           filters:
-            - RewritePath=/api/seller/contact/(?<segment>.*), /contact/${segment}
+            - RewritePath=/api/seller/contact/(?<segment>.*), /api/seller/contact/${segment}
         
         # 商家物流服务
         - id: seller-logistics
@@ -108,7 +108,7 @@ spring:
           predicates:
             - Path=/api/seller/logistics/**
           filters:
-            - RewritePath=/api/seller/logistics/(?<segment>.*), /logistics/${segment}
+            - RewritePath=/api/seller/logistics/(?<segment>.*), /api/seller/logistics/${segment}
         
         # 商家聊天服务
         - id: seller-chat
@@ -116,23 +116,15 @@ spring:
           predicates:
             - Path=/api/seller/chat/**
           filters:
-            - RewritePath=/api/seller/chat/(?<segment>.*), /chat/${segment}
-
+            - RewritePath=/api/seller/chat/(?<segment>.*), /api/seller/chat/${segment}
+        
         # 商家店铺服务
         - id: seller-shop
           uri: lb://shop-service
           predicates:
             - Path=/api/seller/shop/**
 
-        # ========== 用户端路由 ==========
-        # 用户聊天服务
-        - id: user-chat
-          uri: lb://chat-service
-          predicates:
-            - Path=/api/user/chat/**
-          filters:
-            - RewritePath=/api/user/chat/(?<segment>.*), /chat/${segment}
-
+# ========== 用户端路由 ==========
         # 用户店铺服务
         - id: user-shop
           uri: lb://shop-service

@@ -17,9 +17,9 @@ public class Merchant {
     private Integer id;           // 商家ID
     private String username;      // 商家用户名
     private String password;      // BCrypt加密密码（含Salt）
-    private String shopName;      // 店铺名称
     private String phone;         // 联系电话
     private String email;         // 邮箱
+    private Integer infoId;       // 用户信息ID（关联user_info表）
     private Integer status;       // 状态：0禁用 1启用
     private Date createdAt;       // 创建时间
     private Date updatedAt;       // 更新时间

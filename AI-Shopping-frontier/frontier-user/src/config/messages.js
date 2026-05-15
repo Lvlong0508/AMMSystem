@@ -32,19 +32,23 @@ export const ORDER_MESSAGES = {
   UPDATE_SUCCESS: '订单状态更新成功',
   SHIP_SUCCESS: '发货成功',
   DELETE_SUCCESS: '订单删除成功',
+  CANCEL_SUCCESS: '订单取消成功',
 
   // 失败提示
   LOAD_FAILED: '加载订单失败',
   UPDATE_FAILED: '更新状态失败',
   SHIP_FAILED: '发货失败',
   DELETE_FAILED: '删除订单失败',
+  CANCEL_FAILED: '取消订单失败',
   OPERATION_FAILED: '操作失败',
 
   // 确认提示
   DELETE_CONFIRM_TITLE: '确认删除',
   DELETE_CONFIRM: '确定要删除该订单吗？此操作不可恢复。',
+  CANCEL_CONFIRM_TITLE: '确认取消订单',
+  CANCEL_CONFIRM: '确定要取消该订单吗？。',
   RETURN_CONFIRM_TITLE: '确认退货',
-  RETURN_CONFIRM: '确定要退货吗？退货后订单将标记为已退货状态。',
+  RETURN_CONFIRM: '确定要退货吗？。',
 
   // 按钮文字
   CONFIRM_BUTTON: '确定',
