@@ -63,6 +63,7 @@ public class ShopSellerController {
             return Map.of("message", "创建店铺错误：未提供用户ID");
         }
         try {
+            shop.setId(UUID.randomUUID().toString().replace("-", ""));
             shop.setMerchantId(userId);
             shop.setStatus(1);
             int result = shopService.createShop(shop);

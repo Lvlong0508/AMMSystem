@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS shops (
     merchant_id VARCHAR(16) NOT NULL COMMENT '商户ID(创建者)',
     name VARCHAR(100) NOT NULL COMMENT '店铺名称',
     description VARCHAR(500) COMMENT '店铺描述',
-    logo_url VARCHAR(500) COMMENT '店铺Logo URL',
+    logo_id VARCHAR(32) COMMENT '店铺Logo图片ID',
     `status` TINYINT NOT NULL DEFAULT 1 COMMENT '店铺状态：1-正常 0-已关闭',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

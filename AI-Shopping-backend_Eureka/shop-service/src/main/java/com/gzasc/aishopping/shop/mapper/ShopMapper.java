@@ -17,11 +17,11 @@ public interface ShopMapper {
     @Select("SELECT * FROM shops WHERE merchant_id = #{merchantId}")
     List<Shop> selectShopsByMerchantId(@Param("merchantId") String merchantId);
 
-    @Insert("INSERT INTO shops (id, merchant_id, name, description, logo_url, status, created_at, updated_at) " +
-            "VALUES (#{id}, #{merchantId}, #{name}, #{description}, #{logoUrl}, #{status}, NOW(), NOW())")
+    @Insert("INSERT INTO shops (id, merchant_id, name, description, logo_id, status, created_at, updated_at) " +
+            "VALUES (#{id}, #{merchantId}, #{name}, #{description}, #{logoId}, #{status}, NOW(), NOW())")
     int insertShop(Shop shop);
 
-    @Update("UPDATE shops SET name = #{name}, description = #{description}, logo_url = #{logoUrl}, " +
+    @Update("UPDATE shops SET name = #{name}, description = #{description}, logo_id = #{logoId}, " +
             "status = #{status}, updated_at = NOW() WHERE id = #{id}")
     int updateShop(Shop shop);
 

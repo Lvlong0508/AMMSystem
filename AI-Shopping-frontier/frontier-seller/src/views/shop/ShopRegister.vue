@@ -13,7 +13,7 @@
     <div class="form-container">
       <div class="form-card">
         <h3 class="form-title">店铺信息</h3>
-        <form @submit.prevent="handleSubmit">
+        <form @submit.prevent="handleSubmit" class="form">
           <div class="form-group">
             <label>店铺名称 <span class="required">*</span></label>
             <input
@@ -34,39 +34,6 @@
               rows="3"
               maxlength="200"
             ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>店铺地址 <span class="required">*</span></label>
-            <input
-              type="text"
-              v-model="form.address"
-              placeholder="请输入店铺地址"
-              class="form-input"
-              maxlength="100"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>联系电话 <span class="required">*</span></label>
-            <input
-              type="tel"
-              v-model="form.phone"
-              placeholder="请输入联系电话"
-              class="form-input"
-              maxlength="20"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>营业时间</label>
-            <input
-              type="text"
-              v-model="form.businessHours"
-              placeholder="例如：09:00-22:00"
-              class="form-input"
-              maxlength="50"
-            />
           </div>
 
           <div class="form-actions">
@@ -93,10 +60,7 @@ const router = useRouter()
 
 const form = ref({
   name: '',
-  description: '',
-  address: '',
-  phone: '',
-  businessHours: ''
+  description: ''
 })
 
 const submitting = ref(false)
@@ -104,14 +68,6 @@ const submitting = ref(false)
 const validate = () => {
   if (!form.value.name.trim()) {
     showError('请输入店铺名称')
-    return false
-  }
-  if (!form.value.address.trim()) {
-    showError('请输入店铺地址')
-    return false
-  }
-  if (!form.value.phone.trim()) {
-    showError('请输入联系电话')
     return false
   }
   return true
@@ -140,21 +96,24 @@ const handleSubmit = async () => {
 
 <style scoped>
 .shop-register {
+  min-height: 100vh;
   padding: 24px;
-  height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .page-header {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  padding: 20px 24px;
+  padding: 20px 32px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 .header-left {
@@ -188,17 +147,35 @@ const handleSubmit = async () => {
 }
 
 .form-container {
-  max-width: 600px;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .form-card {
+  width: 80%;
+  max-width: 800px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 48px 56px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
+.form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .form-title {
+  text-align: center;
   font-size: 18px;
   font-weight: 600;
   color: #1e293b;
@@ -208,6 +185,7 @@ const handleSubmit = async () => {
 }
 
 .form-group {
+  width: 100%;
   margin-bottom: 20px;
 }
 
@@ -249,9 +227,10 @@ const handleSubmit = async () => {
 }
 
 .form-actions {
+  width: 100%;
   display: flex;
-  justify-content: flex-end;
-  gap: 12px;
+  justify-content: center;
+  gap: 16px;
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid #e2e8f0;

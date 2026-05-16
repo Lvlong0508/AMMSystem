@@ -10,7 +10,7 @@
         <button class="refresh-btn" @click="loadShops" :disabled="loading">
           刷新
         </button>
-        <button class="add-btn" @click="$router.push('/shop/register')">
+        <button class="add-btn" @click="openRegisterPage">
           创建店铺
         </button>
       </div>
@@ -21,7 +21,7 @@
       <div v-else-if="shops.length === 0" class="empty-state">
         <span class="empty-icon">🏪</span>
         <p>暂无店铺</p>
-        <button class="create-btn" @click="$router.push('/shop/register')">
+        <button class="create-btn" @click="openRegisterPage">
           创建一个店铺
         </button>
       </div>
@@ -87,6 +87,10 @@ const router = useRouter()
 
 const shops = ref([])
 const loading = ref(false)
+
+const openRegisterPage = () => {
+  window.open('/shop/register', '_blank')
+}
 
 const loadShops = async () => {
   loading.value = true

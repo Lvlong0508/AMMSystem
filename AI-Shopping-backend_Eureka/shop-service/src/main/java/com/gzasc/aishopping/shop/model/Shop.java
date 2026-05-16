@@ -14,7 +14,7 @@ public class Shop {
     private String merchantId;
     private String name;
     private String description;
-    private String logoUrl;
+    private String logoId;
     private Integer status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
