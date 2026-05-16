@@ -101,6 +101,14 @@ spring:
             - Path=/api/seller/contact/**
           filters:
             - RewritePath=/api/seller/contact/(?<segment>.*), /api/seller/contact/${segment}
+
+        # 商家地址服务
+        - id: seller-address
+          uri: lb://contact-service
+          predicates:
+            - Path=/api/seller/address/**
+          filters:
+            - RewritePath=/api/seller/address/(?<segment>.*), /api/seller/address/${segment}
         
         # 商家物流服务
         - id: seller-logistics

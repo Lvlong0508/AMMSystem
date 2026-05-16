@@ -9,6 +9,7 @@ import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,15 +67,35 @@ public class ShopUserController {
                 return Map.of("success", false, "message", "店铺不存在");
             }
             List<ProductShop> productShops = productShopMapper.selectByShopId(shopId);
+            int total = productShops.size();
             int start = (page - 1) * size;
             int end = Math.min(start + size, productShops.size());
-            if (start >= productShops.size()) {
-                return Map.of("success", true, "products", List.of(), "total", productShops.size(), "page", page, "size", size);
+            if (start >= total) {
+                return Map.of("success", true, "products", List.of(), "total", total, "page", page, "size", size);
             }
             List<ProductShop> paged = productShops.subList(start, end);
-            return Map.of("success", true, "products", paged, "total", productShops.size(), "page", page, "size", size);
+            
+            List<Map<String, Object>> productDetails = new ArrayList<>();
+            for (ProductShop ps : paged) {
+                try {
+                    Map<String, Object> productMap = productFeignClient.getProductById(ps.getProductId());
+                    if (productMap != null && productMap.containsKey("id")) {
+                        Map<String, Object> detail = new HashMap<>();
+                        detail.put("id", productMap.get("id"));
+                        detail.put("name", productMap.get("name"));
+                        detail.put("description", productMap.get("description"));
+                        detail.put("price", productMap.get("price"));
+                        detail.put("stock", productMap.get("stock"));
+                        detail.put("tags", productMap.get("tags"));
+                        productDetails.add(detail);
+                    }
+                } catch (Exception e) {
+                }
+            }
+            
+            return Map.of("success", true, "products", productDetails, "total", total, "page", page, "size", size);
         } catch (Exception e) {
-            return Map.of("success", false, "message", "查询商品失败");
+            return Map.of("success", false, "message", "查询商品失败: " + e.getMessage());
         }
     }
 

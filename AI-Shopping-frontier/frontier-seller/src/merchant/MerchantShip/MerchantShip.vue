@@ -7,6 +7,13 @@
         <h2 class="page-title">{{ T.PAGE_TITLE }}</h2>
         <span v-if="pendingShipCount > 0" class="badge">{{ pendingShipCount }}</span>
       </div>
+      <div class="header-center" v-if="hasMultipleShops">
+        <select v-model="currentShopId" class="shop-select" @change="handleShopChange">
+          <option v-for="shop in shops" :key="shop.id" :value="shop.id">
+            {{ shop.name }}
+          </option>
+        </select>
+      </div>
       <button class="refresh-btn" @click="loadOrders" :disabled="loading">
         {{ loading ? T.BTN_LOADING : T.BTN_REFRESH }}
       </button>
@@ -66,8 +73,9 @@
             <div class="product-section">
               <span class="section-icon">{{ T.ICON_PRODUCT }}</span>
               <div class="product-info-left">
-                <span class="product-id">ID:{{ order.productId }}</span>
                 <span class="product-name" v-if="order.productName">{{ order.productName }}</span>
+                <span class="product-name" v-else>商品信息</span>
+                <span class="product-id">商品ID: {{ order.productId }}</span>
               </div>
               <div class="product-info-right">
                 <span class="quantity-label">x</span>
@@ -128,7 +136,10 @@
           <h3>{{ T.DIALOG_TITLE_DETAIL }}</h3>
           <button class="close-btn" @click="closeDetail">{{ T.BTN_CLOSE }}</button>
         </div>
-        <div class="dialog-body" v-if="selectedOrder">
+        <div class="dialog-body" v-if="detailLoading">
+          <div class="loading-state">加载中...</div>
+        </div>
+        <div class="dialog-body" v-else-if="selectedOrder">
           <div class="detail-row">
             <span class="detail-label">{{ T.LABEL_ORDER_ID }}</span>
             <span class="detail-value">{{ selectedOrder.orderId }}</span>
@@ -211,22 +222,29 @@
           </div>
           <div class="form-group">
             <label>选择发货联系人 <span class="required">*</span></label>
-            <select
-              v-model="shipForm.selectedContactId"
-              class="form-input"
-              :disabled="contactsLoading"
-            >
-              <option v-if="contactsLoading" value="">加载中...</option>
-              <option
-                v-for="contact in contacts"
-                :key="contact.id"
-                :value="contact.id"
+            <div class="contact-select-wrapper">
+              <select
+                v-model="shipForm.selectedContactId"
+                class="form-input"
+                :disabled="contactsLoading"
               >
-                {{ contact.name }} - {{ contact.phone }} - {{ contact.address }}
-              </option>
-            </select>
-            <p v-if="contacts.length === 0 && !contactsLoading" class="contact-hint">
-              暂无联系人，请先<a href="#/contacts">添加联系人</a>
+                <option v-if="contactsLoading" value="">加载中...</option>
+                <option v-else-if="contacts.length === 0" value="">暂无联系人</option>
+                <option
+                  v-for="contact in contacts"
+                  :key="contact.id"
+                  :value="contact.id"
+                >
+                  {{ contact.name }} - {{ contact.phone }} - {{ contact.address }}
+                </option>
+              </select>
+              <span v-if="contactsLoading" class="loading-spinner"></span>
+            </div>
+            <p v-if="!contactsLoading && contacts.length > 0" class="contact-count">
+              共 {{ contacts.length }} 个发货地址可用
+            </p>
+            <p v-if="!contactsLoading && contacts.length === 0" class="contact-hint error">
+              暂无发货地址，请先<a href="#/addresses">添加店铺地址</a>
             </p>
           </div>
           <div class="form-group">
@@ -265,7 +283,12 @@ const {
   filterStatus,
   searchCustomer,
   pendingShipCount,
+  shops,
+  currentShopId,
+  hasMultipleShops,
+  switchShop,
   detailVisible,
+  detailLoading,
   selectedOrder,
   shipVisible,
   shipForm,
@@ -284,6 +307,10 @@ const {
   closeShipDialog,
   handleShip
 } = useMerchantShip()
+
+const handleShopChange = () => {
+  switchShop(currentShopId)
+}
 </script>
 
 <style scoped>

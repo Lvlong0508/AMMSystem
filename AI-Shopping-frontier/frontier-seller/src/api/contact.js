@@ -30,3 +30,24 @@ export const searchContactsByName = (name) =>
 // 根据电话查询联系人
 export const getContactByPhone = (phone) =>
     request.get('/api/seller/contact/search/phone', { params: { phone } })
+
+// ========== 商家地址管理 API ==========
+// 获取商家地址列表
+export const getAddressList = (shopId) =>
+    request.get('/api/seller/address/list', { headers: { 'X-Shop-Id': shopId } })
+
+// 新增地址
+export const addAddress = (shopId, address) =>
+    request.post('/api/seller/address/add', address, { headers: { 'X-Shop-Id': shopId } })
+
+// 修改地址
+export const updateAddress = (shopId, id, address) =>
+    request.put(`/api/seller/address/update/${id}`, address, { headers: { 'X-Shop-Id': shopId } })
+
+// 删除地址
+export const deleteAddress = (shopId, id) =>
+    request.delete(`/api/seller/address/delete/${id}`, { headers: { 'X-Shop-Id': shopId } })
+
+// 设置默认地址
+export const setDefaultAddress = (shopId, id) =>
+    request.put(`/api/seller/address/set-default/${id}`, {}, { headers: { 'X-Shop-Id': shopId } })

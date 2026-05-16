@@ -70,6 +70,9 @@
             <button class="action-btn" @click="goToEmployees(shop.id)">
               店员管理
             </button>
+            <button class="action-btn" @click="goToAddresses(shop.id)">
+              地址管理
+            </button>
           </div>
         </div>
       </div>
@@ -139,6 +142,10 @@ const goToOrders = (shopId) => {
 
 const goToEmployees = (shopId) => {
   router.push(`/shop/${shopId}/employees`)
+}
+
+const goToAddresses = (shopId) => {
+  router.push(`/shop/${shopId}/addresses`)
 }
 
 onMounted(() => {

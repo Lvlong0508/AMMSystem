@@ -7,6 +7,7 @@ import ShopList from '../views/shop/ShopList.vue'
 import ShopProducts from '../views/shop/ShopProducts.vue'
 import ShopOrders from '../views/shop/ShopOrders.vue'
 import ShopEmployees from '../views/shop/ShopEmployees.vue'
+import ShopAddresses from '../views/shop/ShopAddresses.vue'
 
 const routes = [
   {
@@ -48,6 +49,11 @@ const routes = [
     path: '/shop/:shopId/employees',
     name: 'shop-employees',
     component: ShopEmployees
+  },
+  {
+    path: '/shop/:shopId/addresses',
+    name: 'shop-addresses',
+    component: ShopAddresses
   }
 ]
 
@@ -67,6 +73,13 @@ router.beforeEach((to, from, next) => {
     return
   }
   next()
+})
+
+router.afterEach(() => {
+  if (sessionStorage.getItem('needReload') === '1') {
+    sessionStorage.removeItem('needReload')
+    window.location.reload()
+  }
 })
 
 export default router

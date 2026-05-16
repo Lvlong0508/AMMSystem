@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
@@ -14,6 +15,8 @@ import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -29,6 +32,7 @@ public class ShopSellerController {
     private final OrderShopMapper orderShopMapper;
     private final ProductFeignClient productFeignClient;
     private final OrderFeignClient orderFeignClient;
+    private final ContactFeignClient contactFeignClient;
 
     @DeleteMapping("/{shopId}")
     public Map<String, String> deleteShop(
@@ -73,6 +77,7 @@ public class ShopSellerController {
                 return Map.of("message", "创建店铺失败");
             }
         } catch (Exception e) {
+            e.printStackTrace();
             return Map.of("message", "创建店铺失败，请稍后重试");
         }
     }
@@ -134,10 +139,33 @@ public class ShopSellerController {
     @GetMapping("/{shopId}/products")
     public Map<String, Object> getShopProducts(@PathVariable("shopId") String shopId) {
         try {
+            Shop shop = shopService.getShopById(shopId);
+            if (shop == null) {
+                return Map.of("success", false, "message", "店铺不存在");
+            }
             List<ProductShop> productShops = productShopMapper.selectByShopId(shopId);
-            return Map.of("success", true, "products", productShops, "total", productShops.size());
+            
+            List<Map<String, Object>> productDetails = new java.util.ArrayList<>();
+            for (ProductShop ps : productShops) {
+                try {
+                    Map<String, Object> productMap = productFeignClient.getProductById(ps.getProductId());
+                    if (productMap != null && productMap.containsKey("id")) {
+                        Map<String, Object> detail = new java.util.HashMap<>();
+                        detail.put("productId", productMap.get("id"));
+                        detail.put("name", productMap.get("name"));
+                        detail.put("description", productMap.get("description"));
+                        detail.put("price", productMap.get("price"));
+                        detail.put("stock", productMap.get("stock"));
+                        detail.put("tags", productMap.get("tags"));
+                        productDetails.add(detail);
+                    }
+                } catch (Exception e) {
+                }
+            }
+            
+            return Map.of("success", true, "products", productDetails, "total", productDetails.size());
         } catch (Exception e) {
-            return Map.of("success", false, "message", "查询商品失败");
+            return Map.of("success", false, "message", "查询商品失败: " + e.getMessage());
         }
     }
 
@@ -240,12 +268,79 @@ public class ShopSellerController {
     }
 
     @GetMapping("/{shopId}/orders/all")
-    public Map<String, Object> getShopOrders(@PathVariable("shopId") String shopId) {
+    public Map<String, Object> getShopOrders(
+            @PathVariable("shopId") String shopId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
         try {
             List<OrderShop> orderShops = orderShopMapper.selectByShopId(shopId);
-            return Map.of("success", true, "orders", orderShops, "total", orderShops.size());
+            if (orderShops.isEmpty()) {
+                return Map.of("success", true, "orders", new ArrayList<>(), "total", 0);
+            }
+            // 提取订单ID列表
+            List<String> orderIds = orderShops.stream()
+                    .map(OrderShop::getOrderId)
+                    .collect(java.util.stream.Collectors.toList());
+            // 批量获取订单详情
+            List<Map<String, Object>> orderDetails = new ArrayList<>();
+            for (String orderId : orderIds) {
+                try {
+                    Map<String, Object> orderMap = orderFeignClient.getOrderById(orderId);
+                    if (orderMap != null && orderMap.containsKey("order")) {
+                        Object orderObj = orderMap.get("order");
+                        if (orderObj instanceof Map) {
+                            @SuppressWarnings("unchecked")
+                            Map<String, Object> orderData = (Map<String, Object>) orderObj;
+                            orderData.put("orderId", orderId);
+                            // 获取商品名称
+                            Object productIdObj = orderData.get("productId");
+                            if (productIdObj != null) {
+                                String productId = String.valueOf(productIdObj);
+                                try {
+                                    Map<String, Object> productMap = productFeignClient.getProductById(productId);
+                                    if (productMap != null && productMap.containsKey("name")) {
+                                        orderData.put("productName", productMap.get("name"));
+                                    }
+                                } catch (Exception ex) {
+                                    // 商品信息不影响订单展示
+                                }
+                            }
+                            // 获取联系人信息
+                            Object contactIdObj = orderData.get("contactId");
+                            if (contactIdObj != null) {
+                                int contactId = 0;
+                                if (contactIdObj instanceof Number) {
+                                    contactId = ((Number) contactIdObj).intValue();
+                                }
+                                if (contactId > 0 && userId != null) {
+                                    try {
+                                        Map<String, Object> contactMap = contactFeignClient.getContactByIdWithUser(contactId, userId);
+                                        if (contactMap != null && contactMap.containsKey("data")) {
+                                            Object contactObj = contactMap.get("data");
+                                            if (contactObj instanceof Map) {
+                                                @SuppressWarnings("unchecked")
+                                                Map<String, Object> contactData = (Map<String, Object>) contactObj;
+                                                Map<String, Object> contact = new HashMap<>();
+                                                contact.put("name", contactData.get("name"));
+                                                contact.put("phone", contactData.get("phone"));
+                                                contact.put("address", contactData.get("address"));
+                                                orderData.put("contact", contact);
+                                            }
+                                        }
+                                    } catch (Exception ex) {
+                                        System.err.println("获取联系人失败: " + ex.getMessage());
+                                    }
+                                }
+                            }
+                            orderDetails.add(orderData);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("获取订单详情失败: " + e.getMessage());
+                }
+            }
+            return Map.of("success", true, "orders", orderDetails, "total", orderDetails.size());
         } catch (Exception e) {
-            return Map.of("success", false, "message", "查询订单失败");
+            return Map.of("success", false, "message", "查询订单失败: " + e.getMessage());
         }
     }
 

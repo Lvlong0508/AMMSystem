@@ -5,9 +5,10 @@ import {
   getOrdersByStatus,
   shipOrder
 } from '../../api/order.js'
-import { getAllContacts, getContactById } from '../../api/contact.js'
+import { getAllContacts, getContactById, getAddressList } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
 import { getProductById } from '../../api/product.js'
+import { shopApi } from '../../api/shop.js'
 import { showSuccess, showError } from '../../utils/swal.js'
 import { ORDER_STATUS, STATUS_CLASS, STATUS_TEXT } from '../../config/orderStatus.js'
 
@@ -18,6 +19,10 @@ export function useMerchantShip() {
   const filterStatus = ref('') // 默认显示全部订单
   const searchCustomer = ref('')
 
+  // 店铺相关
+  const shops = ref([])
+  const currentShopId = ref(null)
+
   // 联系人列表
   const contacts = ref([])
   const contactsLoading = ref(false)
@@ -25,6 +30,7 @@ export function useMerchantShip() {
   // 详情弹窗
   const detailVisible = ref(false)
   const selectedOrder = ref(null)
+  const detailLoading = ref(false)
 
   // 发货弹窗
   const shipVisible = ref(false)
@@ -41,72 +47,52 @@ export function useMerchantShip() {
     return orders.value.filter(o => o.orderStatus === ORDER_STATUS.PAID).length
   })
 
-  // 加载订单列表（包含联系人和物流信息）
+  // 是否有多个店铺（需要显示店铺选择框）
+  const hasMultipleShops = computed(() => shops.value.length > 1)
+
+  // 加载店铺列表
+  const loadShops = async () => {
+    try {
+      const res = await shopApi.list()
+      if (res?.success && res?.shops) {
+        shops.value = res.shops
+      } else if (res?.data?.shops) {
+        shops.value = res.data.shops
+      }
+      if (shops.value.length > 0 && !currentShopId.value) {
+        currentShopId.value = shops.value[0].id
+      }
+    } catch (error) {
+      console.error('加载店铺列表失败:', error)
+    }
+  }
+
+  // 切换店铺
+  const switchShop = (shopId) => {
+    currentShopId.value = shopId
+    loadOrders()
+  }
+
+  // 加载订单列表
   const loadOrders = async () => {
     loading.value = true
     try {
       let res
-      if (filterStatus.value) {
-        res = await getOrdersByStatus(filterStatus.value)
+      if (currentShopId.value) {
+        res = await shopApi.orders(currentShopId.value)
       } else {
-        res = await getAllOrders()
+        if (filterStatus.value) {
+          res = await getOrdersByStatus(filterStatus.value)
+        } else {
+          res = await getAllOrders()
+        }
       }
-      if (res?.orders) {
-        // 为每个订单加载联系人和物流信息
-        const ordersWithDetails = await Promise.all(
-          res.orders.map(async (order) => {
-            const enrichedOrder = { ...order }
-            // 加载商品信息
-            if (order.productId) {
-              try {
-                const productRes = await getProductById(order.productId)
-                if (productRes.data) {
-                  enrichedOrder.productName = productRes.data.name
-                }
-              } catch (e) {
-                console.warn('加载商品信息失败:', e)
-              }
-            }
-            // 加载联系人信息
-            if (order.contactId) {
-              try {
-                const contactRes = await getContactById(order.contactId)
-                if (contactRes.data) {
-                  enrichedOrder.contact = contactRes.data
-                }
-              } catch (e) {
-                console.warn('加载联系人信息失败:', e)
-              }
-            }
-            // 加载物流信息
-            if (order.logisticsId) {
-              try {
-                const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data) {
-                  const logistics = logisticsRes.data
-                  enrichedOrder.logistics = logistics
-                  // 尝试加载发货人（物流中的联系人）信息，失败不影响物流信息显示
-                  if (logistics.contactId) {
-                    try {
-                      const shipperRes = await getContactById(logistics.contactId)
-                      if (shipperRes.data) {
-                        logistics.shipper = shipperRes.data
-                      }
-                    } catch (shipperErr) {
-                      console.warn('加载发货人信息失败:', shipperErr)
-                    }
-                  }
-                }
-              } catch (e) {
-                console.warn('加载物流信息失败:', e)
-              }
-            }
-            return enrichedOrder
-          })
-        )
-        // 按日期降序排序（最新的在前面）
-        orders.value = ordersWithDetails.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+      let orderList = res?.orders || res?.data?.orders || res?.data || []
+      if (filterStatus.value && currentShopId.value) {
+        orderList = orderList.filter(o => o.orderStatus === filterStatus.value)
       }
+      // 按日期降序排序（最新的在前面）
+      orders.value = orderList.sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
     } catch (error) {
       console.error('加载订单失败:', error)
       showError('加载订单失败')
@@ -141,21 +127,28 @@ export function useMerchantShip() {
     return STATUS_TEXT[status] || status
   }
 
-  // 加载联系人列表
+  // 加载联系人列表（店铺地址）
   const loadContacts = async () => {
     contactsLoading.value = true
     try {
-      const res = await getAllContacts()
-      if (res?.data) {
-        contacts.value = res.data
-        // 如果有联系人，默认选择第一个
-        if (res.data.length > 0 && !shipForm.value.selectedContactId) {
-          shipForm.value.selectedContactId = res.data[0].id
+      if (currentShopId.value) {
+        const res = await getAddressList(currentShopId.value)
+        if (res?.data) {
+          contacts.value = res.data
+          // 如果有联系人，默认选择第一个
+          if (res.data.length > 0 && !shipForm.value.selectedContactId) {
+            shipForm.value.selectedContactId = res.data[0].id
+          }
+        } else {
+          contacts.value = []
         }
+      } else {
+        contacts.value = []
       }
     } catch (error) {
       console.error('加载联系人失败:', error)
       showError('加载联系人失败')
+      contacts.value = []
     } finally {
       contactsLoading.value = false
     }
@@ -168,10 +161,24 @@ export function useMerchantShip() {
     return date.toLocaleString('zh-CN')
   }
 
-  // 显示订单详情
-  const showOrderDetail = (order) => {
+  // 显示订单详情（异步获取完整信息）
+  const showOrderDetail = async (order) => {
     selectedOrder.value = order
     detailVisible.value = true
+    // 始终尝试获取最新详情（包括联系人信息）
+    if (currentShopId.value) {
+      detailLoading.value = true
+      try {
+        const res = await shopApi.orderDetail(currentShopId.value, order.orderId)
+        if (res?.success && res?.order) {
+          selectedOrder.value = { ...order, ...res.order }
+        }
+      } catch (error) {
+        console.error('获取订单详情失败:', error)
+      } finally {
+        detailLoading.value = false
+      }
+    }
   }
 
   // 关闭详情
@@ -248,8 +255,11 @@ export function useMerchantShip() {
   }
 
   // 初始化加载
-  onMounted(() => {
-    loadOrders()
+  onMounted(async () => {
+    await loadShops()
+    if (currentShopId.value) {
+      await loadOrders()
+    }
   })
 
   return {
@@ -258,7 +268,12 @@ export function useMerchantShip() {
     filterStatus,
     searchCustomer,
     pendingShipCount,
+    shops,
+    currentShopId,
+    hasMultipleShops,
+    switchShop,
     detailVisible,
+    detailLoading,
     selectedOrder,
     shipVisible,
     shipForm,

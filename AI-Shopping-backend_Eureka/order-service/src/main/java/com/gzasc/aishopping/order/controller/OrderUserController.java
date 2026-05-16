@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
@@ -109,7 +110,10 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
                 Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(product.getId());
                 if (shopResult != null && Boolean.TRUE.equals(shopResult.get("success"))) {
                     String shopId = String.valueOf(shopResult.get("shopId"));
-                    shopFeignClient.associateOrder(orderId, shopId);
+                    OrderShopDTO orderShopDTO = new OrderShopDTO();
+                    orderShopDTO.setOrderId(orderId);
+                    orderShopDTO.setShopId(shopId);
+                    shopFeignClient.associateOrder(orderShopDTO);
                 }
             } catch (Exception e) {
                 System.err.println("关联订单到店铺失败: " + e.getMessage());

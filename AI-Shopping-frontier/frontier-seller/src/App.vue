@@ -119,6 +119,7 @@ const handleLogout = async () => {
     })
 
     router.push('/login')
+    window.location.reload()
   }
 }
 </script>

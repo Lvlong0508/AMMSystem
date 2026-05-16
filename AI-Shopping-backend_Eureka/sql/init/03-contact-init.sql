@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS shop_address (
 -- 商店地址关联表
 CREATE TABLE IF NOT EXISTS shop_address_rel (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID',
-    shop_id VARCHAR(16) NOT NULL COMMENT '店铺ID',
+    shop_id VARCHAR(33) NOT NULL COMMENT '店铺ID',
     address_id INT NOT NULL COMMENT '地址ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_shop_id (shop_id),

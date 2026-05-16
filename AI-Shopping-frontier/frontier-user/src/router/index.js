@@ -52,4 +52,12 @@ router.beforeEach((to, from, next) => {
   next()
 })
 
+// 登录后刷新
+router.afterEach((to) => {
+  if (sessionStorage.getItem('needReload') === '1') {
+    sessionStorage.removeItem('needReload')
+    window.location.reload()
+  }
+})
+
 export default router

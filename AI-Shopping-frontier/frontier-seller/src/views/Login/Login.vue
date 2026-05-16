@@ -116,6 +116,7 @@ const handleLogin = async () => {
       // 保存 Sa-Token
       localStorage.setItem('satoken', res.token)
       localStorage.setItem('merchantInfo', JSON.stringify(res.merchantInfo))
+      sessionStorage.setItem('needReload', '1')
       router.push('/')
     } else {
       showError(res.message || '登录失败')

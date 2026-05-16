@@ -46,6 +46,19 @@ public class OrderSellerController {
         }
     }
 
+    @GetMapping("/{orderId}")
+    public Map<String, Object> getOrderById(@PathVariable("orderId") String orderId) {
+        try {
+            Order order = orderService.getOrderById(orderId);
+            if (order == null) {
+                return Map.of("success", false, "message", "订单不存在");
+            }
+            return Map.of("success", true, "order", order);
+        } catch (Exception e) {
+            return Map.of("success", false, "message", "查询订单错误：" + e.getMessage());
+        }
+    }
+
     @PutMapping("/{orderId}/status")
     public Map<String, String> updateOrderStatus(@PathVariable("orderId") String orderId, @RequestParam("status") String status) {
         try {

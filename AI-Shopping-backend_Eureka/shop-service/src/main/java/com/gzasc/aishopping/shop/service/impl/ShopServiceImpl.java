@@ -42,7 +42,7 @@ public class ShopServiceImpl implements ShopService {
             int result = shopMapper.insertShop(shop);
             if (result > 0) {
                 MerchantRole merchantRole = new MerchantRole();
-                merchantRole.setId(UUID.randomUUID().toString());
+                merchantRole.setId(UUID.randomUUID().toString().replace("-", ""));
                 merchantRole.setMerchantId(shop.getMerchantId());
                 merchantRole.setShopId(shop.getId());
                 merchantRole.setRole("1");

@@ -281,6 +281,7 @@ const handleSubmit = async () => {
       localStorage.setItem('satoken', res.token)
       localStorage.setItem('userInfo', JSON.stringify(res.userInfo))
       await showSuccess(res.message || '登录成功')
+      sessionStorage.setItem('needReload', '1')
       router.push('/')
     } else {
       showError(res.message || '操作失败')

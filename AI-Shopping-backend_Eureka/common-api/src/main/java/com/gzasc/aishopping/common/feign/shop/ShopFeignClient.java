@@ -4,7 +4,9 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
 
 import java.util.Map;
 
@@ -37,5 +39,5 @@ public interface ShopFeignClient {
      * 关联订单与店铺
      */
     @PostMapping("/internal/shop/associate-order")
-    Map<String, Object> associateOrder(@RequestParam("orderId") String orderId, @RequestParam("shopId") String shopId);
+    Map<String, Object> associateOrder(@RequestBody OrderShopDTO request);
 }

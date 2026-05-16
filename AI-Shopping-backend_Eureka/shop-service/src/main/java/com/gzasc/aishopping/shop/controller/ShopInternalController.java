@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.shop.controller;
 
+import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
 import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
 import com.gzasc.aishopping.shop.mapper.OrderShopMapper;
 import com.gzasc.aishopping.shop.mapper.ProductShopMapper;
@@ -57,10 +58,10 @@ public class ShopInternalController {
     }
 
     @PostMapping("/associate-order")
-    public Map<String, Object> associateOrder(@RequestBody Map<String, String> request) {
+    public Map<String, Object> associateOrder(@RequestBody OrderShopDTO request) {
         try {
-            String orderId = request.get("orderId");
-            String shopId = request.get("shopId");
+            String orderId = request.getOrderId();
+            String shopId = request.getShopId();
             if (orderId == null || shopId == null) {
                 return Map.of("success", false, "message", "缺少必要参数");
             }
