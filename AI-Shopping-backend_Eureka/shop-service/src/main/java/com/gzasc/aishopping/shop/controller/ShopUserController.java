@@ -2,9 +2,9 @@ package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
-import com.gzasc.aishopping.shop.mapper.ProductShopMapper;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
+import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -20,13 +20,17 @@ import java.util.Map;
 public class ShopUserController {
 
     private final ShopService shopService;
-    private final ProductShopMapper productShopMapper;
+    private final ProductShopService productShopService;
     private final ProductFeignClient productFeignClient;
 
     @GetMapping("/list")
     public Map<String, Object> getShopList(
+            @RequestHeader("X-User-Id") String userId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return Map.of("success", false, "message", "请先登录");
+        }
         try {
             List<Shop> shops = shopService.getActiveShops(page, size);
             int total = shopService.countActiveShops();
@@ -43,7 +47,12 @@ public class ShopUserController {
     }
 
     @GetMapping("/{shopId}")
-    public Map<String, Object> getShopDetail(@PathVariable("shopId") String shopId) {
+    public Map<String, Object> getShopDetail(
+            @PathVariable("shopId") String shopId,
+            @RequestHeader("X-User-Id") String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return Map.of("success", false, "message", "请先登录");
+        }
         try {
             Shop shop = shopService.getShopById(shopId);
             if (shop != null && shop.getStatus() == 1) {
@@ -59,14 +68,18 @@ public class ShopUserController {
     @GetMapping("/{shopId}/products")
     public Map<String, Object> getShopProducts(
             @PathVariable("shopId") String shopId,
+            @RequestHeader("X-User-Id") String userId,
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return Map.of("success", false, "message", "请先登录");
+        }
         try {
             Shop shop = shopService.getShopById(shopId);
             if (shop == null || shop.getStatus() != 1) {
                 return Map.of("success", false, "message", "店铺不存在");
             }
-            List<ProductShop> productShops = productShopMapper.selectByShopId(shopId);
+            List<ProductShop> productShops = productShopService.selectByShopId(shopId);
             int total = productShops.size();
             int start = (page - 1) * size;
             int end = Math.min(start + size, productShops.size());
@@ -102,13 +115,17 @@ public class ShopUserController {
     @GetMapping("/{shopId}/products/{productId}")
     public Map<String, Object> getProductDetail(
             @PathVariable("shopId") String shopId,
-            @PathVariable("productId") String productId) {
+            @PathVariable("productId") String productId,
+            @RequestHeader("X-User-Id") String userId) {
+        if (userId == null || userId.trim().isEmpty()) {
+            return Map.of("success", false, "message", "请先登录");
+        }
         try {
             Shop shop = shopService.getShopById(shopId);
             if (shop == null || shop.getStatus() != 1) {
                 return Map.of("success", false, "message", "店铺不存在");
             }
-            String shopIdFromDb = productShopMapper.selectShopIdByProductId(productId);
+            String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }

@@ -36,6 +36,10 @@ export const getContactByPhone = (phone) =>
 export const getAddressList = (shopId) =>
     request.get('/api/seller/address/list', { headers: { 'X-Shop-Id': shopId } })
 
+// 获取发货地址列表（仅发货地址，不含退货地址）
+export const getShipAddressList = (shopId) =>
+    request.get('/api/seller/address/ship-list', { headers: { 'X-Shop-Id': shopId } })
+
 // 新增地址
 export const addAddress = (shopId, address) =>
     request.post('/api/seller/address/add', address, { headers: { 'X-Shop-Id': shopId } })

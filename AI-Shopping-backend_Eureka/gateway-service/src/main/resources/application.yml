@@ -69,7 +69,7 @@ spring:
           predicates:
             - Path=/api/user/chat/**
           filters:
-            - RewritePath=/api/user/chat/(?<segment>.*), /api/user/chat/${segment}
+            - RewritePath=/api/user/chat, /chat
         
         # ========== 商家端路由 ==========
         # 商家认证服务

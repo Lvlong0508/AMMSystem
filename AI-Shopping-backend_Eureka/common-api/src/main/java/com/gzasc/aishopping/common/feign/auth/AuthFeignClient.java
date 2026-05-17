@@ -10,7 +10,7 @@ import java.util.Map;
  * 认证服务 Feign 客户端
  * 供其他服务调用认证相关接口
  */
-@FeignClient(name = "auth-service")
+@FeignClient(name = "auth-service", contextId = "authFeignClient")
 public interface AuthFeignClient {
 
     /**

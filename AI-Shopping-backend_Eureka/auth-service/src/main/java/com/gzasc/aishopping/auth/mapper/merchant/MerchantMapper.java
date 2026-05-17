@@ -63,6 +63,12 @@ public interface MerchantMapper {
     int countByPhone(String phone);
 
     /**
+     * 根据ID更新商家（用于更新 infoId）
+     */
+    @Update("UPDATE t_merchant SET info_id = #{infoId}, updated_at = NOW() WHERE id = #{id}")
+    int updateById(Merchant merchant);
+
+    /**
      * 根据用户名查询密码（用于验证）
      */
     @Select("SELECT password FROM t_merchant WHERE username = #{username}")

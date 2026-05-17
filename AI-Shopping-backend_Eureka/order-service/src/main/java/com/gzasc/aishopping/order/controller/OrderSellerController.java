@@ -26,26 +26,6 @@ public class OrderSellerController {
     private final ProductFeignClient productFeignClient;
     private final LogisticsFeignClient logisticsFeignClient;
 
-    @GetMapping("/list")
-    public Map<String, Object> getAllOrders() {
-        try {
-            List<Order> orders = orderService.getAllOrders();
-            return Map.of("message", "查询成功", "orders", orders, "total", orders.size());
-        } catch (Exception e) {
-            return Map.of("message", "查询订单错误：" + e.getMessage());
-        }
-    }
-
-    @GetMapping("/status/{status}")
-    public Map<String, Object> getOrdersByStatus(@PathVariable("status") String status) {
-        try {
-            List<Order> orders = orderService.getOrdersByStatus(status);
-            return Map.of("message", "查询成功", "orders", orders, "total", orders.size());
-        } catch (Exception e) {
-            return Map.of("message", "查询订单错误：" + e.getMessage());
-        }
-    }
-
     @GetMapping("/{orderId}")
     public Map<String, Object> getOrderById(@PathVariable("orderId") String orderId) {
         try {
@@ -53,7 +33,31 @@ public class OrderSellerController {
             if (order == null) {
                 return Map.of("success", false, "message", "订单不存在");
             }
-            return Map.of("success", true, "order", order);
+            Map<String, Object> orderMap = new java.util.HashMap<>();
+            orderMap.put("orderId", order.getOrderId());
+            orderMap.put("productId", order.getProductId());
+            orderMap.put("quantity", order.getQuantity());
+            orderMap.put("totalPrice", order.getTotalPrice());
+            orderMap.put("orderStatus", order.getOrderStatus());
+            orderMap.put("orderDate", order.getOrderDate());
+            orderMap.put("logisticsId", order.getLogisticsId());
+            orderMap.put("contactId", order.getContactId());
+            if (order.getLogisticsId() != null) {
+                try {
+                    Map<String, Object> logisticsResult = logisticsFeignClient.getLogisticsById(order.getLogisticsId());
+                    if (logisticsResult != null && logisticsResult.containsKey("data")) {
+                        Object data = logisticsResult.get("data");
+                        if (data instanceof Map) {
+                            Map<String, Object> logistics = (Map<String, Object>) data;
+                            orderMap.put("trackingNumber", logistics.get("trackingNumber"));
+                            orderMap.put("logistics", logistics);
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("获取物流信息失败: " + e.getMessage());
+                }
+            }
+            return Map.of("success", true, "order", orderMap);
         } catch (Exception e) {
             return Map.of("success", false, "message", "查询订单错误：" + e.getMessage());
         }

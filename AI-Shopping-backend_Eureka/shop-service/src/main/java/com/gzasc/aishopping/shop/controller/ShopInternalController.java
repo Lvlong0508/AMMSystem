@@ -1,11 +1,11 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
-import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
-import com.gzasc.aishopping.shop.mapper.OrderShopMapper;
-import com.gzasc.aishopping.shop.mapper.ProductShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.OrderShop;
+import com.gzasc.aishopping.shop.service.MerchantRoleService;
+import com.gzasc.aishopping.shop.service.OrderShopService;
+import com.gzasc.aishopping.shop.service.ProductShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,14 +17,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ShopInternalController {
 
-    private final ProductShopMapper productShopMapper;
-    private final MerchantRoleMapper merchantRoleMapper;
-    private final OrderShopMapper orderShopMapper;
+    private final ProductShopService productShopService;
+    private final MerchantRoleService merchantRoleService;
+    private final OrderShopService orderShopService;
 
     @GetMapping("/shop-id-by-product/{productId}")
     public Map<String, Object> getShopIdByProductId(@PathVariable("productId") String productId) {
         try {
-            String shopId = productShopMapper.selectShopIdByProductId(productId);
+            String shopId = productShopService.selectShopIdByProductId(productId);
             if (shopId != null) {
                 return Map.of("success", true, "shopId", shopId);
             } else {
@@ -39,7 +39,7 @@ public class ShopInternalController {
     public Map<String, Object> checkOwner(@PathVariable("shopId") String shopId,
                                           @PathVariable("merchantId") String merchantId) {
         try {
-            MerchantRole role = merchantRoleMapper.selectByMerchantShopAndRole(merchantId, shopId, "1");
+            MerchantRole role = merchantRoleService.selectByMerchantShopAndRole(merchantId, shopId, "1");
             return Map.of("success", true, "isOwner", role != null);
         } catch (Exception e) {
             return Map.of("success", false, "message", e.getMessage());
@@ -50,7 +50,7 @@ public class ShopInternalController {
     public Map<String, Object> checkAccess(@PathVariable("shopId") String shopId,
                                           @PathVariable("merchantId") String merchantId) {
         try {
-            MerchantRole role = merchantRoleMapper.selectByMerchantAndShop(merchantId, shopId);
+            MerchantRole role = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
             return Map.of("success", true, "hasAccess", role != null);
         } catch (Exception e) {
             return Map.of("success", false, "message", e.getMessage());
@@ -69,7 +69,7 @@ public class ShopInternalController {
             orderShop.setId(UUID.randomUUID().toString().replace("-", ""));
             orderShop.setOrderId(orderId);
             orderShop.setShopId(shopId);
-            int result = orderShopMapper.insert(orderShop);
+            int result = orderShopService.insert(orderShop);
             return Map.of("success", result > 0, "message", result > 0 ? "关联成功" : "关联失败");
         } catch (Exception e) {
             return Map.of("success", false, "message", e.getMessage());

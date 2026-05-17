@@ -30,6 +30,11 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public List<Shop> getShopsByUserId(String userId) {
+        return shopMapper.selectShopsByUserId(userId);
+    }
+
+    @Override
     public List<Shop> getAllShops(int page) {
         int offset = (page - 1) * 20;
         return shopMapper.selectShopsByPage(offset);

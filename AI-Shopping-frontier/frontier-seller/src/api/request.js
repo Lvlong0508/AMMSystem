@@ -6,7 +6,7 @@ export const request = axios.create({
     timeout: 30000
 })
 
-// 请求拦截器：自动添加 Sa-Token 和用户ID
+// 请求拦截器：自动添加 Sa-Token、用户ID和角色
 request.interceptors.request.use(
     config => {
         const token = localStorage.getItem('satoken')
@@ -20,6 +20,21 @@ request.interceptors.request.use(
                 const merchant = JSON.parse(merchantInfo)
                 if (merchant.id) {
                     config.headers['X-User-Id'] = merchant.id
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+        // 添加角色信息
+        const currentRole = localStorage.getItem('currentRole')
+        if (currentRole) {
+            try {
+                const role = JSON.parse(currentRole)
+                if (role.role) {
+                    config.headers['X-Merchant-Role'] = role.role
+                }
+                if (role.shopId) {
+                    config.headers['X-Shop-Id'] = role.shopId
                 }
             } catch (e) {
                 // ignore

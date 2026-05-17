@@ -1,9 +1,12 @@
 package com.gzasc.aishopping.common.feign.order;
 
 import com.gzasc.aishopping.common.dto.order.OrderDTO;
+import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -45,4 +48,10 @@ public interface OrderFeignClient {
      */
     @GetMapping("/internal/order/batch")
     List<OrderDTO> getOrdersByIds(@RequestParam("orderIds") List<String> orderIds);
+
+    /**
+     * 发货（商家端接口）
+     */
+    @PutMapping("/api/seller/order/{orderId}/ship")
+    Map<String, Object> shipOrder(@PathVariable("orderId") String orderId, @RequestBody ShipOrderRequest request);
 }

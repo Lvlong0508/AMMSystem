@@ -59,6 +59,7 @@ import { reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { showError } from '../../utils/swal.js'
 import { merchantLogin } from '../../api/auth'
+import { shopApi } from '../../api/shop'
 
 const router = useRouter()
 
@@ -116,6 +117,20 @@ const handleLogin = async () => {
       // 保存 Sa-Token
       localStorage.setItem('satoken', res.token)
       localStorage.setItem('merchantInfo', JSON.stringify(res.merchantInfo))
+
+      // 获取角色信息并存储
+      try {
+        const merchantId = res.merchantInfo.id
+        const rolesRes = await shopApi.getMerchantRoles(merchantId)
+        if (rolesRes?.success && rolesRes.roles?.length > 0) {
+          localStorage.setItem('merchantRoles', JSON.stringify(rolesRes.roles))
+          // 存储当前角色（默认第一个）
+          localStorage.setItem('currentRole', JSON.stringify(rolesRes.roles[0]))
+        }
+      } catch (e) {
+        console.warn('获取角色信息失败:', e)
+      }
+
       sessionStorage.setItem('needReload', '1')
       router.push('/')
     } else {

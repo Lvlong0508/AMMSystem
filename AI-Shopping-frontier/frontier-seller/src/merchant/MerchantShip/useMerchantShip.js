@@ -1,11 +1,9 @@
 // src/merchant/MerchantShip/useMerchantShip.js
 import { ref, onMounted, computed } from 'vue'
 import {
-  getAllOrders,
-  getOrdersByStatus,
   shipOrder
 } from '../../api/order.js'
-import { getAllContacts, getContactById, getAddressList } from '../../api/contact.js'
+import { getAllContacts, getContactById, getShipAddressList } from '../../api/contact.js'
 import { getLogisticsById } from '../../api/logistics.js'
 import { getProductById } from '../../api/product.js'
 import { shopApi } from '../../api/shop.js'
@@ -61,6 +59,7 @@ export function useMerchantShip() {
       }
       if (shops.value.length > 0 && !currentShopId.value) {
         currentShopId.value = shops.value[0].id
+        loadOrders()
       }
     } catch (error) {
       console.error('加载店铺列表失败:', error)
@@ -73,22 +72,17 @@ export function useMerchantShip() {
     loadOrders()
   }
 
-  // 加载订单列表
+  // 加载订单列表（强制使用shop服务API）
   const loadOrders = async () => {
+    if (!currentShopId.value) {
+      orders.value = []
+      return
+    }
     loading.value = true
     try {
-      let res
-      if (currentShopId.value) {
-        res = await shopApi.orders(currentShopId.value)
-      } else {
-        if (filterStatus.value) {
-          res = await getOrdersByStatus(filterStatus.value)
-        } else {
-          res = await getAllOrders()
-        }
-      }
+      const res = await shopApi.orders(currentShopId.value)
       let orderList = res?.orders || res?.data?.orders || res?.data || []
-      if (filterStatus.value && currentShopId.value) {
+      if (filterStatus.value) {
         orderList = orderList.filter(o => o.orderStatus === filterStatus.value)
       }
       // 按日期降序排序（最新的在前面）
@@ -132,7 +126,7 @@ export function useMerchantShip() {
     contactsLoading.value = true
     try {
       if (currentShopId.value) {
-        const res = await getAddressList(currentShopId.value)
+        const res = await getShipAddressList(currentShopId.value)
         if (res?.data) {
           contacts.value = res.data
           // 如果有联系人，默认选择第一个

@@ -45,6 +45,23 @@ public class InternalLogisticsController {
     }
 
     /**
+     * 根据ID获取物流信息
+     */
+    @GetMapping("/get/{id}")
+    public Map<String, Object> getLogisticsById(@PathVariable("id") Integer id) {
+        try {
+            Logistics logistics = logisticsService.getLogisticsById(id);
+            if (logistics != null) {
+                return Map.of("message", "查询成功", "data", logistics);
+            } else {
+                return Map.of("message", "查询失败：物流信息不存在");
+            }
+        } catch (Exception e) {
+            return Map.of("message", "查询物流信息错误：" + e.getMessage());
+        }
+    }
+
+    /**
      * 关闭/取消物流记录（补偿用）
      */
     @PutMapping("/close/{id}")

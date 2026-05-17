@@ -1,5 +1,6 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
+import Swal from 'sweetalert2'
 import MerchantShip from '../merchant/MerchantShip/MerchantShip.vue'
 import Login from '../views/Login/Login.vue'
 import ShopRegister from '../views/shop/ShopRegister.vue'
@@ -28,12 +29,14 @@ const routes = [
   {
     path: '/shop/register',
     name: 'shop-register',
-    component: ShopRegister
+    component: ShopRegister,
+    meta: { shopOwnerOnly: true }
   },
   {
     path: '/shop/list',
     name: 'shop-list',
-    component: ShopList
+    component: ShopList,
+    meta: { shopOwnerOnly: true }
   },
   {
     path: '/shop/:shopId/products',
@@ -48,12 +51,14 @@ const routes = [
   {
     path: '/shop/:shopId/employees',
     name: 'shop-employees',
-    component: ShopEmployees
+    component: ShopEmployees,
+    meta: { shopOwnerOnly: true }
   },
   {
     path: '/shop/:shopId/addresses',
     name: 'shop-addresses',
-    component: ShopAddresses
+    component: ShopAddresses,
+    meta: { shopOwnerOnly: true }
   }
 ]
 
@@ -72,6 +77,45 @@ router.beforeEach((to, from, next) => {
     next('/login')
     return
   }
+
+  // 店铺管理相关页面需要店长权限
+  if (to.meta.shopOwnerOnly) {
+    const currentRole = localStorage.getItem('currentRole')
+    if (!currentRole) {
+      Swal.fire({
+        icon: 'warning',
+        title: '无权限',
+        text: '只有店长才能访问此页面',
+        confirmButtonText: '确定'
+      })
+      next('/ship')
+      return
+    }
+
+    try {
+      const role = JSON.parse(currentRole)
+      if (role.role !== '1') {
+        Swal.fire({
+          icon: 'warning',
+          title: '无权限',
+          text: '只有店长才能访问此页面',
+          confirmButtonText: '确定'
+        })
+        next('/ship')
+        return
+      }
+    } catch (e) {
+      Swal.fire({
+        icon: 'warning',
+        title: '无权限',
+        text: '只有店长才能访问此页面',
+        confirmButtonText: '确定'
+      })
+      next('/ship')
+      return
+    }
+  }
+
   next()
 })
 

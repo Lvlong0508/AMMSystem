@@ -10,5 +10,7 @@ public interface ShopAddressService {
     int updateAddress(ShopAddress address, String shopId);
     ShopAddress getAddressById(int id, String shopId);
     List<ShopAddress> getAddressesByShopId(String shopId);
+
+    List<ShopAddress> getShipAddressesByShopId(String shopId);
     int setDefaultAddress(int id, String shopId);
 }

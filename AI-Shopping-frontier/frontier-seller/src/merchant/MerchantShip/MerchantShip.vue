@@ -221,7 +221,7 @@
             <p><strong>收货地址:</strong> {{ selectedOrder.contact?.address }}</p>
           </div>
           <div class="form-group">
-            <label>选择发货联系人 <span class="required">*</span></label>
+            <label>选择发货信息 <span class="required">*</span></label>
             <div class="contact-select-wrapper">
               <select
                 v-model="shipForm.selectedContactId"
@@ -241,7 +241,7 @@
               <span v-if="contactsLoading" class="loading-spinner"></span>
             </div>
             <p v-if="!contactsLoading && contacts.length > 0" class="contact-count">
-              共 {{ contacts.length }} 个发货地址可用
+              共 {{ contacts.length }} 个发货信息可用
             </p>
             <p v-if="!contactsLoading && contacts.length === 0" class="contact-hint error">
               暂无发货地址，请先<a href="#/addresses">添加店铺地址</a>

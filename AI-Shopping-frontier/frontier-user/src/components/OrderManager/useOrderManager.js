@@ -5,7 +5,6 @@ import {
   updateOrderStatus
 } from '../../api/order.js'
 import { getContactById } from '../../api/contact.js'
-import { getLogisticsById } from '../../api/logistics.js'
 import { getProductById } from '../../api/product.js'
 import { showSuccess, showError, showConfirm } from '../../utils/swal.js'
 import { ORDER_MESSAGES } from '../../config/messages.js'
@@ -52,17 +51,6 @@ export function useOrderManager() {
                 }
               } catch (e) {
                 console.warn('加载联系人信息失败:', e)
-              }
-            }
-            // 加载物流信息
-            if (order.logisticsId) {
-              try {
-                const logisticsRes = await getLogisticsById(order.logisticsId)
-                if (logisticsRes.data) {
-                  enrichedOrder.logistics = logisticsRes.data
-                }
-              } catch (e) {
-                console.warn('加载物流信息失败:', e)
               }
             }
             return enrichedOrder

@@ -15,6 +15,7 @@
           订单发货
         </router-link>
         <router-link
+          v-if="isShopOwner"
           :class="['nav-link', { active: $route.path.startsWith('/shop') }]"
           to="/shop/list"
         >
@@ -84,6 +85,20 @@ const merchantName = computed(() => {
     }
   }
   return '商家'
+})
+
+// 是否是店长（至少有一个店铺的角色是1）
+const isShopOwner = computed(() => {
+  const roles = localStorage.getItem('merchantRoles')
+  if (roles) {
+    try {
+      const roleList = JSON.parse(roles)
+      return roleList.some(r => r.role === '1')
+    } catch (e) {
+      return false
+    }
+  }
+  return false
 })
 
 // 登出处理

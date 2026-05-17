@@ -1,16 +1,18 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
+import com.gzasc.aishopping.common.feign.auth.UserInfoFeignClient;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
-import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
-import com.gzasc.aishopping.shop.mapper.OrderShopMapper;
-import com.gzasc.aishopping.shop.mapper.ProductShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.OrderShop;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
+import com.gzasc.aishopping.shop.service.MerchantRoleService;
+import com.gzasc.aishopping.shop.service.OrderShopService;
+import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +29,14 @@ import java.util.UUID;
 public class ShopSellerController {
 
     private final ShopService shopService;
-    private final MerchantRoleMapper merchantRoleMapper;
-    private final ProductShopMapper productShopMapper;
-    private final OrderShopMapper orderShopMapper;
+    private final MerchantRoleService merchantRoleService;
+    private final ProductShopService productShopService;
+    private final OrderShopService orderShopService;
     private final ProductFeignClient productFeignClient;
     private final OrderFeignClient orderFeignClient;
     private final ContactFeignClient contactFeignClient;
+    private final AuthFeignClient authFeignClient;
+    private final UserInfoFeignClient userInfoFeignClient;
 
     @DeleteMapping("/{shopId}")
     public Map<String, String> deleteShop(
@@ -42,7 +46,7 @@ public class ShopSellerController {
             if (userId == null || userId.trim().isEmpty()) {
                 return Map.of("message", "关闭店铺失败：未提供用户ID");
             }
-            if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+            if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
                 return Map.of("message", "关闭店铺失败：仅店长可操作");
             }
             int result = shopService.closeShop(shopId);
@@ -94,7 +98,7 @@ public class ShopSellerController {
             if (userId == null || userId.trim().isEmpty()) {
                 return Map.of("message", "更新店铺失败：未提供用户ID");
             }
-            if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+            if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
                 return Map.of("message", "更新店铺失败：仅店长可操作");
             }
             shop.setId(shopId);
@@ -129,10 +133,10 @@ public class ShopSellerController {
             if (userId == null || userId.trim().isEmpty()) {
                 return Map.of("success", false, "message", "未提供用户ID");
             }
-            List<Shop> shops = shopService.getShopsByMerchantId(userId);
+            List<Shop> shops = shopService.getShopsByUserId(userId);
             return Map.of("success", true, "shops", shops);
         } catch (Exception e) {
-            return Map.of("success", false, "message", "获取店员列表失败，请稍后重试");
+            return Map.of("success", false, "message", "获取店铺列表失败，请稍后重试");
         }
     }
 
@@ -143,7 +147,7 @@ public class ShopSellerController {
             if (shop == null) {
                 return Map.of("success", false, "message", "店铺不存在");
             }
-            List<ProductShop> productShops = productShopMapper.selectByShopId(shopId);
+            List<ProductShop> productShops = productShopService.selectByShopId(shopId);
             
             List<Map<String, Object>> productDetails = new java.util.ArrayList<>();
             for (ProductShop ps : productShops) {
@@ -177,7 +181,7 @@ public class ShopSellerController {
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("success", false, "message", "未提供用户ID");
         }
-        if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             return Map.of("success", false, "message", "无权限操作");
         }
         try {
@@ -188,7 +192,7 @@ public class ShopSellerController {
                 ps.setId(UUID.randomUUID().toString().replace("-", ""));
                 ps.setProductId(productId);
                 ps.setShopId(shopId);
-                productShopMapper.insert(ps);
+                productShopService.insert(ps);
                 return Map.of("success", true, "message", "创建商品成功", "id", productId);
             }
             return Map.of("success", false, "message", "创建商品失败");
@@ -202,7 +206,7 @@ public class ShopSellerController {
             @PathVariable("shopId") String shopId,
             @PathVariable("productId") String productId) {
         try {
-            String shopIdFromDb = productShopMapper.selectShopIdByProductId(productId);
+            String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }
@@ -232,11 +236,11 @@ public class ShopSellerController {
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("success", false, "message", "未提供用户ID");
         }
-        if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             return Map.of("success", false, "message", "无权限操作");
         }
         try {
-            String shopIdFromDb = productShopMapper.selectShopIdByProductId(productId);
+            String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
             if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
                 return Map.of("success", false, "message", "商品不存在");
             }
@@ -255,11 +259,11 @@ public class ShopSellerController {
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("success", false, "message", "未提供用户ID");
         }
-        if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             return Map.of("success", false, "message", "无权限操作");
         }
         try {
-            productShopMapper.deleteByShopAndProduct(shopId, productId);
+            productShopService.deleteByShopAndProduct(shopId, productId);
             productFeignClient.deleteProduct(productId);
             return Map.of("success", true, "message", "删除商品成功");
         } catch (Exception e) {
@@ -271,8 +275,11 @@ public class ShopSellerController {
     public Map<String, Object> getShopOrders(
             @PathVariable("shopId") String shopId,
             @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (merchantRoleService.selectByMerchantAndShop(userId, shopId) == null) {
+            return Map.of("success", false, "message", "无权限访问该店铺");
+        }
         try {
-            List<OrderShop> orderShops = orderShopMapper.selectByShopId(shopId);
+            List<OrderShop> orderShops = orderShopService.selectByShopId(shopId);
             if (orderShops.isEmpty()) {
                 return Map.of("success", true, "orders", new ArrayList<>(), "total", 0);
             }
@@ -347,9 +354,13 @@ public class ShopSellerController {
     @GetMapping("/{shopId}/orders/{orderId}")
     public Map<String, Object> getOrderDetail(
             @PathVariable("shopId") String shopId,
-            @PathVariable("orderId") String orderId) {
+            @PathVariable("orderId") String orderId,
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+        if (merchantRoleService.selectByMerchantAndShop(userId, shopId) == null) {
+            return Map.of("success", false, "message", "无权限访问该店铺");
+        }
         try {
-            List<OrderShop> orderShops = orderShopMapper.selectByOrderId(orderId);
+            List<OrderShop> orderShops = orderShopService.selectByOrderId(orderId);
             if (orderShops.isEmpty() || !orderShops.get(0).getShopId().equals(shopId)) {
                 return Map.of("success", false, "message", "订单不存在");
             }
@@ -363,7 +374,7 @@ public class ShopSellerController {
     @GetMapping("/{shopId}/employees")
     public Map<String, Object> getEmployees(@PathVariable("shopId") String shopId) {
         try {
-            List<MerchantRole> employees = merchantRoleMapper.selectByShopId(shopId);
+            List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
             return Map.of("success", true, "employees", employees, "total", employees.size());
         } catch (Exception e) {
             return Map.of("success", false, "message", "查询店员失败");
@@ -374,20 +385,68 @@ public class ShopSellerController {
     public Map<String, Object> addEmployee(
             @PathVariable("shopId") String shopId,
             @RequestHeader(value = "X-User-Id", required = false) String userId,
-            @RequestBody MerchantRole merchantRole) {
+            @RequestBody Map<String, String> request) {
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("success", false, "message", "未提供用户ID");
         }
-        if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             return Map.of("success", false, "message", "仅店长可添加店员");
         }
+
+        String username = request.get("username");
+        String password = request.get("password");
+        String phone = request.get("phone");
+        String name = request.get("name");
+
+        if (username == null || username.trim().isEmpty()) {
+            return Map.of("success", false, "message", "账号不能为空");
+        }
+        if (password == null || password.trim().isEmpty()) {
+            return Map.of("success", false, "message", "密码不能为空");
+        }
+
         try {
+            Integer infoId = null;
+            if (name != null && !name.trim().isEmpty()) {
+                Map<String, String> userInfoRequest = new HashMap<>();
+                userInfoRequest.put("nickname", name);
+                Map<String, Object> userInfoResult = userInfoFeignClient.createUserInfo(userInfoRequest);
+                if (userInfoResult == null || !Boolean.TRUE.equals(userInfoResult.get("success"))) {
+                    String errorMsg = userInfoResult != null ? (String) userInfoResult.get("message") : "创建用户信息失败";
+                    return Map.of("success", false, "message", "创建用户信息失败：" + errorMsg);
+                }
+                infoId = (Integer) userInfoResult.get("infoId");
+            }
+
+            Map<String, Object> registerRequest = new HashMap<>();
+            registerRequest.put("username", username);
+            registerRequest.put("password", password);
+            if (phone != null && !phone.trim().isEmpty()) {
+                registerRequest.put("phone", phone);
+            }
+            if (infoId != null) {
+                registerRequest.put("infoId", infoId);
+            }
+
+            Map<String, Object> registerResult = authFeignClient.registerEmployee(registerRequest);
+            if (registerResult == null || !registerResult.containsKey("merchantId")) {
+                String errorMsg = registerResult != null ? (String) registerResult.get("message") : "注册失败";
+                return Map.of("success", false, "message", "注册店员账号失败：" + errorMsg);
+            }
+
+            String merchantId = String.valueOf(registerResult.get("merchantId"));
+
+            MerchantRole merchantRole = new MerchantRole();
             merchantRole.setId(UUID.randomUUID().toString().replace("-", ""));
+            merchantRole.setMerchantId(merchantId);
             merchantRole.setShopId(shopId);
+            merchantRole.setRole("2");
             merchantRole.setAssignedBy(userId);
-            int result = merchantRoleMapper.insert(merchantRole);
+
+            int result = merchantRoleService.insert(merchantRole);
             return Map.of("success", result > 0, "message", result > 0 ? "添加店员成功" : "添加店员失败");
         } catch (Exception e) {
+            e.printStackTrace();
             return Map.of("success", false, "message", "添加店员失败：" + e.getMessage());
         }
     }
@@ -400,13 +459,13 @@ public class ShopSellerController {
         if (userId == null || userId.trim().isEmpty()) {
             return Map.of("success", false, "message", "未提供用户ID");
         }
-        if (merchantRoleMapper.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             return Map.of("success", false, "message", "仅店长可移除店员");
         }
         try {
-            MerchantRole mr = merchantRoleMapper.selectByMerchantAndShop(merchantId, shopId);
+            MerchantRole mr = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
             if (mr != null) {
-                merchantRoleMapper.deleteById(mr.getId());
+                merchantRoleService.deleteById(mr.getId());
             }
             return Map.of("success", true, "message", "移除店员成功");
         } catch (Exception e) {

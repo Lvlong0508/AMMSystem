@@ -2,6 +2,7 @@ package com.gzasc.aishopping.common.feign.logistics;
 
 import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -27,4 +28,10 @@ public interface LogisticsFeignClient {
      */
     @PutMapping("/internal/logistics/close/{id}")
     Map<String, Object> closeLogistics(@PathVariable("id") Integer id);
+
+    /**
+     * 根据ID获取物流信息
+     */
+    @GetMapping("/internal/logistics/get/{id}")
+    Map<String, Object> getLogisticsById(@PathVariable("id") Integer id);
 }

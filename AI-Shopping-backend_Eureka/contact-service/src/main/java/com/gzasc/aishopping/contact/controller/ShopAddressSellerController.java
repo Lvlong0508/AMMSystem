@@ -15,8 +15,9 @@ public class ShopAddressSellerController {
 
     private final ShopAddressService shopAddressService;
 
-    @GetMapping("/list")
+@GetMapping("/list")
     public Map<String, Object> getAddressList(
+            @RequestHeader(value = "userId", required = false) String userIdStr,
             @RequestHeader(value = "X-Shop-Id", required = false) String shopId) {
         if (shopId == null || shopId.trim().isEmpty()) {
             return Map.of("message", "查询地址错误：未获取到店铺ID");
@@ -26,6 +27,21 @@ public class ShopAddressSellerController {
             return Map.of("message", "查询成功", "data", addresses, "total", addresses.size());
         } catch (Exception e) {
             return Map.of("message", "查询地址列表错误：" + e.getMessage());
+        }
+    }
+
+    @GetMapping("/ship-list")
+    public Map<String, Object> getShipAddressList(
+            @RequestHeader(value = "userId", required = false) String userIdStr,
+            @RequestHeader(value = "X-Shop-Id", required = false) String shopId) {
+        if (shopId == null || shopId.trim().isEmpty()) {
+            return Map.of("message", "查询发货地址错误：未获取到店铺ID");
+        }
+        try {
+            List<ShopAddress> addresses = shopAddressService.getShipAddressesByShopId(shopId);
+            return Map.of("message", "查询成功", "data", addresses, "total", addresses.size());
+        } catch (Exception e) {
+            return Map.of("message", "查询发货地址列表错误：" + e.getMessage());
         }
     }
 

@@ -254,6 +254,7 @@ public class AuthServiceImpl implements AuthService {
         employee.setUsername(request.getUsername());
         employee.setPhone(request.getPhone());
         employee.setStatus(1);
+        employee.setInfoId(request.getInfoId());
 
         String password = StringUtils.hasText(request.getPassword()) ? request.getPassword() : "123456";
         employee.setPassword(BCryptUtil.hashPassword(password));

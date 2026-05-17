@@ -3,13 +3,13 @@ package com.gzasc.aishopping.shop.controller;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
-import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
-import com.gzasc.aishopping.shop.mapper.OrderShopMapper;
-import com.gzasc.aishopping.shop.mapper.ProductShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.OrderShop;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
+import com.gzasc.aishopping.shop.service.MerchantRoleService;
+import com.gzasc.aishopping.shop.service.OrderShopService;
+import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -25,21 +25,21 @@ import java.util.Map;
 public class ShopQueryController {
 
     private final ShopService shopService;
-    private final MerchantRoleMapper merchantRoleMapper;
-    private final ProductShopMapper productShopMapper;
-    private final OrderShopMapper orderShopMapper;
+    private final MerchantRoleService merchantRoleService;
+    private final ProductShopService productShopService;
+    private final OrderShopService orderShopService;
     private final ProductFeignClient productFeignClient;
     private final OrderFeignClient orderFeignClient;
     private final ContactFeignClient contactFeignClient;
 
     private boolean hasShopAccess(String userId, String shopId) {
-        return merchantRoleMapper.selectByMerchantAndShop(userId, shopId) != null;
+        return merchantRoleService.selectByMerchantAndShop(userId, shopId) != null;
     }
 
     @GetMapping("/shop/{shopId}")
     public Map<String, Object> getShop(
             @PathVariable("shopId") String shopId,
-            @RequestHeader("userId") String userId) {
+            @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
             return Map.of("success", false, "message", "无权限访问该店铺");
         }
@@ -53,11 +53,11 @@ public class ShopQueryController {
     @GetMapping("/{shopId}/products")
     public Map<String, Object> getProducts(
             @PathVariable("shopId") String shopId,
-            @RequestHeader("userId") String userId) {
+            @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
             return Map.of("success", false, "message", "无权限访问该店铺");
         }
-        List<ProductShop> productShops = productShopMapper.selectByShopId(shopId);
+        List<ProductShop> productShops = productShopService.selectByShopId(shopId);
         List<Map<String, Object>> products = new ArrayList<>();
         for (ProductShop ps : productShops) {
             try {
@@ -80,11 +80,11 @@ public class ShopQueryController {
     @GetMapping("/{shopId}/orders")
     public Map<String, Object> getOrders(
             @PathVariable("shopId") String shopId,
-            @RequestHeader("userId") String userId) {
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
         if (!hasShopAccess(userId, shopId)) {
             return Map.of("success", false, "message", "无权限访问该店铺");
         }
-        List<OrderShop> orderShops = orderShopMapper.selectByShopId(shopId);
+        List<OrderShop> orderShops = orderShopService.selectByShopId(shopId);
         if (orderShops.isEmpty()) {
             return Map.of("success", true, "orders", new ArrayList<>(), "total", 0);
         }
@@ -139,11 +139,11 @@ public class ShopQueryController {
     public Map<String, Object> getOrderDetail(
             @PathVariable("shopId") String shopId,
             @PathVariable("orderId") String orderId,
-            @RequestHeader("userId") String userId) {
+            @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
             return Map.of("success", false, "message", "无权限访问该店铺");
         }
-        List<OrderShop> orderShops = orderShopMapper.selectByOrderId(orderId);
+        List<OrderShop> orderShops = orderShopService.selectByOrderId(orderId);
         if (orderShops.isEmpty() || !orderShops.get(0).getShopId().equals(shopId)) {
             return Map.of("success", false, "message", "订单不存在");
         }
@@ -154,11 +154,11 @@ public class ShopQueryController {
     @GetMapping("/{shopId}/employees")
     public Map<String, Object> getEmployees(
             @PathVariable("shopId") String shopId,
-            @RequestHeader("userId") String userId) {
+            @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
             return Map.of("success", false, "message", "无权限访问该店铺");
         }
-        List<MerchantRole> employees = merchantRoleMapper.selectByShopId(shopId);
+        List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
         return Map.of("success", true, "employees", employees, "total", employees.size());
     }
 }

@@ -17,6 +17,11 @@ public interface ShopMapper {
     @Select("SELECT * FROM shops WHERE merchant_id = #{merchantId}")
     List<Shop> selectShopsByMerchantId(@Param("merchantId") String merchantId);
 
+    @Select("SELECT s.* FROM shops s " +
+            "INNER JOIN merchant_roles mr ON s.id = mr.shop_id " +
+            "WHERE mr.merchant_id = #{userId} AND s.status = 1")
+    List<Shop> selectShopsByUserId(@Param("userId") String userId);
+
     @Insert("INSERT INTO shops (id, merchant_id, name, description, logo_id, status, created_at, updated_at) " +
             "VALUES (#{id}, #{merchantId}, #{name}, #{description}, #{logoId}, #{status}, NOW(), NOW())")
     int insertShop(Shop shop);

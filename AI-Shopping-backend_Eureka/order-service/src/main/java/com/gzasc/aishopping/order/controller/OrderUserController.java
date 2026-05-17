@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
+import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
@@ -10,6 +11,8 @@ import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +28,7 @@ public class OrderUserController {
     private final OrderService orderService;
     private final ProductFeignClient productFeignClient;
     private final ShopFeignClient shopFeignClient;
+    private final LogisticsFeignClient logisticsFeignClient;
 
     @GetMapping("/{orderId}")
     public Map<String, Object> getOrderById(
@@ -37,7 +41,8 @@ public class OrderUserController {
         try {
             Order order = orderService.getOrderByUserId(userId, orderId);
             if (order != null) {
-                return Map.of("message", "查询成功", "order", order);
+                Map<String, Object> orderMap = convertToMapWithLogistics(order);
+                return Map.of("message", "查询成功", "order", orderMap);
             } else {
                 return Map.of("message", "查询失败：订单不存在或无权限查看");
             }
@@ -55,7 +60,11 @@ public class OrderUserController {
         }
         try {
             List<Order> orders = orderService.getOrdersByUserId(userId);
-            return Map.of("message", "查询成功", "orders", orders, "total", orders.size());
+            List<Map<String, Object>> orderList = new ArrayList<>();
+            for (Order order : orders) {
+                orderList.add(convertToMapWithLogistics(order));
+            }
+            return Map.of("message", "查询成功", "orders", orderList, "total", orders.size());
         } catch (Exception e) {
             return Map.of("message", "查询订单错误：" + e.getMessage());
         }
@@ -189,5 +198,34 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private Map<String, Object> convertToMapWithLogistics(Order order) {
+        Map<String, Object> orderMap = new HashMap<>();
+        orderMap.put("orderId", order.getOrderId());
+        orderMap.put("productId", order.getProductId());
+        orderMap.put("quantity", order.getQuantity());
+        orderMap.put("totalPrice", order.getTotalPrice());
+        orderMap.put("orderStatus", order.getOrderStatus());
+        orderMap.put("orderDate", order.getOrderDate());
+        orderMap.put("logisticsId", order.getLogisticsId());
+        orderMap.put("contactId", order.getContactId());
+
+        if (order.getLogisticsId() != null) {
+            try {
+                Map<String, Object> logisticsResult = logisticsFeignClient.getLogisticsById(order.getLogisticsId());
+                if (logisticsResult != null && logisticsResult.containsKey("data")) {
+                    Object data = logisticsResult.get("data");
+                    if (data instanceof Map) {
+                        Map<String, Object> logistics = (Map<String, Object>) data;
+                        orderMap.put("trackingNumber", logistics.get("trackingNumber"));
+                        orderMap.put("logistics", logistics);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("获取物流信息失败: " + e.getMessage());
+            }
+        }
+        return orderMap;
     }
 }
