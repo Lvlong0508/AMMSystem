@@ -1,6 +1,10 @@
 package com.gzasc.aishopping.contact.controller;
 
 import com.gzasc.aishopping.contact.model.Contact;
+import com.gzasc.aishopping.contact.model.dto.ApiResponse;
+import com.gzasc.aishopping.contact.model.dto.ContactResponse;
+import com.gzasc.aishopping.contact.model.dto.CreateContactRequest;
+import com.gzasc.aishopping.contact.model.dto.UpdateContactRequest;
 import com.gzasc.aishopping.contact.service.ContactService;
 import com.gzasc.aishopping.contact.service.impl.ContactException;
 import jakarta.validation.Valid;
@@ -9,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/user/contact")
@@ -18,19 +23,20 @@ public class ContactController {
     private final ContactService contactService;
 
     @PostMapping("/create")
-    public Map<String, Object> createContact(
-            @RequestBody @Valid Contact contact,
+    public ApiResponse<Map<String, Integer>> createContact(
+            @RequestBody @Valid CreateContactRequest request,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
         Integer userId = parseUserId(userIdStr);
         if (userId == null) {
             throw new ContactException("未登录（错误代码：Co-000）");
         }
+        Contact contact = toContact(request);
         int id = contactService.createContact(contact, userId);
-        return Map.of("code", 200, "message", "创建联系人成功", "data", Map.of("id", id));
+        return ApiResponse.success("创建联系人成功", Map.of("id", id));
     }
 
     @DeleteMapping("/delete/{id}")
-    public Map<String, Object> deleteContact(
+    public ApiResponse<Void> deleteContact(
             @PathVariable int id,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
         Integer userId = parseUserId(userIdStr);
@@ -41,29 +47,27 @@ public class ContactController {
         if (result <= 0) {
             throw new ContactException("删除联系人失败：联系人不存在或无权限（错误代码：Co-005）");
         }
-        return Map.of("code", 200, "message", "删除联系人成功");
+        return ApiResponse.success("删除联系人成功");
     }
 
     @PutMapping("/update")
-    public Map<String, Object> updateContact(
-            @RequestBody @Valid Contact contact,
+    public ApiResponse<Void> updateContact(
+            @RequestBody @Valid UpdateContactRequest request,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
         Integer userId = parseUserId(userIdStr);
         if (userId == null) {
             throw new ContactException("更新联系人错误：未登录（错误代码：Co-000）");
         }
-        if (contact.getId() <= 0) {
-            throw new ContactException("更新联系人错误：ID无效（错误代码：Co-006）");
-        }
+        Contact contact = toContact(request);
         int result = contactService.updateContact(contact, userId);
         if (result <= 0) {
             throw new ContactException("更新联系人失败：联系人不存在或无权限（错误代码：Co-010）");
         }
-        return Map.of("code", 200, "message", "更新联系人成功");
+        return ApiResponse.success("更新联系人成功");
     }
 
     @GetMapping("/get/{id}")
-    public Map<String, Object> getContactById(
+    public ApiResponse<ContactResponse> getContactById(
             @PathVariable("id") int id,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
         Integer userId = parseUserId(userIdStr);
@@ -74,31 +78,37 @@ public class ContactController {
         if (contact == null) {
             throw new ContactException("查询失败：联系人不存在（错误代码：Co-011）");
         }
-        return Map.of("code", 200, "message", "查询成功", "data", contact);
+        return ApiResponse.success("查询成功", ContactResponse.fromContact(contact));
     }
 
     @GetMapping("/list")
-    public Map<String, Object> getContacts(
+    public ApiResponse<Map<String, Object>> getContacts(
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
         Integer userId = parseUserId(userIdStr);
         if (userId == null) {
             throw new ContactException("查询联系人错误：未登录（错误代码：Co-000）");
         }
         List<Contact> contacts = contactService.getContactsByUserId(userId);
-        return Map.of("code", 200, "message", "查询成功", "data", contacts, "total", contacts.size());
+        List<ContactResponse> data = contacts.stream()
+                .map(ContactResponse::fromContact)
+                .collect(Collectors.toList());
+        return ApiResponse.success("查询成功", Map.of("contacts", data, "total", data.size()));
     }
 
     @GetMapping("/search/name")
-    public Map<String, Object> getContactsByName(@RequestParam("name") String name) {
+    public ApiResponse<Map<String, Object>> getContactsByName(@RequestParam("name") String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new ContactException("查询错误：姓名为空（错误代码：Co-012）");
         }
         List<Contact> contacts = contactService.getContactsByName(name);
-        return Map.of("code", 200, "message", "查询成功", "data", contacts, "total", contacts.size());
+        List<ContactResponse> data = contacts.stream()
+                .map(ContactResponse::fromContact)
+                .collect(Collectors.toList());
+        return ApiResponse.success("查询成功", Map.of("contacts", data, "total", data.size()));
     }
 
     @GetMapping("/search/phone")
-    public Map<String, Object> getContactByPhone(@RequestParam("phone") String phone) {
+    public ApiResponse<ContactResponse> getContactByPhone(@RequestParam("phone") String phone) {
         if (phone == null || phone.trim().isEmpty()) {
             throw new ContactException("查询错误：电话为空（错误代码：Co-013）");
         }
@@ -106,7 +116,7 @@ public class ContactController {
         if (contact == null) {
             throw new ContactException("查询失败：联系人不存在（错误代码：Co-014）");
         }
-        return Map.of("code", 200, "message", "查询成功", "data", contact);
+        return ApiResponse.success("查询成功", ContactResponse.fromContact(contact));
     }
 
     private Integer parseUserId(String userIdStr) {
@@ -118,5 +128,22 @@ public class ContactController {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    private Contact toContact(CreateContactRequest request) {
+        Contact contact = new Contact();
+        contact.setName(request.getName());
+        contact.setPhone(request.getPhone());
+        contact.setAddress(request.getAddress());
+        return contact;
+    }
+
+    private Contact toContact(UpdateContactRequest request) {
+        Contact contact = new Contact();
+        contact.setId(request.getId());
+        contact.setName(request.getName());
+        contact.setPhone(request.getPhone());
+        contact.setAddress(request.getAddress());
+        return contact;
     }
 }
