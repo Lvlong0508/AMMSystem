@@ -78,18 +78,6 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
-    public List<Contact> getContactsByName(String name) {
-        log.info("getContactsByName, name={}", name);
-        return userContactMapper.selectContactsByName(name);
-    }
-
-    @Override
-    public Contact getContactByPhone(String phone) {
-        log.info("getContactByPhone, phone={}", phone);
-        return userContactMapper.selectContactByPhone(phone);
-    }
-
-    @Override
     public int setDefaultContact(int id, int userId) {
         log.info("setDefaultContact, id={}, userId={}", id, userId);
         Contact contact = getContactById(id, userId);

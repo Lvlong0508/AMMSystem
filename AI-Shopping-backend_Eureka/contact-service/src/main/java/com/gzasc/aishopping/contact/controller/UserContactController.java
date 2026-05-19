@@ -95,30 +95,6 @@ public class UserContactController {
         return ApiResponse.success("查询成功", Map.of("contacts", data, "total", data.size()));
     }
 
-    @GetMapping("/search/name")
-    public ApiResponse<Map<String, Object>> getContactsByName(@RequestParam("name") String name) {
-        if (name == null || name.trim().isEmpty()) {
-            throw new ContactException("查询错误：姓名为空（错误代码：Co-012）");
-        }
-        List<Contact> contacts = contactService.getContactsByName(name);
-        List<ContactResponse> data = contacts.stream()
-                .map(ContactResponse::fromContact)
-                .collect(Collectors.toList());
-        return ApiResponse.success("查询成功", Map.of("contacts", data, "total", data.size()));
-    }
-
-    @GetMapping("/search/phone")
-    public ApiResponse<ContactResponse> getContactByPhone(@RequestParam("phone") String phone) {
-        if (phone == null || phone.trim().isEmpty()) {
-            throw new ContactException("查询错误：电话为空（错误代码：Co-013）");
-        }
-        Contact contact = contactService.getContactByPhone(phone);
-        if (contact == null) {
-            throw new ContactException("查询失败：联系人不存在（错误代码：Co-014）");
-        }
-        return ApiResponse.success("查询成功", ContactResponse.fromContact(contact));
-    }
-
     @PutMapping("/set-default/{id}")
     public ApiResponse<Void> setDefaultContact(
             @PathVariable int id,

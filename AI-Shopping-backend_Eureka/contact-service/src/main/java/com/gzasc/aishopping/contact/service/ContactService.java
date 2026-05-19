@@ -11,8 +11,6 @@ public interface ContactService {
     Contact getContactById(int id, int userId);
     Contact getContactByIdNoAuth(int id);
     List<Contact> getContactsByUserId(int userId);
-    List<Contact> getContactsByName(String name);
-    Contact getContactByPhone(String phone);
 
     /**
      * 设置默认联系人

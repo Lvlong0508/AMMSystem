@@ -52,6 +52,12 @@ public interface UserContactMapper {
     List<Integer> selectContactIdsByUserId(int userId);
 
     /**
+     * 根据联系人ID查询关联的用户ID列表
+     */
+    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
+    List<Integer> selectUserIdsByContactId(int contactId);
+
+    /**
      * 插入用户-联系人关联记录
      */
     @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
@@ -62,6 +68,9 @@ public interface UserContactMapper {
      */
     @Delete("DELETE FROM user_contact WHERE user_id = #{userId} AND contact_id = #{contactId}")
     int deleteByUserIdAndContactId(@Param("userId") int userId, @Param("contactId") int contactId);
+
+    @Delete("DELETE FROM user_contact WHERE contact_id = #{contactId}")
+    int deleteByContactId(int contactId);
 
     /* ========== 联系人 CRUD ========== */
 
