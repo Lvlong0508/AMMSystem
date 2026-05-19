@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.shop.controller;
+package com.gzasc.aishopping.shop.controller.Internal;
 
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;

@@ -3,7 +3,6 @@ package com.gzasc.aishopping.shop.controller;
 import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
-import com.gzasc.aishopping.common.feign.auth.UserInfoFeignClient;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.shop.model.MerchantRole;
@@ -17,7 +16,6 @@ import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -34,7 +32,6 @@ public class ShopManageController {
     private final ProductFeignClient productFeignClient;
     private final OrderFeignClient orderFeignClient;
     private final AuthFeignClient authFeignClient;
-    private final UserInfoFeignClient userInfoFeignClient;
 
     private boolean isShopOwner(String userId, String shopId) {
         return merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") != null;
@@ -169,10 +166,6 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @RequestBody Map<String, String> request,
             @RequestHeader("X-User-Id") String userId) {
-        if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可添加店员");
-        }
-
         String username = request.get("username");
         String password = request.get("password");
         String phone = request.get("phone");
@@ -181,39 +174,28 @@ public class ShopManageController {
         if (username == null || username.trim().isEmpty()) {
             return Map.of("success", false, "message", "账号不能为空");
         }
-        if (password == null || password.trim().isEmpty()) {
-            return Map.of("success", false, "message", "密码不能为空");
-        }
 
         try {
-            Integer infoId = null;
-            if (name != null && !name.trim().isEmpty()) {
-                Map<String, String> userInfoRequest = new HashMap<>();
-                userInfoRequest.put("nickname", name);
-                Map<String, Object> userInfoResult = userInfoFeignClient.createUserInfo(userInfoRequest);
-                if (userInfoResult != null && Boolean.TRUE.equals(userInfoResult.get("success"))) {
-                    infoId = (Integer) userInfoResult.get("infoId");
-                }
-            }
-
-            Map<String, Object> registerRequest = new HashMap<>();
+            Map<String, Object> registerRequest = new java.util.HashMap<>();
             registerRequest.put("username", username);
-            registerRequest.put("password", password);
+            if (password != null && !password.trim().isEmpty()) {
+                registerRequest.put("password", password);
+            }
             if (phone != null && !phone.trim().isEmpty()) {
                 registerRequest.put("phone", phone);
             }
-            if (infoId != null) {
-                registerRequest.put("infoId", infoId);
+            if (name != null && !name.trim().isEmpty()) {
+                registerRequest.put("nickname", name);
             }
 
             Map<String, Object> registerResult = authFeignClient.registerEmployee(registerRequest);
             if (registerResult == null || !registerResult.containsKey("merchantId")) {
-                return Map.of("success", false, "message", "注册店员失败");
+                String errorMsg = registerResult != null ? (String) registerResult.get("message") : "注册失败";
+                return Map.of("success", false, "message", "添加店员失败：" + errorMsg);
             }
 
             String merchantId = String.valueOf(registerResult.get("merchantId"));
             MerchantRole merchantRole = new MerchantRole();
-            merchantRole.setId(UUID.randomUUID().toString().replace("-", ""));
             merchantRole.setMerchantId(merchantId);
             merchantRole.setShopId(shopId);
             merchantRole.setRole("2");

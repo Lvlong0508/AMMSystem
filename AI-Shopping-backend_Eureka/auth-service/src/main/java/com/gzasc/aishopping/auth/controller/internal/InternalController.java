@@ -1,7 +1,7 @@
-package com.gzasc.aishopping.auth.controller;
+package com.gzasc.aishopping.auth.controller.internal;
 
 import com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest;
-import com.gzasc.aishopping.auth.service.AuthService;
+import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import com.gzasc.aishopping.auth.service.impl.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -9,23 +9,24 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/internal/auth")
 @RequiredArgsConstructor
 public class InternalController {
 
-    private final AuthService authService;
+    private final MerchantAuthService merchantAuthService;
 
     @PostMapping("/register-employee")
     public Map<String, Object> registerEmployee(@RequestBody @Valid RegisterEmployeeRequest request,
-                                                 BindingResult bindingResult) {
+                                               BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return Map.of("message", "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
+            return Map.of("message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
         }
 
         try {
-            Integer merchantId = authService.registerEmployee(request);
+            Integer merchantId = merchantAuthService.registerEmployee(request);
             return Map.of(
                 "message", "店员账号注册成功",
                 "merchantId", merchantId

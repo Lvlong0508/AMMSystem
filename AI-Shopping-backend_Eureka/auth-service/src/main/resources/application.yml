@@ -5,9 +5,9 @@ spring:
   application:
     name: auth-service
 
-  # 数据源配置（用户库）- 基础配置，连接池参数在 DataSourceConfig 中设置
+  # 数据源配置
   datasource:
-    url: jdbc:mysql://localhost:3306/eureka_user?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mysql://localhost:3306/eureka_auth?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -24,13 +24,6 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-
-  # 商家数据源配置（第二数据源）- 基础配置，连接池参数在 DataSourceConfig 中设置
-  second-datasource:
-    jdbc-url: jdbc:mysql://localhost:3306/eureka_merchant?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
-    username: root
-    password: 123456
-    driver-class-name: com.mysql.cj.jdbc.Driver
 
 # Eureka 配置
 eureka:
@@ -49,8 +42,8 @@ sa-token:
   # Token 有效期（单位：秒），默认30天
   timeout: 2592000
   
-  # Token 临时有效期（指定时间内无操作则视为过期），-1代表不限制
-  activity-timeout: -1
+# Token 临时有效期（指定时间内无操作则视为过期），-1代表不限制
+    active-timeout: -1
   
   # 是否允许同一账号并发登录（为 true 时允许一起登录，为 false 时新登录挤掉旧登录）
   is-concurrent: true

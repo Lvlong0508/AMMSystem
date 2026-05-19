@@ -15,7 +15,7 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     private final MerchantRoleMapper merchantRoleMapper;
 
     @Override
-    public MerchantRole selectById(String id) {
+    public MerchantRole selectById(Long id) {
         return merchantRoleMapper.selectById(id);
     }
 
@@ -40,7 +40,7 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     }
 
     @Override
-    public int deleteById(String id) {
+    public int deleteById(Long id) {
         return merchantRoleMapper.deleteById(id);
     }
 

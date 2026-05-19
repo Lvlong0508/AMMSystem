@@ -10,10 +10,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MerchantRole {
-    private String id;
+    private Long id;
     private String merchantId;
     private String shopId;
-    private String role;
+    private String role; // 1是店长；2是店员
     private String assignedBy;
     private LocalDateTime createdAt;
 }

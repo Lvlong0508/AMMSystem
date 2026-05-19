@@ -13,10 +13,16 @@ public class UserInfoServiceImpl implements UserInfoService {
     private final UserInfoMapper userInfoMapper;
 
     @Override
-    public UserInfo createUserInfo(String nickname) {
-        UserInfo userInfo = new UserInfo();
-        userInfo.setNickname(nickname);
-        userInfoMapper.insert(userInfo);
-        return userInfo;
+    public UserInfo getUserInfoById(Integer id) {
+        return userInfoMapper.selectById(id);
+    }
+
+    @Override
+    public Integer createUserInfo(UserInfo info) {
+        userInfoMapper.insert(info);
+        if (info.getId() == null) {
+            throw new RuntimeException("创建用户信息失败");
+        }
+        return info.getId();
     }
 }

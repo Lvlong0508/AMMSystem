@@ -9,7 +9,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserInfo {
+public class MerchantInfo {
     private Integer id;
     private String nickname;
     private String avatar;
