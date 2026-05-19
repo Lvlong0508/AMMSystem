@@ -5,13 +5,19 @@ import com.gzasc.aishopping.contact.mapper.ShopAddressRelMapper;
 import com.gzasc.aishopping.contact.model.ShopAddress;
 import com.gzasc.aishopping.contact.service.ShopAddressService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 店铺地址服务实现类
+ * 提供店铺收货/发货地址的 CRUD 操作，支持店铺隔离
+ */
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ShopAddressServiceImpl implements ShopAddressService {
 
     private final ShopAddressMapper shopAddressMapper;
