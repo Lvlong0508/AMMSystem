@@ -14,6 +14,7 @@ public class ContactResponse {
     private String name;
     private String phone;
     private String address;
+    private Integer isDefault;       // 是否默认：0-否 1-是
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -26,6 +27,7 @@ public class ContactResponse {
         response.setName(contact.getName());
         response.setPhone(contact.getPhone());
         response.setAddress(contact.getAddress());
+        response.setIsDefault(contact.getIsDefault());
         response.setCreatedAt(contact.getCreatedAt());
         response.setUpdatedAt(contact.getUpdatedAt());
         return response;
