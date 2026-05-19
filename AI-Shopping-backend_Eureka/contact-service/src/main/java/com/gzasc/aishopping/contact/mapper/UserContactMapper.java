@@ -1,56 +1,140 @@
 package com.gzasc.aishopping.contact.mapper;
 
+import com.gzasc.aishopping.contact.model.Contact;
 import com.gzasc.aishopping.contact.model.UserContact;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
 
 /**
- * 用户-联系人关联 Mapper 接口
- * 对应 user_contact 表，处理用户与联系人的关联关系
+ * 联系人 Mapper 接口
+ * 使用 contact 数据源
  */
 @Mapper
 public interface UserContactMapper {
 
-    /**
-     * 插入用户-联系人关联记录
-     * @param userContact 关联记录
-     * @return 影响行数
-     */
-    @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
-    @Options(useGeneratedKeys = true, keyProperty = "id")
-    int insert(UserContact userContact);
+    /* ========== 公共结果映射 ========== */
+
+    @Results(id = "CONTACT_RESULT_MAPPING", value = {
+            @Result(property = "id", column = "id"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "isDefault", column = "is_default"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at")
+    })
+
+    /* ========== 查询操作 ========== */
 
     /**
-     * 根据用户ID查询关联记录
-     * @param userId 用户ID
-     * @return 该用户的所有联系人关联记录
+     * 根据ID查询联系人
      */
-    @Select("SELECT * FROM user_contact WHERE user_id = #{userId}")
-    List<UserContact> selectByUserId(int userId);
+    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE id = #{id}")
+    @ResultMap("CONTACT_RESULT_MAPPING")
+    Contact selectContactById(int id);
 
     /**
-     * 根据联系人ID查询关联记录
-     * @param contactId 联系人ID
-     * @return 该联系人的所有用户关联记录
+     * 查询所有联系人
+     */
+    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact")
+    @ResultMap("CONTACT_RESULT_MAPPING")
+    List<Contact> selectAllContacts();
+
+    /**
+     * 根据用户ID查询联系人列表（通过关联表）
+     */
+    @Select("SELECT c.id, c.name, c.phone, c.address, c.is_default, c.created_at, c.updated_at " +
+            "FROM t_contact c " +
+            "INNER JOIN user_contact uc ON c.id = uc.contact_id " +
+            "WHERE uc.user_id = #{userId}")
+    @ResultMap("CONTACT_RESULT_MAPPING")
+    List<Contact> selectByUserId(int userId);
+
+    /**
+     * 根据姓名模糊查询联系人
+     */
+    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE name = #{name}")
+    @ResultMap("CONTACT_RESULT_MAPPING")
+    List<Contact> selectContactsByName(String name);
+
+    /**
+     * 根据手机号查询联系人
+     */
+    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE phone = #{phone}")
+    @ResultMap("CONTACT_RESULT_MAPPING")
+    Contact selectContactByPhone(String phone);
+
+    /* ========== 用户-联系人关联查询（返回实体） ========== */
+
+    /**
+     * 根据联系人ID查询关联记录（返回实体）
      */
     @Select("SELECT * FROM user_contact WHERE contact_id = #{contactId}")
     List<UserContact> selectByContactId(int contactId);
 
+    /* ========== 用户-联系人关联操作 ========== */
+
+    /**
+     * 根据用户ID查询关联的联系人的ID列表
+     */
+    @Select("SELECT contact_id FROM user_contact WHERE user_id = #{userId}")
+    List<Integer> selectContactIdsByUserId(int userId);
+
+    /**
+     * 根据联系人ID查询关联的用户ID列表
+     */
+    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
+    List<Integer> selectUserIdsByContactId(int contactId);
+
+    /**
+     * 插入用户-联系人关联记录
+     */
+    @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
+    int insertUserContact(@Param("userId") int userId, @Param("contactId") int contactId);
+
     /**
      * 删除指定用户-联系人关联
-     * @param userId 用户ID
-     * @param contactId 联系人ID
-     * @return 影响行数
      */
     @Delete("DELETE FROM user_contact WHERE user_id = #{userId} AND contact_id = #{contactId}")
-    int deleteByUserAndContact(@Param("userId") int userId, @Param("contactId") int contactId);
+    int deleteByUserIdAndContactId(@Param("userId") int userId, @Param("contactId") int contactId);
 
     /**
      * 根据联系人ID删除所有关联记录
-     * @param contactId 联系人ID
-     * @return 影响行数
      */
     @Delete("DELETE FROM user_contact WHERE contact_id = #{contactId}")
     int deleteByContactId(int contactId);
+
+    /* ========== 联系人 CRUD ========== */
+
+    /**
+     * 插入联系人
+     */
+    @Insert("INSERT INTO t_contact (name, phone, address, is_default) VALUES (#{name}, #{phone}, #{address}, #{isDefault})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    int insertContact(Contact contact);
+
+    /**
+     * 更新联系人
+     */
+    @Update("UPDATE t_contact SET name = #{name}, phone = #{phone}, address = #{address}, is_default = #{isDefault} WHERE id = #{id}")
+    int updateContact(Contact contact);
+
+    /**
+     * 删除联系人
+     */
+    @Delete("DELETE FROM t_contact WHERE id = #{id}")
+    int deleteContactById(int id);
+
+    /**
+     * 设置默认联系人
+     */
+    @Update("UPDATE t_contact SET is_default = 1 WHERE id = #{id}")
+    int setDefaultById(int id);
+
+    /**
+     * 清除用户的所有默认联系人
+     */
+    @Update("UPDATE t_contact SET is_default = 0 WHERE id IN (SELECT contact_id FROM user_contact WHERE user_id = #{userId})")
+    int clearDefaultByUserId(int userId);
 }

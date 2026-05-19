@@ -1,6 +1,5 @@
 package com.gzasc.aishopping.contact.service.impl;
 
-import com.gzasc.aishopping.contact.mapper.ContactMapper;
 import com.gzasc.aishopping.contact.mapper.UserContactMapper;
 import com.gzasc.aishopping.contact.model.Contact;
 import com.gzasc.aishopping.contact.model.UserContact;
@@ -21,19 +20,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ContactServiceImpl implements ContactService {
 
-    private final ContactMapper contactMapper;
     private final UserContactMapper userContactMapper;
 
     @Override
     @Transactional
     public int createContact(Contact contact, int userId) {
         log.info("createContact, userId={}", userId);
-        int result = contactMapper.insertContact(contact);
+        int result = userContactMapper.insertContact(contact);
         if (result > 0) {
-            UserContact userContact = new UserContact();
-            userContact.setUserId(userId);
-            userContact.setContactId(contact.getId());
-            userContactMapper.insert(userContact);
+            userContactMapper.insertUserContact(userId, contact.getId());
         }
         return result;
     }
@@ -47,7 +42,7 @@ public class ContactServiceImpl implements ContactService {
             return 0;
         }
         userContactMapper.deleteByContactId(id);
-        return contactMapper.deleteContactById(id);
+        return userContactMapper.deleteContactById(id);
     }
 
     @Override
@@ -58,7 +53,7 @@ public class ContactServiceImpl implements ContactService {
         if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
             return 0;
         }
-        return contactMapper.updateContact(contact);
+        return userContactMapper.updateContact(contact);
     }
 
     @Override
@@ -68,31 +63,31 @@ public class ContactServiceImpl implements ContactService {
         if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
             return null;
         }
-        return contactMapper.selectContactById(id);
+        return userContactMapper.selectContactById(id);
     }
 
     @Override
     public Contact getContactByIdNoAuth(int id) {
         log.info("getContactByIdNoAuth, id={}", id);
-        return contactMapper.selectContactById(id);
+        return userContactMapper.selectContactById(id);
     }
 
     @Override
     public List<Contact> getContactsByUserId(int userId) {
         log.info("getContactsByUserId, userId={}", userId);
-        return contactMapper.selectByUserId(userId);
+        return userContactMapper.selectByUserId(userId);
     }
 
     @Override
     public List<Contact> getContactsByName(String name) {
         log.info("getContactsByName, name={}", name);
-        return contactMapper.selectContactsByName(name);
+        return userContactMapper.selectContactsByName(name);
     }
 
     @Override
     public Contact getContactByPhone(String phone) {
         log.info("getContactByPhone, phone={}", phone);
-        return contactMapper.selectContactByPhone(phone);
+        return userContactMapper.selectContactByPhone(phone);
     }
 
     @Override
@@ -102,7 +97,7 @@ public class ContactServiceImpl implements ContactService {
         if (contact == null) {
             return 0;
         }
-        contactMapper.clearDefaultByUserId(userId);
-        return contactMapper.setDefaultById(id);
+        userContactMapper.clearDefaultByUserId(userId);
+        return userContactMapper.setDefaultById(id);
     }
 }
