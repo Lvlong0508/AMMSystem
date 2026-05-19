@@ -9,6 +9,7 @@ public interface ContactService {
     int deleteContact(int id, int userId);
     int updateContact(Contact contact, int userId);
     Contact getContactById(int id, int userId);
+    Contact getContactByIdNoAuth(int id);
     List<Contact> getContactsByUserId(int userId);
     List<Contact> getContactsByName(String name);
     Contact getContactByPhone(String phone);

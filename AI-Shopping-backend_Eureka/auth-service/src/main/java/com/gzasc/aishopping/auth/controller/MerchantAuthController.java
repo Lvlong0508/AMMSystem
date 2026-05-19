@@ -6,7 +6,6 @@ import com.gzasc.aishopping.auth.model.dto.LoginResult;
 import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import com.gzasc.aishopping.auth.service.MerchantInfoService;
-import com.gzasc.aishopping.auth.service.impl.AuthException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.BindingResult;
@@ -28,62 +27,53 @@ public class MerchantAuthController {
     public Map<String, Object> register(@RequestBody @Valid RegisterRequest request,
                                          BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return Map.of("message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
+            return Map.of("code", 400, "message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
         }
 
-        try {
-            LoginResult result = merchantAuthService.register(request);
-            return Map.of(
-                    "message", "注册成功",
-                    "token", result.getToken(),
-                    "merchantInfo", buildMerchantInfo(result.getMerchant())
-            );
-        } catch (AuthException e) {
-            return Map.of("message", "注册失败：" + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("message", "注册错误：" + e.getMessage());
-        }
+        LoginResult result = merchantAuthService.register(request);
+        return Map.of(
+                "code", 200,
+                "message", "注册成功",
+                "data", Map.of(
+                        "token", result.getToken(),
+                        "accountType", result.getAccountType(),
+                        "merchantInfo", buildMerchantInfo((Merchant) result.getAccount())
+                )
+        );
     }
 
     @PostMapping("/login")
     public Map<String, Object> login(@RequestBody @Valid LoginRequest request,
                                       BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
-            return Map.of("message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
+            return Map.of("code", 400, "message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
         }
 
-        try {
-            LoginResult result = merchantAuthService.login(request.getUsername(), request.getPassword());
-            return Map.of(
-                    "message", "登录成功",
-                    "token", result.getToken(),
-                    "merchantInfo", buildMerchantInfo(result.getMerchant())
-            );
-        } catch (AuthException e) {
-            return Map.of("message", "登录失败：" + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return Map.of("message", "登录错误：" + e.getMessage());
-        }
+        LoginResult result = merchantAuthService.login(request.getUsername(), request.getPassword());
+        return Map.of(
+                "code", 200,
+                "message", "登录成功",
+                "data", Map.of(
+                        "token", result.getToken(),
+                        "accountType", result.getAccountType(),
+                        "merchantInfo", buildMerchantInfo((Merchant) result.getAccount())
+                )
+        );
     }
 
     @PostMapping("/logout")
-    public Map<String, String> logout() {
-        try {
-            merchantAuthService.logout();
-            return Map.of("message", "登出成功");
-        } catch (Exception e) {
-            return Map.of("message", "登出错误：" + e.getMessage());
-        }
+    public Map<String, Object> logout() {
+        merchantAuthService.logout();
+        return Map.of("code", 200, "message", "登出成功");
     }
 
     @GetMapping("/check-username")
     public Map<String, Object> checkUsername(@RequestParam String username) {
         boolean exists = merchantAuthService.existsByUsername(username);
         return Map.of(
-                "available", !exists,
-                "message", exists ? "用户名已被使用" : "用户名可用"
+                "code", 200,
+                "message", exists ? "用户名已被使用" : "用户名可用",
+                "data", Map.of("available", !exists)
         );
     }
 
@@ -91,8 +81,9 @@ public class MerchantAuthController {
     public Map<String, Object> checkPhone(@RequestParam String phone) {
         boolean exists = merchantAuthService.existsByPhone(phone);
         return Map.of(
-                "available", !exists,
-                "message", exists ? "手机号已被注册" : "手机号可用"
+                "code", 200,
+                "message", exists ? "手机号已被注册" : "手机号可用",
+                "data", Map.of("available", !exists)
         );
     }
 

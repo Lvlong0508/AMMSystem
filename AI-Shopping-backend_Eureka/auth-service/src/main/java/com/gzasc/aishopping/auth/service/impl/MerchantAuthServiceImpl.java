@@ -56,11 +56,11 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
         merchantMapper.insert(merchant);
 
-        // 5. 生成登录Token，实现自动登录
-        StpUtil.login("MERCHANT:" + merchant.getId());
+        StpUtil.login(merchant.getId());
+        StpUtil.getTokenSession().set("accountType", "MERCHANT");
         String token = StpUtil.getTokenValue();
 
-        return new LoginResult(token, merchant);
+        return new LoginResult(token, merchant, "MERCHANT");
     }
 
     @Override
@@ -82,11 +82,11 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
             throw new AuthException("账号已被禁用");
         }
 
-        // 4. 生成登录Token
-        StpUtil.login("MERCHANT:" + merchant.getId());
+        StpUtil.login(merchant.getId());
+        StpUtil.getTokenSession().set("accountType", "MERCHANT");
         String token = StpUtil.getTokenValue();
 
-        return new LoginResult(token, merchant);
+        return new LoginResult(token, merchant, "MERCHANT");
     }
 
     @Override

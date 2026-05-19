@@ -6,11 +6,13 @@ import com.gzasc.aishopping.contact.model.Contact;
 import com.gzasc.aishopping.contact.model.UserContact;
 import com.gzasc.aishopping.contact.service.ContactService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ContactServiceImpl implements ContactService {
@@ -19,26 +21,23 @@ public class ContactServiceImpl implements ContactService {
     private final UserContactMapper userContactMapper;
 
     @Override
+    @Transactional
     public int createContact(Contact contact, int userId) {
-        System.out.println(new Date() + ": run createContact, userId=" + userId);
-        try {
-            int result = contactMapper.insertContact(contact);
-            if (result > 0) {
-                UserContact userContact = new UserContact();
-                userContact.setUserId(userId);
-                userContact.setContactId(contact.getId());
-                userContactMapper.insert(userContact);
-            }
-            return result;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
+        log.info("createContact, userId={}", userId);
+        int result = contactMapper.insertContact(contact);
+        if (result > 0) {
+            UserContact userContact = new UserContact();
+            userContact.setUserId(userId);
+            userContact.setContactId(contact.getId());
+            userContactMapper.insert(userContact);
         }
+        return result;
     }
 
     @Override
+    @Transactional
     public int deleteContact(int id, int userId) {
-        System.out.println(new Date() + ": run deleteContact, id=" + id + ", userId=" + userId);
+        log.info("deleteContact, id={}, userId={}", id, userId);
         List<UserContact> userContacts = userContactMapper.selectByContactId(id);
         if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
             return 0;
@@ -48,8 +47,9 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
+    @Transactional
     public int updateContact(Contact contact, int userId) {
-        System.out.println(new Date() + ": run updateContact, id=" + contact.getId() + ", userId=" + userId);
+        log.info("updateContact, id={}, userId={}", contact.getId(), userId);
         List<UserContact> userContacts = userContactMapper.selectByContactId(contact.getId());
         if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
             return 0;
@@ -59,7 +59,7 @@ public class ContactServiceImpl implements ContactService {
 
     @Override
     public Contact getContactById(int id, int userId) {
-        System.out.println(new Date() + ": run getContactById, id=" + id + ", userId=" + userId);
+        log.info("getContactById, id={}, userId={}", id, userId);
         List<UserContact> userContacts = userContactMapper.selectByContactId(id);
         if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
             return null;
@@ -68,20 +68,26 @@ public class ContactServiceImpl implements ContactService {
     }
 
     @Override
+    public Contact getContactByIdNoAuth(int id) {
+        log.info("getContactByIdNoAuth, id={}", id);
+        return contactMapper.selectContactById(id);
+    }
+
+    @Override
     public List<Contact> getContactsByUserId(int userId) {
-        System.out.println(new Date() + ": run getContactsByUserId, userId=" + userId);
+        log.info("getContactsByUserId, userId={}", userId);
         return contactMapper.selectByUserId(userId);
     }
 
     @Override
     public List<Contact> getContactsByName(String name) {
-        System.out.println(new Date() + ": run getContactsByName");
+        log.info("getContactsByName, name={}", name);
         return contactMapper.selectContactsByName(name);
     }
 
     @Override
     public Contact getContactByPhone(String phone) {
-        System.out.println(new Date() + ": run getContactByPhone");
+        log.info("getContactByPhone, phone={}", phone);
         return contactMapper.selectContactByPhone(phone);
     }
 }

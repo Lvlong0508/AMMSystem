@@ -49,10 +49,11 @@ public class UserAuthServiceImpl implements UserAuthService {
 
         userMapper.insert(user);
 
-        StpUtil.login("USER:" + user.getId());
+        StpUtil.login(user.getId());
+        StpUtil.getTokenSession().set("accountType", "USER");
         String token = StpUtil.getTokenValue();
 
-        return new LoginResult(token, user);
+        return new LoginResult(token, user, "USER");
     }
 
     @Override
@@ -71,10 +72,11 @@ public class UserAuthServiceImpl implements UserAuthService {
             throw new AuthException("账号已被禁用");
         }
 
-        StpUtil.login("USER:" + user.getId());
+        StpUtil.login(user.getId());
+        StpUtil.getTokenSession().set("accountType", "USER");
         String token = StpUtil.getTokenValue();
 
-        return new LoginResult(token, user);
+        return new LoginResult(token, user, "USER");
     }
 
     @Override
