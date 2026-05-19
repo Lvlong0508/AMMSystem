@@ -12,6 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+/**
+ * 联系人服务实现类
+ * 提供联系人的 CRUD 操作，支持用户隔离
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
