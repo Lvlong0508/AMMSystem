@@ -46,18 +46,6 @@ public interface UserContactMapper {
     /* ========== 用户-联系人关联操作 ========== */
 
     /**
-     * 根据用户ID查询关联的联系人的ID列表
-     */
-    @Select("SELECT contact_id FROM user_contact WHERE user_id = #{userId}")
-    List<Integer> selectContactIdsByUserId(int userId);
-
-    /**
-     * 根据联系人ID查询关联的用户ID列表
-     */
-    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
-    List<Integer> selectUserIdsByContactId(int contactId);
-
-    /**
      * 插入用户-联系人关联记录
      */
     @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
@@ -98,10 +86,4 @@ public interface UserContactMapper {
      */
     @Update("UPDATE t_contact SET is_default = 1 WHERE id = #{id}")
     int setDefaultById(int id);
-
-    /**
-     * 清除用户的所有默认联系人
-     */
-    @Update("UPDATE t_contact SET is_default = 0 WHERE id IN (SELECT contact_id FROM user_contact WHERE user_id = #{userId})")
-    int clearDefaultByUserId(int userId);
 }
