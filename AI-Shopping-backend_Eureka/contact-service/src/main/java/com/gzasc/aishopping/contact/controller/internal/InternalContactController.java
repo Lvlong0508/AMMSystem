@@ -14,6 +14,7 @@ public class InternalContactController {
 
     private final ContactService contactService;
 
+    // 构建订单信息的收货地址时，需要用到该接口
     @GetMapping("/{id}")
     public Map<String, Object> getContactById(@PathVariable("id") int id) {
         try {

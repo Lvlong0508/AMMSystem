@@ -2,7 +2,6 @@ package com.gzasc.aishopping.contact.service.impl;
 
 import com.gzasc.aishopping.contact.mapper.UserContactMapper;
 import com.gzasc.aishopping.contact.model.Contact;
-import com.gzasc.aishopping.contact.model.UserContact;
 import com.gzasc.aishopping.contact.service.ContactService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,8 +36,8 @@ public class ContactServiceImpl implements ContactService {
     @Transactional
     public int deleteContact(int id, int userId) {
         log.info("deleteContact, id={}, userId={}", id, userId);
-        List<UserContact> userContacts = userContactMapper.selectByContactId(id);
-        if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
+        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(id);
+        if (userIds.isEmpty() || userIds.stream().noneMatch(uid -> uid == userId)) {
             return 0;
         }
         userContactMapper.deleteByContactId(id);
@@ -49,8 +48,8 @@ public class ContactServiceImpl implements ContactService {
     @Transactional
     public int updateContact(Contact contact, int userId) {
         log.info("updateContact, id={}, userId={}", contact.getId(), userId);
-        List<UserContact> userContacts = userContactMapper.selectByContactId(contact.getId());
-        if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
+        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
+        if (userIds.isEmpty() || userIds.stream().noneMatch(uid -> uid == userId)) {
             return 0;
         }
         return userContactMapper.updateContact(contact);
@@ -59,8 +58,8 @@ public class ContactServiceImpl implements ContactService {
     @Override
     public Contact getContactById(int id, int userId) {
         log.info("getContactById, id={}, userId={}", id, userId);
-        List<UserContact> userContacts = userContactMapper.selectByContactId(id);
-        if (userContacts.isEmpty() || userContacts.stream().noneMatch(uc -> uc.getUserId() == userId)) {
+        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(id);
+        if (userIds.isEmpty() || userIds.stream().noneMatch(uid -> uid == userId)) {
             return null;
         }
         return userContactMapper.selectContactById(id);
@@ -97,7 +96,6 @@ public class ContactServiceImpl implements ContactService {
         if (contact == null) {
             return 0;
         }
-        userContactMapper.clearDefaultByUserId(userId);
         return userContactMapper.setDefaultById(id);
     }
 }

@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.contact.mapper;
 
 import com.gzasc.aishopping.contact.model.Contact;
-import com.gzasc.aishopping.contact.model.UserContact;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -35,13 +34,6 @@ public interface UserContactMapper {
     Contact selectContactById(int id);
 
     /**
-     * 查询所有联系人
-     */
-    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact")
-    @ResultMap("CONTACT_RESULT_MAPPING")
-    List<Contact> selectAllContacts();
-
-    /**
      * 根据用户ID查询联系人列表（通过关联表）
      */
     @Select("SELECT c.id, c.name, c.phone, c.address, c.is_default, c.created_at, c.updated_at " +
@@ -51,28 +43,6 @@ public interface UserContactMapper {
     @ResultMap("CONTACT_RESULT_MAPPING")
     List<Contact> selectByUserId(int userId);
 
-    /**
-     * 根据姓名模糊查询联系人
-     */
-    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE name = #{name}")
-    @ResultMap("CONTACT_RESULT_MAPPING")
-    List<Contact> selectContactsByName(String name);
-
-    /**
-     * 根据手机号查询联系人
-     */
-    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE phone = #{phone}")
-    @ResultMap("CONTACT_RESULT_MAPPING")
-    Contact selectContactByPhone(String phone);
-
-    /* ========== 用户-联系人关联查询（返回实体） ========== */
-
-    /**
-     * 根据联系人ID查询关联记录（返回实体）
-     */
-    @Select("SELECT * FROM user_contact WHERE contact_id = #{contactId}")
-    List<UserContact> selectByContactId(int contactId);
-
     /* ========== 用户-联系人关联操作 ========== */
 
     /**
@@ -80,12 +50,6 @@ public interface UserContactMapper {
      */
     @Select("SELECT contact_id FROM user_contact WHERE user_id = #{userId}")
     List<Integer> selectContactIdsByUserId(int userId);
-
-    /**
-     * 根据联系人ID查询关联的用户ID列表
-     */
-    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
-    List<Integer> selectUserIdsByContactId(int contactId);
 
     /**
      * 插入用户-联系人关联记录
@@ -98,12 +62,6 @@ public interface UserContactMapper {
      */
     @Delete("DELETE FROM user_contact WHERE user_id = #{userId} AND contact_id = #{contactId}")
     int deleteByUserIdAndContactId(@Param("userId") int userId, @Param("contactId") int contactId);
-
-    /**
-     * 根据联系人ID删除所有关联记录
-     */
-    @Delete("DELETE FROM user_contact WHERE contact_id = #{contactId}")
-    int deleteByContactId(int contactId);
 
     /* ========== 联系人 CRUD ========== */
 
