@@ -25,6 +25,8 @@ public class Contact {
 
     @NotBlank(message = "地址为空")
     private String address;        // 联系地址
+
+    private Integer isDefault;       // 是否默认联系人：0-否 1-是
     private LocalDateTime createdAt;  // 创建时间
     private LocalDateTime updatedAt;  // 更新时间
 }
