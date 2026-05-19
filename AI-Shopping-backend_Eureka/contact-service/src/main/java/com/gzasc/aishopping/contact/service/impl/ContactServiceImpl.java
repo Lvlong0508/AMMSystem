@@ -94,4 +94,15 @@ public class ContactServiceImpl implements ContactService {
         log.info("getContactByPhone, phone={}", phone);
         return contactMapper.selectContactByPhone(phone);
     }
+
+    @Override
+    public int setDefaultContact(int id, int userId) {
+        log.info("setDefaultContact, id={}, userId={}", id, userId);
+        Contact contact = getContactById(id, userId);
+        if (contact == null) {
+            return 0;
+        }
+        contactMapper.clearDefaultByUserId(userId);
+        return contactMapper.setDefaultById(id);
+    }
 }

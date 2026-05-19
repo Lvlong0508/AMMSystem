@@ -13,4 +13,12 @@ public interface ContactService {
     List<Contact> getContactsByUserId(int userId);
     List<Contact> getContactsByName(String name);
     Contact getContactByPhone(String phone);
+
+    /**
+     * 设置默认联系人
+     * @param id 联系人ID
+     * @param userId 用户ID
+     * @return 影响行数
+     */
+    int setDefaultContact(int id, int userId);
 }
