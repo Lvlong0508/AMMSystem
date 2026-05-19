@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/user/contact")
 @RequiredArgsConstructor
-public class ContactController {
+public class UserContactController {
 
     private final ContactService contactService;
 
@@ -117,6 +117,21 @@ public class ContactController {
             throw new ContactException("查询失败：联系人不存在（错误代码：Co-014）");
         }
         return ApiResponse.success("查询成功", ContactResponse.fromContact(contact));
+    }
+
+    @PutMapping("/set-default/{id}")
+    public ApiResponse<Void> setDefaultContact(
+            @PathVariable int id,
+            @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
+        Integer userId = parseUserId(userIdStr);
+        if (userId == null) {
+            throw new ContactException("设置默认联系人错误：未登录");
+        }
+        int result = contactService.setDefaultContact(id, userId);
+        if (result <= 0) {
+            throw new ContactException("设置失败：联系人不存在或不属于该用户");
+        }
+        return ApiResponse.success("设置成功");
     }
 
     private Integer parseUserId(String userIdStr) {
