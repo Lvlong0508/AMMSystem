@@ -49,9 +49,6 @@ public class ProductSellerController {
         if (request.getDescription() != null) product.setDescription(request.getDescription());
         if (request.getPrice() != null) product.setPrice(request.getPrice());
         if (request.getStock() != null) product.setStock(request.getStock());
-        if (request.getStatus() != null) {
-            product.setSale(request.getStatus() == 1);
-        }
 
         int result = productService.updateProduct(product);
         if (result > 0) {
