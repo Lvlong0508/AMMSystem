@@ -23,15 +23,15 @@ public interface ProductMapper {
     @Update("UPDATE products SET stock = stock + #{quantity} WHERE id = #{productId}")
     int restoreStock(@Param("productId") String productId, @Param("quantity") int quantity);
 
-    @Insert("INSERT INTO products (id, name, price, tags, description, stock, created_at, updated_at) " +
-            "VALUES (#{id}, #{name}, #{price}, #{tags}, #{description}, #{stock}, NOW(), NOW())")
+    @Insert("INSERT INTO products (id, name, price, tags, description, stock, is_sale, image_id, created_at, updated_at) " +
+            "VALUES (#{id}, #{name}, #{price}, #{tags}, #{description}, #{stock}, #{isSale}, #{imageId}, NOW(), NOW())")
     int insertProduct(Product product);
 
     @Delete("DELETE FROM products WHERE id = #{productId}")
     int deleteProduct(@Param("productId") String productId);
 
     @Update("UPDATE products SET name = #{name}, price = #{price}, tags = #{tags}, " +
-            "description = #{description}, stock = #{stock}, updated_at = NOW() " +
+            "description = #{description}, stock = #{stock}, is_sale = #{isSale}, image_id = #{imageId}, updated_at = NOW() " +
             "WHERE id = #{id}")
     int updateProduct(Product product);
 
@@ -42,4 +42,10 @@ public interface ProductMapper {
             "</foreach>" +
             "</script>")
     List<Product> selectProductsByIds(@Param("ids") List<String> ids);
+
+    @Select("SELECT * FROM products WHERE is_sale = #{isSale}")
+    List<Product> selectBySaleStatus(@Param("isSale") boolean isSale);
+
+    @Select("SELECT * FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
+    List<Product> selectByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
 }
