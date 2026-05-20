@@ -6,7 +6,12 @@ import com.gzasc.aishopping.product.model.ProductImageInfo;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * 商品服务接口
+ */
 public interface ProductService {
+
+    // ==================== CRUD 操作 ====================
 
     /**
      * 根据商品ID查询商品详情
@@ -45,16 +50,26 @@ public interface ProductService {
 
     /**
      * 更新商品信息
-     * @param product 商品信息
+     * @param product 商品信息（需包含ID）
      * @return 影响的行数
      */
     int updateProduct(Product product);
 
     /**
+     * 批量查询商品
+     * @param ids 商品ID列表
+     * @return 对应的商品列表
+     */
+    List<Product> getProductsByIds(List<String> ids);
+
+
+    // ==================== 库存管理 ====================
+
+    /**
      * 扣减商品库存（用于下单）
      * @param productId 商品ID
      * @param quantity 扣减数量
-     * @return 是否扣减成功
+     * @return 是否扣减成功（库存不足返回false）
      */
     boolean deductStock(String productId, int quantity);
 
@@ -66,14 +81,8 @@ public interface ProductService {
      */
     boolean restoreStock(String productId, int quantity);
 
-    /**
-     * 批量查询商品
-     * @param ids 商品ID列表
-     * @return 对应的商品列表
-     */
-    List<Product> getProductsByIds(List<String> ids);
 
-    // ========== 商品图片相关 ==========
+    // ==================== 图片管理 ====================
 
     /**
      * 添加商品图片
@@ -103,7 +112,8 @@ public interface ProductService {
      */
     List<ProductImageInfo> getImagesByIds(List<Integer> ids);
 
-    // ========== 商品上下架相关 ==========
+
+    // ==================== 上下架管理 ====================
 
     /**
      * 上架商品
@@ -132,7 +142,8 @@ public interface ProductService {
      */
     List<String> getAllSalableProductIds();
 
-    // ========== 商品查询相关 ==========
+
+    // ==================== 高级查询 ====================
 
     /**
      * 根据上下架状态查询商品
