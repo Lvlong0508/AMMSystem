@@ -16,6 +16,11 @@ public class Product {
     private String tags;
     private String description;
     private int stock;
+    private boolean sale;
+    private int imageId;
+    private String category;
+    private String imageUrl;
+    private int status;
     private Date createdAt;
     private Date updatedAt;
 }
