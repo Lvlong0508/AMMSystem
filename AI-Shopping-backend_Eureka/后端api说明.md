@@ -1,0 +1,226 @@
+# 后端 API 说明
+
+## 通用说明
+
+- 成功响应：`{"code": 200, "message": "成功", "data": ...}`
+- 失败响应：`{"code": 400, "message": "错误信息"}`
+- 未授权：`{"code": 401, "message": "未登录" / "未获取到店铺ID"}`
+- 系统错误：`{"code": 500, "message": "系统错误，请稍后重试"}`
+
+---
+
+# User API（用户端）
+
+## Auth Service（认证服务）
+
+**端口**: 8086
+
+### 用户认证 API (`/api/user/auth`)
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| POST | `/api/user/auth/register` | 用户注册 | 见下方 |
+| POST | `/api/user/auth/login` | 用户登录 | 见下方 |
+| POST | `/api/user/auth/logout` | 用户登出 | - |
+| GET | `/api/user/auth/check-username?username=xxx` | 检查用户名是否可用 | - |
+| GET | `/api/user/auth/check-phone?phone=xxx` | 检查手机号是否可用 | - |
+
+#### 请求体:
+```json
+{
+  "username": "user123",
+  "password": "password123",
+  "phone": "13800138000",
+  "email": "user@example.com"
+}
+```
+
+- 登录/注册成功后返回 `token`，后续请求需在 Header 中携带: `satoken: <token>`
+- 密码使用 BCrypt 加盐加密存储
+
+---
+
+## Contact Service（地址服务）
+
+**端口**: 8083
+
+### 用户地址 API (`/api/user/contact`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径 | 作用     |
+|------|------|--------|
+| POST | `/api/user/contact/create` | 创建地址   |
+| PUT | `/api/user/contact/update` | 更新地址   |
+| DELETE | `/api/user/contact/delete/{id}` | 删除地址   |
+| GET | `/api/user/contact/list` | 获取地址列表 |
+| PUT | `/api/user/contact/set-default/{id}` | 设置默认地址 |
+
+#### 请求体:
+
+**创建地址**:
+```json
+{
+  "name": "张三",
+  "phone": "13800138000",
+  "address": "广东省深圳市南山区xxx"
+}
+```
+
+**更新地址**:
+```json
+{
+  "id": 1,
+  "name": "张三",
+  "phone": "13800138000",
+  "address": "广东省深圳市南山区xxx"
+}
+```
+
+#### 响应示例:
+
+**创建成功**:
+```json
+{
+  "code": 200,
+  "message": "创建地址成功",
+  "data": { "id": 1 }
+}
+```
+
+**获取列表**:
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": {
+    "contacts": [
+      { "id": 1, "name": "张三", "phone": "13800138000", "address": "xxx", "isDefault": 1 }
+    ],
+    "total": 1
+  }
+}
+```
+
+---
+
+### 内部接口 API (`/internal/contact`)
+
+| 方法 | 路径 | 作用                               |
+|------|------|----------------------------------|
+| GET | `/internal/contact/{id}` | 根据ID查询联系人，提供给Order服务构建订单信息（内部调用） |
+
+---
+
+## Chat Service（AI 聊天服务）
+
+**端口**: 8085
+
+### AI 聊天 API (`/chat/chat`)
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| POST | `/chat/chat` | AI 对话 |
+
+#### 请求体:
+```json
+{
+  "message": "你好，请推荐一些商品"
+}
+```
+
+#### 响应:
+```json
+{
+  "reply": "您好！根据您的需求，我为您推荐以下商品..."
+}
+```
+
+---
+
+# Merchant API（商家端）
+
+## Auth Service（认证服务）
+
+**端口**: 8086
+
+### 商家认证 API (`/api/seller/auth`)
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| POST | `/api/seller/auth/register` | 商家注册 | 见下方 |
+| POST | `/api/seller/auth/login` | 商家登录 | 见下方 |
+| POST | `/api/seller/auth/logout` | 商家登出 | - |
+| GET | `/api/seller/auth/check-username?username=xxx` | 检查用户名是否可用 | - |
+| GET | `/api/seller/auth/check-phone?phone=xxx` | 检查手机号是否可用 | - |
+
+#### 请求体:
+```json
+{
+  "username": "employee001",
+  "password": "pass123",
+  "phone": "13900139000",
+  "merchantId": 1
+}
+```
+
+---
+
+### 内部接口 API (`/internal/auth`)
+
+| 方法 | 路径 | 作用                         |
+|------|------|----------------------------|
+| POST | `/internal/auth/register-employee` | 内部调用（店长为自己店铺添加店员账号）：注册店员账号 |
+
+---
+
+## Contact Service（联系人服务）
+
+**端口**: 8083
+
+### 商家地址 API (`/api/merchant/address`)
+
+**Header**: `X-Shop-Id: <shopId>`
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| POST | `/api/merchant/address/create` | 创建店铺地址 |
+| PUT | `/api/merchant/address/update/{id}` | 更新店铺地址 |
+| DELETE | `/api/merchant/address/delete/{id}` | 删除店铺地址 |
+| GET | `/api/merchant/address/list` | 获取店铺地址列表 |
+| GET | `/api/merchant/address/ship-default` | 获取默认收货地址 |
+| PUT | `/api/merchant/address/set-default/{id}` | 设置默认地址 |
+
+#### 请求体:
+
+**创建地址**:
+```json
+{
+  "name": "仓库A",
+  "phone": "13800138000",
+  "address": "广东省深圳市南山区xxx",
+  "addressType": 1,
+  "isDefault": 1
+}
+```
+
+- `addressType`: 地址类型（1=收货/退货地址）
+- `isDefault`: 是否默认（1=是，0=否）
+
+#### 响应示例:
+
+**获取默认收货地址**:
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": {
+    "id": 1,
+    "name": "仓库A",
+    "phone": "13800138000",
+    "address": "xxx",
+    "addressType": 1,
+    "isDefault": 1
+  }
+}
+```

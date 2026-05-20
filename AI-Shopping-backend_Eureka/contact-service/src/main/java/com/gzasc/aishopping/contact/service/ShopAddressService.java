@@ -8,9 +8,7 @@ public interface ShopAddressService {
     int createAddress(ShopAddress address, String shopId);
     int deleteAddress(int id, String shopId);
     int updateAddress(ShopAddress address, String shopId);
-    ShopAddress getAddressById(int id, String shopId);
     List<ShopAddress> getAddressesByShopId(String shopId);
-
-    List<ShopAddress> getShipAddressesByShopId(String shopId);
+    ShopAddress getDefaultShipAddressByShopId(String shopId);
     int setDefaultAddress(int id, String shopId);
 }

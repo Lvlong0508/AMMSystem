@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.contact.service.impl;
 
 import com.gzasc.aishopping.contact.mapper.ShopAddressMapper;
-import com.gzasc.aishopping.contact.mapper.ShopAddressRelMapper;
 import com.gzasc.aishopping.contact.model.ShopAddress;
 import com.gzasc.aishopping.contact.service.ShopAddressService;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +20,6 @@ import java.util.List;
 public class ShopAddressServiceImpl implements ShopAddressService {
 
     private final ShopAddressMapper shopAddressMapper;
-    private final ShopAddressRelMapper shopAddressRelMapper;
 
     @Override
     @Transactional
@@ -31,7 +29,7 @@ public class ShopAddressServiceImpl implements ShopAddressService {
         }
         int rows = shopAddressMapper.insertAddress(address);
         if (rows > 0) {
-            shopAddressRelMapper.insertRel(shopId, address.getId());
+            shopAddressMapper.insertRel(shopId, address.getId());
         }
         return rows;
     }
@@ -39,18 +37,18 @@ public class ShopAddressServiceImpl implements ShopAddressService {
     @Override
     @Transactional
     public int deleteAddress(int id, String shopId) {
-        String checkShopId = shopAddressRelMapper.selectShopIdByAddressId(id);
+        String checkShopId = shopAddressMapper.selectShopIdByAddressId(id);
         if (!shopId.equals(checkShopId)) {
             return 0;
         }
-        shopAddressRelMapper.deleteRelByAddressId(id);
+        shopAddressMapper.deleteRelByAddressId(id);
         return shopAddressMapper.deleteAddressById(id);
     }
 
     @Override
     @Transactional
     public int updateAddress(ShopAddress address, String shopId) {
-        String checkShopId = shopAddressRelMapper.selectShopIdByAddressId(address.getId());
+        String checkShopId = shopAddressMapper.selectShopIdByAddressId(address.getId());
         if (!shopId.equals(checkShopId)) {
             return 0;
         }
@@ -61,22 +59,13 @@ public class ShopAddressServiceImpl implements ShopAddressService {
     }
 
     @Override
-    public ShopAddress getAddressById(int id, String shopId) {
-        String checkShopId = shopAddressRelMapper.selectShopIdByAddressId(id);
-        if (!shopId.equals(checkShopId)) {
-            return null;
-        }
-        return shopAddressMapper.selectAddressById(id);
-    }
-
-    @Override
     public List<ShopAddress> getAddressesByShopId(String shopId) {
         return shopAddressMapper.selectAddressesByShopId(shopId);
     }
 
     @Override
-    public List<ShopAddress> getShipAddressesByShopId(String shopId) {
-        return shopAddressMapper.selectShipAddressesByShopId(shopId);
+    public ShopAddress getDefaultShipAddressByShopId(String shopId) {
+        return shopAddressMapper.selectDefaultShipAddressByShopId(shopId);
     }
 
     @Override
@@ -88,5 +77,14 @@ public class ShopAddressServiceImpl implements ShopAddressService {
         }
         shopAddressMapper.clearDefaultByType(shopId, address.getAddressType());
         return shopAddressMapper.setDefaultById(id);
+    }
+
+    // 只能内部使用，确保安全隔离
+    private ShopAddress getAddressById(int id, String shopId) {
+        String checkShopId = shopAddressMapper.selectShopIdByAddressId(id);
+        if (!shopId.equals(checkShopId)) {
+            return null;
+        }
+        return shopAddressMapper.selectAddressById(id);
     }
 }

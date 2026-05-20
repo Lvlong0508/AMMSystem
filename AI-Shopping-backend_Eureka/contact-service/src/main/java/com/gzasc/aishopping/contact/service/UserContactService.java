@@ -4,19 +4,12 @@ import com.gzasc.aishopping.contact.model.Contact;
 
 import java.util.List;
 
-public interface ContactService {
+public interface UserContactService {
     int createContact(Contact contact, int userId);
     int deleteContact(int id, int userId);
     int updateContact(Contact contact, int userId);
-    Contact getContactById(int id, int userId);
-    Contact getContactByIdNoAuth(int id);
     List<Contact> getContactsByUserId(int userId);
-
-    /**
-     * 设置默认联系人
-     * @param id 联系人ID
-     * @param userId 用户ID
-     * @return 影响行数
-     */
     int setDefaultContact(int id, int userId);
+    // 内部微服务专属
+    Contact g(int id);
 }

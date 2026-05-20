@@ -27,13 +27,6 @@ public interface UserContactMapper {
     /* ========== 查询操作 ========== */
 
     /**
-     * 根据ID查询联系人
-     */
-    @Select("SELECT id, name, phone, address, is_default, created_at, updated_at FROM t_contact WHERE id = #{id}")
-    @ResultMap("CONTACT_RESULT_MAPPING")
-    Contact selectContactById(int id);
-
-    /**
      * 根据用户ID查询联系人列表（通过关联表）
      */
     @Select("SELECT c.id, c.name, c.phone, c.address, c.is_default, c.created_at, c.updated_at " +
@@ -43,22 +36,20 @@ public interface UserContactMapper {
     @ResultMap("CONTACT_RESULT_MAPPING")
     List<Contact> selectByUserId(int userId);
 
+    // 内部微服务专属
+    @Select("SELECT * FROM t_contact WHERE id = #{id}")
+    Contact selectContactById(int id);
+
     /* ========== 用户-联系人关联操作 ========== */
 
     /**
      * 插入用户-联系人关联记录
      */
     @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
-    int insertUserContact(@Param("userId") int userId, @Param("contactId") int contactId);
-
-    /**
-     * 删除指定用户-联系人关联
-     */
-    @Delete("DELETE FROM user_contact WHERE user_id = #{userId} AND contact_id = #{contactId}")
-    int deleteByUserIdAndContactId(@Param("userId") int userId, @Param("contactId") int contactId);
+    int insertUserRelContact(@Param("userId") int userId, @Param("contactId") int contactId);
 
     @Delete("DELETE FROM user_contact WHERE contact_id = #{contactId}")
-    int deleteByContactId(int contactId);
+    int deleteRelByContactId(int contactId);
 
     /* ========== 联系人 CRUD ========== */
 
@@ -86,4 +77,10 @@ public interface UserContactMapper {
      */
     @Update("UPDATE t_contact SET is_default = 1 WHERE id = #{id}")
     int setDefaultById(int id);
+
+    /**
+     * 查询联系人关联的用户ID列表(用以检验userId是否关联了该ContactId)
+     */
+    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
+    List<Integer> selectUserIdsByContactId(int contactId);
 }

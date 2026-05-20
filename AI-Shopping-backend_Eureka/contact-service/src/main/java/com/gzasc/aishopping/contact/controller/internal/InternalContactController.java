@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.contact.controller.internal;
 
 import com.gzasc.aishopping.contact.model.Contact;
-import com.gzasc.aishopping.contact.service.ContactService;
+import com.gzasc.aishopping.contact.service.UserContactService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,13 +12,13 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class InternalContactController {
 
-    private final ContactService contactService;
+    private final UserContactService userContactService;
 
     // 构建订单信息的收货地址时，需要用到该接口
     @GetMapping("/{id}")
     public Map<String, Object> getContactById(@PathVariable("id") int id) {
         try {
-            Contact contact = contactService.getContactByIdNoAuth(id);
+            Contact contact = userContactService.g(id);
             if (contact != null) {
                 return Map.of("success", true, "data", contact);
             } else {
