@@ -5,6 +5,7 @@ import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -32,16 +33,16 @@ public class InternalProductController {
         if (product == null || product.getName() == null || product.getName().trim().isEmpty()) {
             return Map.of("message", "创建商品错误：商品名称为空");
         }
-        if (product.getPrice() == null || product.getPrice() <= 0) {
+        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             return Map.of("message", "创建商品错误：商品价格必须大于0");
         }
-        if (product.getStock() < 0) {
+        if (product.getStock() == null || product.getStock() < 0) {
             return Map.of("message", "创建商品错误：商品库存不能小于0");
         }
         try {
             int result = productService.createProduct(product);
             if (result > 0) {
-                return Map.of("message", "创建商品成功", "id", product.getId());
+                return Map.of("message", "创建商品成功", "id", String.valueOf(product.getId()));
             } else {
                 return Map.of("message", "创建商品失败");
             }
@@ -57,14 +58,14 @@ public class InternalProductController {
         if (product == null) {
             return Map.of("message", "更新商品错误：商品信息为空");
         }
-        if (product.getPrice() != null && product.getPrice() <= 0) {
+        if (product.getPrice() != null && product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
             return Map.of("message", "更新商品错误：商品价格必须大于0");
         }
-        if (product.getStock() < 0) {
+        if (product.getStock() != null && product.getStock() < 0) {
             return Map.of("message", "更新商品错误：商品库存不能小于0");
         }
         try {
-            product.setId(productId);
+            product.setId(Long.parseLong(productId));
             int result = productService.updateProduct(product);
             if (result > 0) {
                 return Map.of("message", "更新商品成功");

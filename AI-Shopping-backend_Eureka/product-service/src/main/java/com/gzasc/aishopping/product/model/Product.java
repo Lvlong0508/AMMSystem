@@ -4,23 +4,24 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Product {
-    private String id;
+    private Long id;
+
     private String name;
-    private Double price;
+    private BigDecimal price;
     private String tags;
     private String description;
-    private int stock;
-    private boolean sale;
-    private int imageId;
-    private String category;
-    private String imageUrl;
-    private int status;
+    private Integer stock;
+
+    private boolean isSale;
+    private Integer imageId;
+
     private Date createdAt;
     private Date updatedAt;
 }

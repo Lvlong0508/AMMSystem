@@ -26,16 +26,14 @@ public class ProductSellerController {
         Product product = new Product();
         product.setName(request.getName());
         product.setDescription(request.getDescription());
-        product.setPrice(request.getPrice() != null ? request.getPrice().doubleValue() : null);
+        product.setPrice(request.getPrice());
         product.setStock(request.getStock());
-        product.setCategory(request.getCategory());
-        product.setImageUrl(request.getImageUrl());
-        product.setStatus(0);
+        product.setImageId(0);
         product.setSale(false);
 
         int result = productService.createProduct(product);
         if (result > 0) {
-            return ApiResponse.success("创建商品成功", product.getId());
+            return ApiResponse.success("创建商品成功", product.getId() != null ? product.getId().toString() : null);
         }
         throw new ProductException(500, "创建商品失败");
     }
@@ -46,15 +44,12 @@ public class ProductSellerController {
             @RequestBody @Valid UpdateProductRequest request) {
         log.info("更新商品, productId={}", productId);
         Product product = new Product();
-        product.setId(productId);
+        product.setId(Long.parseLong(productId));
         if (request.getName() != null) product.setName(request.getName());
         if (request.getDescription() != null) product.setDescription(request.getDescription());
-        if (request.getPrice() != null) product.setPrice(request.getPrice().doubleValue());
+        if (request.getPrice() != null) product.setPrice(request.getPrice());
         if (request.getStock() != null) product.setStock(request.getStock());
-        if (request.getCategory() != null) product.setCategory(request.getCategory());
-        if (request.getImageUrl() != null) product.setImageUrl(request.getImageUrl());
         if (request.getStatus() != null) {
-            product.setStatus(request.getStatus());
             product.setSale(request.getStatus() == 1);
         }
 
@@ -82,7 +77,6 @@ public class ProductSellerController {
         if (product == null) {
             throw new ProductException(404, "商品不存在");
         }
-        product.setStatus(1);
         product.setSale(true);
         productService.updateProduct(product);
         return ApiResponse.success("上架成功", null);
@@ -95,7 +89,6 @@ public class ProductSellerController {
         if (product == null) {
             throw new ProductException(404, "商品不存在");
         }
-        product.setStatus(0);
         product.setSale(false);
         productService.updateProduct(product);
         return ApiResponse.success("下架成功", null);

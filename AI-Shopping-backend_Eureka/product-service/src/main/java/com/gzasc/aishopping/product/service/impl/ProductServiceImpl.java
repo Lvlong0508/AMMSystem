@@ -44,7 +44,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public int createProduct(Product product) {
         System.out.println(new Date() + ": run createProduct");
-        product.setId(SnowflakeIdGenerator.nextIdStr());
+        product.setId(SnowflakeIdGenerator.nextId());
         return productMapper.insertProduct(product);
     }
 
@@ -162,12 +162,12 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getSalableProducts(int page) {
         System.out.println(new Date() + ": run getSalableProducts, page=" + page);
-        return productMapper.selectSalableProducts(page * 10);
+        return productMapper.selectSalableProducts(page * 20);
     }
 
     @Override
     public List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
         System.out.println(new Date() + ": run getProductsByPriceRange with pagination, page=" + page);
-        return productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 10);
+        return productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
     }
 }
