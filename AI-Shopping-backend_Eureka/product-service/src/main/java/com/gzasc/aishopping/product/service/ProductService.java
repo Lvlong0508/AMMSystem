@@ -3,6 +3,7 @@ package com.gzasc.aishopping.product.service;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -28,4 +29,7 @@ public interface ProductService {
 
     List<Product> getProductsBySaleStatus(boolean isSale);
     List<Product> getProductsByPriceRange(Double minPrice, Double maxPrice);
+
+    List<Product> getSalableProducts(int page);
+    List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
 }

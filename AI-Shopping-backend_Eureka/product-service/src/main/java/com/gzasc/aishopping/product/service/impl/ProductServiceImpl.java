@@ -10,6 +10,7 @@ import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -156,5 +157,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getProductsByPriceRange(Double minPrice, Double maxPrice) {
         return productMapper.selectByPriceRange(minPrice, maxPrice);
+    }
+
+    @Override
+    public List<Product> getSalableProducts(int page) {
+        System.out.println(new Date() + ": run getSalableProducts, page=" + page);
+        return productMapper.selectSalableProducts(page * 10);
+    }
+
+    @Override
+    public List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
+        System.out.println(new Date() + ": run getProductsByPriceRange with pagination, page=" + page);
+        return productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 10);
     }
 }
