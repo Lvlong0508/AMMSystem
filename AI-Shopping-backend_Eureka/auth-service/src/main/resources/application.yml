@@ -40,13 +40,13 @@ sa-token:
   token-name: satoken
   
   # Token 有效期（单位：秒），默认30天
-  timeout: 2592000
+  timeout: 86400
   
-# Token 临时有效期（指定时间内无操作则视为过期），-1代表不限制
-    active-timeout: -1
+  # Token 临时有效期（指定时间内无操作则视为过期），-1代表不限制
+  active-timeout: 1800
   
   # 是否允许同一账号并发登录（为 true 时允许一起登录，为 false 时新登录挤掉旧登录）
-  is-concurrent: true
+  is-concurrent: false
   
   # 在多人登录同一账号时，是否共用一个 Token（为 true 时所有登录共用一个 Token，为 false 时每次登录新建一个 Token）
   is-share: false

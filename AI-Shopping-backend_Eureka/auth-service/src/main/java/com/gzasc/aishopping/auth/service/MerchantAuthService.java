@@ -1,9 +1,9 @@
 package com.gzasc.aishopping.auth.service;
 
 import com.gzasc.aishopping.auth.model.Merchant;
-import com.gzasc.aishopping.auth.model.dto.LoginResult;
-import com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest;
-import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.LoginResult;
+import com.gzasc.aishopping.auth.dto.RegisterEmployeeRequest;
+import com.gzasc.aishopping.auth.dto.RegisterRequest;
 
 public interface MerchantAuthService {
 

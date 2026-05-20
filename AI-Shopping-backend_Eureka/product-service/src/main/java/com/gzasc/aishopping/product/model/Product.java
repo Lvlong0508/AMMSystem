@@ -12,16 +12,13 @@ import java.util.Date;
 @AllArgsConstructor
 public class Product {
     private Long id;
-
     private String name;
     private BigDecimal price;
     private String tags;
     private String description;
     private Integer stock;
-
     private boolean isSale;
     private Integer imageId;
-
     private Date createdAt;
     private Date updatedAt;
 }

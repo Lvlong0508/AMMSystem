@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.contact.controller;
 
-import com.gzasc.aishopping.contact.service.impl.ContactException;
+import com.gzasc.aishopping.contact.exception.ContactException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

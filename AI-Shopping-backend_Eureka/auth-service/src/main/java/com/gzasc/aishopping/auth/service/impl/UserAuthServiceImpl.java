@@ -1,11 +1,12 @@
 package com.gzasc.aishopping.auth.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
+import com.gzasc.aishopping.auth.exception.AuthException;
 import com.gzasc.aishopping.auth.mapper.user.UserMapper;
 import com.gzasc.aishopping.auth.model.User;
 import com.gzasc.aishopping.auth.model.UserInfo;
-import com.gzasc.aishopping.auth.model.dto.LoginResult;
-import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.LoginResult;
+import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;

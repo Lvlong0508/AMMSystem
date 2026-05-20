@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.auth.controller;
 
-import com.gzasc.aishopping.auth.service.impl.AuthException;
+import com.gzasc.aishopping.auth.exception.AuthException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;

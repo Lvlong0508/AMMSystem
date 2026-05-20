@@ -1,9 +1,9 @@
 package com.gzasc.aishopping.auth.controller;
 
 import com.gzasc.aishopping.auth.model.User;
-import com.gzasc.aishopping.auth.model.dto.LoginRequest;
-import com.gzasc.aishopping.auth.model.dto.LoginResult;
-import com.gzasc.aishopping.auth.model.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.LoginRequest;
+import com.gzasc.aishopping.auth.dto.LoginResult;
+import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import jakarta.validation.Valid;

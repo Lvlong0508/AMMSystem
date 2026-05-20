@@ -52,9 +52,9 @@ public interface ProductMapper {
     @Select("SELECT * FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
     List<Product> selectByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
 
-    @Select("SELECT * FROM products WHERE is_sale = 1 LIMIT #{limit}, 10")
-    List<Product> selectSalableProducts(@Param("limit") int limit);
+    @Select("SELECT * FROM products WHERE is_sale = 1 LIMIT 20 OFFSET #{offset}")
+    List<Product> selectSalableProducts(@Param("offset") int offset);
 
-    @Select("SELECT * FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT #{limit}, 10")
-    List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("limit") int limit);
+    @Select("SELECT * FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
+    List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);
 }

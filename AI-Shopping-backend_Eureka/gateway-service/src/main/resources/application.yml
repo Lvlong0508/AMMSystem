@@ -175,16 +175,15 @@ spring:
 # Sa-Token配置 (与auth-service保持一致)
 sa-token:
   token-name: satoken
-  timeout: 2592000
-  activity-timeout: -1
-  is-concurrent: true
+  timeout: 86400
+  active-timeout: 1800
+  is-concurrent: false
   is-share: false
   token-style: uuid
-  is-cookie: false
-  is-header: true
+  is-log: true
   is-read-cookie: false
-  is-read-header: true
   is-read-body: false
+  is-read-header: true
 
 # IP限流配置
 ip-rate-limit:
@@ -212,4 +211,4 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    com.gzasc.aishopping.gateway: DEBUG
+    com.gzasc.aishopping.gateway: info

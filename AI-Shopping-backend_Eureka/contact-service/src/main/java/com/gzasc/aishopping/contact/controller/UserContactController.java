@@ -1,9 +1,9 @@
 package com.gzasc.aishopping.contact.controller;
 
 import com.gzasc.aishopping.contact.model.Contact;
-import com.gzasc.aishopping.contact.model.dto.ContactResponse;
-import com.gzasc.aishopping.contact.model.dto.CreateContactRequest;
-import com.gzasc.aishopping.contact.model.dto.UpdateContactRequest;
+import com.gzasc.aishopping.contact.dto.ContactResponse;
+import com.gzasc.aishopping.contact.dto.CreateContactRequest;
+import com.gzasc.aishopping.contact.dto.UpdateContactRequest;
 import com.gzasc.aishopping.contact.service.UserContactService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

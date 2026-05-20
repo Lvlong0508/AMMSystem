@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.auth.model.dto;
+package com.gzasc.aishopping.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

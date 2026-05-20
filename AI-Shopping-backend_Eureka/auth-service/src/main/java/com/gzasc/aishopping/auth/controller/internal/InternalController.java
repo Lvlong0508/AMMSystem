@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.auth.controller.internal;
 
-import com.gzasc.aishopping.auth.model.dto.RegisterEmployeeRequest;
+import com.gzasc.aishopping.auth.dto.RegisterEmployeeRequest;
 import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
