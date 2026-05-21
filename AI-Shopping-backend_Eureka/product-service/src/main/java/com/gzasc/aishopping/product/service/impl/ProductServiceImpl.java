@@ -1,6 +1,15 @@
 package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.product.cache.ProductCache;
+import com.gzasc.aishopping.product.converter.ProductConverter;
+import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductDetailDTO;
+import com.gzasc.aishopping.product.dto.ProductImageDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
+import com.gzasc.aishopping.product.exception.ProductOnSaleException;
+import com.gzasc.aishopping.product.exception.ProductNotFoundException;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.mapper.SalableProductMapper;
@@ -9,100 +18,161 @@ import com.gzasc.aishopping.product.model.ProductImageInfo;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Date;
+
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
+    private static final String DEFAULT_IMAGE_URL = "/image/default/product/0001.jpg";
+
     private final ProductMapper productMapper;
     private final ProductImageInfoMapper productImageInfoMapper;
     private final SalableProductMapper salableProductMapper;
+    private final ProductConverter productConverter;
+    private final ProductCache productCache;
 
-    @Override
-    public Product getProductById(String productId) {
-        System.out.println(new Date() + ": run getProductById, id=" + productId);
-        return productMapper.selectProductById(productId);
+    private String getImageUrl(Integer imageId) {
+        if (imageId == null || imageId <= 0) {
+            return DEFAULT_IMAGE_URL;
+        }
+        ProductImageInfo imageInfo = productImageInfoMapper.selectURLById(imageId);
+        return imageInfo != null ? imageInfo.getUrl() : DEFAULT_IMAGE_URL;
+    }
+
+    private Map<Integer, String> buildImageUrlMap(List<Product> products) {
+        List<Integer> imageIds = products.stream()
+            .map(Product::getImageId)
+            .filter(id -> id != null && id > 0)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (imageIds.isEmpty()) {
+            return Map.of();
+        }
+
+        return productImageInfoMapper.selectByIds(imageIds).stream()
+            .collect(Collectors.toMap(ProductImageInfo::getId, ProductImageInfo::getUrl));
     }
 
     @Override
-    public List<Product> getProductsByName(String name) {
-        System.out.println(new Date() + ": run getProductsByName, name=" + name);
-        return productMapper.selectProductsByName(name);
+    public ProductWithImageDetailDTO getProductById(String productId) {
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            return null;
+        }
+        String imageUrl = getImageUrl(product.getImageId());
+        return productConverter.toDetailWithImageDTO(product, imageUrl);
     }
 
     @Override
-    public List<Product> getAllProducts(int page) {
-        System.out.println(new Date() + ": run getAllProducts, page=" + page);
-        int offset = page * 20;
-        return productMapper.selectProductsByPage(offset);
+    public List<ProductWithImageDetailDTO> getProductsByName(String name) {
+        List<Product> products = productMapper.selectProductsByName(name);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toDetailWithImageDTOList(products, imageUrlMap);
     }
 
     @Override
+    public List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productMapper.selectAbstractProductsByIds(ids);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+    }
+
+    @Override
+    public List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page) {
+        List<String> salableIds = salableProductMapper.selectAll(page * 20);
+        if (salableIds.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productMapper.selectAbstractProductsByIds(salableIds);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+    }
+
+    @Override
+    @Transactional
     public int createProduct(Product product) {
-        System.out.println(new Date() + ": run createProduct");
         product.setId(SnowflakeIdGenerator.nextId());
         return productMapper.insertProduct(product);
     }
 
     @Override
+    @Transactional
     public int deleteProduct(String productId) {
-        System.out.println(new Date() + ": run deleteProduct, id=" + productId);
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new RuntimeException("商品不存在");
+            throw new ProductNotFoundException(productId);
         }
         if (product.isSale()) {
-            throw new RuntimeException("商品在上架中，请先下架");
+            throw new ProductOnSaleException(productId);
         }
         return productMapper.deleteProduct(productId);
     }
 
     @Override
+    @Transactional
     public int updateProduct(Product product) {
-        System.out.println(new Date() + ": run updateProduct, id=" + product.getId());
         return productMapper.updateProduct(product);
     }
 
     @Override
+    @Transactional
     public boolean deductStock(String productId, int quantity) {
-        System.out.println(new Date() + ": run deductStock, id=" + productId + ", quantity=" + quantity);
         return productMapper.deductStock(productId, quantity) > 0;
     }
 
     @Override
+    @Transactional
     public boolean restoreStock(String productId, int quantity) {
-        System.out.println(new Date() + ": run restoreStock, id=" + productId + ", quantity=" + quantity);
         return productMapper.restoreStock(productId, quantity) > 0;
     }
 
     @Override
-    public List<Product> getProductsByIds(List<String> ids) {
-        System.out.println(new Date() + ": run getProductsByIds, ids=" + ids);
+    public List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<String> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
-        return productMapper.selectProductsByIds(ids);
+        List<Product> products = productMapper.selectAbstractProductsByIdsJustMerchant(ids);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
     }
 
     @Override
     public int addImage(ProductImageInfo image) {
-        System.out.println(new Date() + ": run addImage, url=" + image.getUrl());
         return productImageInfoMapper.insert(image);
     }
 
     @Override
     public int removeImage(int imageId) {
-        System.out.println(new Date() + ": run removeImage, id=" + imageId);
         return productImageInfoMapper.deleteById(imageId);
     }
 
     @Override
     public ProductImageInfo getImageById(int imageId) {
-        return productImageInfoMapper.selectById(imageId);
+        return productImageInfoMapper.selectURLById(imageId);
     }
 
     @Override
@@ -114,27 +184,25 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public boolean listProduct(String productId) {
-        System.out.println(new Date() + ": run listProduct, id=" + productId);
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new RuntimeException("商品不存在");
+            throw new ProductNotFoundException(productId);
         }
-        product.setSale(true);
-        productMapper.updateProduct(product);
+        productMapper.updateSaleStatus(productId, true);
         salableProductMapper.addSalable(productId);
         return true;
     }
 
     @Override
+    @Transactional
     public boolean unlistProduct(String productId) {
-        System.out.println(new Date() + ": run unlistProduct, id=" + productId);
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new RuntimeException("商品不存在");
+            throw new ProductNotFoundException(productId);
         }
-        product.setSale(false);
-        productMapper.updateProduct(product);
+        productMapper.updateSaleStatus(productId, false);
         salableProductMapper.removeSalable(productId);
         return true;
     }
@@ -145,29 +213,67 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<String> getAllSalableProductIds() {
-        return salableProductMapper.selectAll();
+    public List<ProductWithImageAbstractDTO> getProductsByPriceRange(Double minPrice, Double maxPrice) {
+        List<Product> products = productMapper.selectByPriceRange(minPrice, maxPrice);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
     }
 
     @Override
-    public List<Product> getProductsBySaleStatus(boolean isSale) {
-        return productMapper.selectBySaleStatus(isSale);
+    public List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
+        List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
     }
 
     @Override
-    public List<Product> getProductsByPriceRange(Double minPrice, Double maxPrice) {
-        return productMapper.selectByPriceRange(minPrice, maxPrice);
+    public List<ProductAbstractDTO> getAbstractProductDTOs(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productMapper.selectAbstractProductsByIds(ids);
+        return productConverter.toAbstractDTOList(products);
     }
 
     @Override
-    public List<Product> getSalableProducts(int page) {
-        System.out.println(new Date() + ": run getSalableProducts, page=" + page);
-        return productMapper.selectSalableProducts(page * 20);
+    public ProductDetailDTO getProductDetailDTO(String productId) {
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            throw new ProductNotFoundException(productId);
+        }
+        // TODO: 启用缓存
+        // ProductDetailDTO cached = (ProductDetailDTO) productCache.get("detail:" + productId);
+        // if (cached != null) return cached;
+        // ProductDetailDTO dto = productConverter.toDetailDTO(product);
+        // productCache.put("detail:" + productId, dto);
+        // return dto;
+        return productConverter.toDetailDTO(product);
     }
 
     @Override
-    public List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
-        System.out.println(new Date() + ": run getProductsByPriceRange with pagination, page=" + page);
-        return productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
+    public List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<String> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productMapper.selectAbstractProductsByIdsJustMerchant(ids);
+        return productConverter.toAbstractDTOList(products);
+    }
+
+    @Override
+    public ProductImageDTO getImageDTO(int imageId) {
+        ProductImageInfo info = productImageInfoMapper.selectURLById(imageId);
+        return productConverter.toImageDTO(info);
+    }
+
+    @Override
+    public List<ProductImageDTO> getImageDTOs(List<Integer> ids) {
+        List<ProductImageInfo> infos = getImagesByIds(ids);
+        return productConverter.toImageDTOList(infos);
     }
 }

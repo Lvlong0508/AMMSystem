@@ -16,6 +16,6 @@ public interface SalableProductMapper {
     @Select("SELECT COUNT(*) > 0 FROM salable_products WHERE id = #{productId}")
     boolean isSalable(@Param("productId") String productId);
 
-    @Select("SELECT id FROM salable_products")
-    List<String> selectAll();
+    @Select("SELECT id FROM salable_products LIMIT 20 OFFSET #{offset}")
+    List<String> selectAll(@Param("offset") int offset);
 }

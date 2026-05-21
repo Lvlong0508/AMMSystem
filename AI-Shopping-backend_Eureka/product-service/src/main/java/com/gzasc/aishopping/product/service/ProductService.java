@@ -1,5 +1,10 @@
 package com.gzasc.aishopping.product.service;
 
+import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductDetailDTO;
+import com.gzasc.aishopping.product.dto.ProductImageDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
 
@@ -18,21 +23,25 @@ public interface ProductService {
      * @param productId 商品ID
      * @return 商品信息，null表示不存在
      */
-    Product getProductById(String productId);
+    ProductWithImageDetailDTO getProductById(String productId);
 
     /**
      * 根据商品名称模糊搜索
      * @param name 商品名称关键字
      * @return 符合条件的商品列表
      */
-    List<Product> getProductsByName(String name);
+    List<ProductWithImageDetailDTO> getProductsByName(String name);
 
     /**
-     * 分页查询所有商品
-     * @param page 页码，从0开始
-     * @return 当前页的商品列表
+     * 用户端: 根据可售商品ID批量查询抽象信息
+     * (id, name, price, tags, imageId)
      */
-    List<Product> getAllProducts(int page);
+    List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<String> ids);
+
+    /**
+     * 用户端: 分页查询可售商品抽象信息
+     */
+    List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page);
 
     /**
      * 创建新商品
@@ -56,11 +65,10 @@ public interface ProductService {
     int updateProduct(Product product);
 
     /**
-     * 批量查询商品
-     * @param ids 商品ID列表
-     * @return 对应的商品列表
+     * 商家端: 根据商品ID批量查询抽象信息（包含isSale字段）
+     * (id, name, price, tags, isSale, imageId)
      */
-    List<Product> getProductsByIds(List<String> ids);
+    List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<String> ids);
 
 
     // ==================== 库存管理 ====================
@@ -136,21 +144,8 @@ public interface ProductService {
      */
     boolean isProductSalable(String productId);
 
-    /**
-     * 获取所有可售商品ID列表
-     * @return 可售商品ID列表
-     */
-    List<String> getAllSalableProductIds();
-
 
     // ==================== 高级查询 ====================
-
-    /**
-     * 根据上下架状态查询商品
-     * @param isSale true=在售，false=下架
-     * @return 对应的商品列表
-     */
-    List<Product> getProductsBySaleStatus(boolean isSale);
 
     /**
      * 根据价格区间查询商品（无分页）
@@ -158,14 +153,7 @@ public interface ProductService {
      * @param maxPrice 最高价格
      * @return 对应的商品列表
      */
-    List<Product> getProductsByPriceRange(Double minPrice, Double maxPrice);
-
-    /**
-     * 分页查询可售商品
-     * @param page 页码，从0开始
-     * @return 当前页的可售商品列表
-     */
-    List<Product> getSalableProducts(int page);
+    List<ProductWithImageAbstractDTO> getProductsByPriceRange(Double minPrice, Double maxPrice);
 
     /**
      * 分页按价格区间查询商品
@@ -174,5 +162,32 @@ public interface ProductService {
      * @param page 页码，从0开始
      * @return 当前页的商品列表
      */
-    List<Product> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
+    List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
+
+    // ==================== DTO 查询接口 ====================
+
+    /**
+     * 用户端: 根据ID批量查询抽象信息 DTO
+     */
+    List<ProductAbstractDTO> getAbstractProductDTOs(List<String> ids);
+
+    /**
+     * 用户端: 根据ID查询商品详情 DTO
+     */
+    ProductDetailDTO getProductDetailDTO(String productId);
+
+    /**
+     * 商家端: 根据ID批量查询抽象信息 DTO（包含isSale）
+     */
+    List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<String> ids);
+
+    /**
+     * 根据图片ID查询图片 DTO
+     */
+    ProductImageDTO getImageDTO(int imageId);
+
+    /**
+     * 批量查询图片 DTO
+     */
+    List<ProductImageDTO> getImageDTOs(List<Integer> ids);
 }

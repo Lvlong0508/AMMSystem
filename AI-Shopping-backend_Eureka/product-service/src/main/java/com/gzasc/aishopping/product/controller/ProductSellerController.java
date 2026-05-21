@@ -70,24 +70,20 @@ public class ProductSellerController {
     @PostMapping("/{productId}/list")
     public ApiResponse<Void> listProduct(@PathVariable("productId") String productId) {
         log.info("上架商品, productId={}", productId);
-        Product product = productService.getProductById(productId);
-        if (product == null) {
-            throw new ProductException(404, "商品不存在");
+        boolean result = productService.listProduct(productId);
+        if (!result) {
+            throw new ProductException(404, "商品不存在或上架失败");
         }
-        product.setSale(true);
-        productService.updateProduct(product);
         return ApiResponse.success("上架成功", null);
     }
 
     @PostMapping("/{productId}/unlist")
     public ApiResponse<Void> unlistProduct(@PathVariable("productId") String productId) {
         log.info("下架商品, productId={}", productId);
-        Product product = productService.getProductById(productId);
-        if (product == null) {
-            throw new ProductException(404, "商品不存在");
+        boolean result = productService.unlistProduct(productId);
+        if (!result) {
+            throw new ProductException(404, "商品不存在或下架失败");
         }
-        product.setSale(false);
-        productService.updateProduct(product);
         return ApiResponse.success("下架成功", null);
     }
 

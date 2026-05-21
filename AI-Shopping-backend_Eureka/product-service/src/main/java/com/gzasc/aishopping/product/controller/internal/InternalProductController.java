@@ -1,5 +1,7 @@
 package com.gzasc.aishopping.product.controller.internal;
 
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -18,14 +20,14 @@ public class InternalProductController {
     private final ProductService productService;
 
     @GetMapping("/{productId}")
-    public Product getProductById(@PathVariable("productId") String productId) {
+    public ProductWithImageDetailDTO getProductById(@PathVariable("productId") String productId) {
         return productService.getProductById(productId);
     }
 
     @GetMapping("/batch")
-    public List<Product> getProductsByIds(@RequestParam("ids") String ids) {
+    public List<ProductWithImageAbstractDTO> getProductsByIds(@RequestParam("ids") String ids) {
         List<String> idList = Arrays.asList(ids.split(","));
-        return productService.getProductsByIds(idList);
+        return productService.getAbstractProductsForBuyer(idList);
     }
 
     @PostMapping("/create")

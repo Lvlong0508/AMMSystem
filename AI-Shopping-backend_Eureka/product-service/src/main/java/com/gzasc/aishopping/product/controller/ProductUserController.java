@@ -1,8 +1,9 @@
 package com.gzasc.aishopping.product.controller;
 
 import com.gzasc.aishopping.product.common.ApiResponse;
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
-import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,10 +25,11 @@ public class ProductUserController {
 
     private final ProductService productService;
 
+    // 分页查询可售商品列表
     @GetMapping("/all")
-    public ApiResponse<Map<String, Object>> getAllProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
+    public ApiResponse<Map<String, Object>> getAllSalableProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
         try {
-            List<Product> products = productService.getAllProducts(page);
+            List<ProductWithImageAbstractDTO> products = productService.getSalableProductsAbstract(page);
             log.info("查询所有商品成功, page={}, size={}", page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
         } catch (Exception e) {
@@ -37,9 +39,9 @@ public class ProductUserController {
     }
 
     @GetMapping("/{productId}")
-    public ApiResponse<Product> getProductById(@PathVariable("productId") String productId) {
+    public ApiResponse<ProductWithImageDetailDTO> getProductById(@PathVariable("productId") String productId) {
         try {
-            Product product = productService.getProductById(productId);
+            ProductWithImageDetailDTO product = productService.getProductById(productId);
             if (product != null) {
                 log.info("查询商品成功, productId={}", productId);
                 return ApiResponse.success(product);
@@ -58,23 +60,11 @@ public class ProductUserController {
     @GetMapping("/search")
     public ApiResponse<Map<String, Object>> getProductsByName(@RequestParam("name") String name) {
         try {
-            List<Product> products = productService.getProductsByName(name);
+            List<ProductWithImageDetailDTO> products = productService.getProductsByName(name);
             log.info("搜索商品成功, name={}, size={}", name, products.size());
             return ApiResponse.success(Map.of("products", products, "total", products.size()));
         } catch (Exception e) {
             log.error("搜索商品失败: {}", e.getMessage());
-            throw new ProductException(500, "查询错误：" + e.getMessage());
-        }
-    }
-
-    @GetMapping("/salable")
-    public ApiResponse<Map<String, Object>> getSalableProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
-        try {
-            List<Product> products = productService.getSalableProducts(page);
-            log.info("查询可售商品成功, page={}, size={}", page, products.size());
-            return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
-        } catch (Exception e) {
-            log.error("查询可售商品失败: {}", e.getMessage());
             throw new ProductException(500, "查询错误：" + e.getMessage());
         }
     }
@@ -85,7 +75,7 @@ public class ProductUserController {
             @RequestParam("maxPrice") BigDecimal maxPrice,
             @RequestParam(name = "page", defaultValue = "0") int page) {
         try {
-            List<Product> products = productService.getProductsByPriceRange(minPrice, maxPrice, page);
+            List<ProductWithImageAbstractDTO> products = productService.getProductsByPriceRange(minPrice, maxPrice, page);
             log.info("按价格范围查询商品成功, minPrice={}, maxPrice={}, page={}, size={}", minPrice, maxPrice, page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
         } catch (Exception e) {

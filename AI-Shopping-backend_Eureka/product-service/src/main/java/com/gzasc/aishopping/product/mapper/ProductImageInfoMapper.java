@@ -15,11 +15,11 @@ public interface ProductImageInfoMapper {
     @Delete("DELETE FROM product_images WHERE id = #{id}")
     int deleteById(@Param("id") int id);
 
-    @Select("SELECT * FROM product_images WHERE id = #{id}")
-    ProductImageInfo selectById(@Param("id") int id);
+    @Select("SELECT url FROM product_images WHERE id = #{id}")
+    ProductImageInfo selectURLById(@Param("id") int id);
 
     @Select("<script>" +
-            "SELECT * FROM product_images WHERE id IN " +
+            "SELECT url FROM product_images WHERE id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +

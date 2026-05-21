@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (image_id) REFERENCES product_images(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品表';
 
+-- 索引：加速价格区间查询
+CREATE INDEX idx_price ON products(price);
+
+-- 索引：加速按在售状态+价格查询（用户端/商家端常见场景）
+CREATE INDEX idx_is_sale_price ON products(is_sale, price);
+
 CREATE TABLE IF NOT EXISTS salable_products (
     id BIGINT PRIMARY KEY,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
