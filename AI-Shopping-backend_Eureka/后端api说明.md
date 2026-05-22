@@ -348,3 +348,101 @@
   }
 }
 ```
+
+---
+
+## Logistics Service（物流服务）
+
+**端口**: 8084
+
+### 物流 API (`/logistics`)
+
+| 方法 | 路径 | 作用 | 参数 |
+|------|------|------|------|
+| POST | `/logistics/create` | 创建物流记录 | 见下方请求体 |
+| GET | `/logistics/list` | 查询所有物流 | - |
+| GET | `/logistics/search/tracking?trackingNumber=xxx` | 按快递单号搜索 | `trackingNumber` |
+| DELETE | `/logistics/delete/{id}` | 删除物流记录 | `id`（路径参数） |
+| GET | `/logistics/order/{orderId}` | 查询某订单的所有物流 | `orderId`（路径参数） |
+| GET | `/logistics/order/{orderId}/latest?type=DELIVERY` | 查询某订单最新一条指定类型物流 | `orderId`（路径参数），`type`（DELIVERY / RETURN） |
+
+#### 请求体（创建物流）:
+
+```json
+{
+  "orderId": "2026052200001ABCDE",
+  "type": "DELIVERY",
+  "contactId": 1,
+  "trackingNumber": "SF1234567890"
+}
+```
+
+- `orderId` 必填
+- `type` 可选，默认 `DELIVERY`；`DELIVERY` = 发货，`RETURN` = 退货
+- `contactId` 必填
+- `trackingNumber` 必填
+
+#### 响应示例（创建成功）:
+
+```json
+{
+  "code": 200,
+  "message": "创建物流信息成功",
+  "data": {
+    "id": 1,
+    "orderId": "2026052200001ABCDE",
+    "type": "DELIVERY",
+    "contactId": 1,
+    "trackingNumber": "SF1234567890",
+    "createdAt": "2026-05-22T12:00:00.000+00:00"
+  }
+}
+```
+
+#### 响应示例（按订单查询列表）:
+
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": [
+    {
+      "id": 1,
+      "orderId": "2026052200001ABCDE",
+      "type": "DELIVERY",
+      "contactId": 1,
+      "trackingNumber": "SF1234567890",
+      "createdAt": "2026-05-22T12:00:00.000+00:00"
+    }
+  ]
+}
+```
+
+### 内部接口 API (`/internal/logistics`)
+
+供 order-service 通过 Feign 调用。
+
+| 方法 | 路径 | 作用 | 参数 |
+|------|------|------|------|
+| POST | `/internal/logistics/create` | 创建物流记录（订单发货时调用） | 见下方请求体 |
+| GET | `/internal/logistics/order/{orderId}` | 查询某订单所有物流 | `orderId`（路径参数） |
+| GET | `/internal/logistics/order/{orderId}/latest?type=DELIVERY` | 查询某订单最新物流 | `orderId`、`type` |
+
+#### 请求体（创建物流）:
+
+```json
+{
+  "orderId": "2026052200001ABCDE",
+  "type": "DELIVERY",
+  "contactId": 1,
+  "trackingNumber": "SF1234567890"
+}
+```
+
+#### 使用场景:
+
+- **发货**: order-service 调用 `POST /internal/logistics/create` 创建 `type=DELIVERY` 的物流记录，然后更新订单状态为 `SHIPPED`
+- **退货**: 用户发起退货后，商家调用 `POST /internal/logistics/create` 创建 `type=RETURN` 的物流记录
+- **查单**: 订单详情页面调用 `GET /internal/logistics/order/{orderId}/latest?type=DELIVERY` 获取发货物流信息
+
+> 一个订单可关联多条物流记录（如：一次发货 + 一次退货），通过 `orderId` + `type` 进行区分和查询。
