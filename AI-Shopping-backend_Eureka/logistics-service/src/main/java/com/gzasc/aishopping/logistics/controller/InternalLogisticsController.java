@@ -9,6 +9,8 @@ import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/internal/logistics")
 @RequiredArgsConstructor
@@ -24,15 +26,17 @@ public class InternalLogisticsController {
         return ApiResponse.success("创建物流信息成功", result);
     }
 
-    @GetMapping("/get/{id}")
-    public ApiResponse<LogisticsResponse> getLogisticsById(@PathVariable("id") Integer id) {
-        LogisticsResponse logistics = logisticsService.getLogisticsById(id);
+    @GetMapping("/order/{orderId}")
+    public ApiResponse<List<LogisticsResponse>> getLogisticsByOrder(@PathVariable("orderId") String orderId) {
+        List<LogisticsResponse> logistics = logisticsService.getLogisticsByOrderId(orderId);
         return ApiResponse.success("查询成功", logistics);
     }
 
-    @PutMapping("/close/{id}")
-    public ApiResponse<Void> closeLogistics(@PathVariable("id") Integer id) {
-        logisticsService.deleteLogisticsById(id);
-        return ApiResponse.success("物流信息已关闭", null);
+    @GetMapping("/order/{orderId}/latest")
+    public ApiResponse<LogisticsResponse> getLatestLogistics(
+            @PathVariable("orderId") String orderId,
+            @RequestParam("type") String type) {
+        LogisticsResponse logistics = logisticsService.getLatestLogistics(orderId, type);
+        return ApiResponse.success("查询成功", logistics);
     }
 }
