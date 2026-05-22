@@ -113,7 +113,7 @@ public class ShopQueryController {
                         int contactId = ((Number) contactIdObj).intValue();
                         if (contactId > 0) {
                             try {
-                                Map<String, Object> contactMap = contactFeignClient.getContactByIdWithUser(contactId, userId);
+                                Map<String, Object> contactMap = contactFeignClient.getContactById(contactId);
                                 if (contactMap != null && contactMap.containsKey("data")) {
                                     Map<String, Object> contactData = (Map<String, Object>) contactMap.get("data");
                                     Map<String, Object> contact = new HashMap<>();
