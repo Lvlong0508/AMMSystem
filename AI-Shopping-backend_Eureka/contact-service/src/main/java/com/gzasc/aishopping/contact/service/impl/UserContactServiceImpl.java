@@ -19,7 +19,7 @@ public class UserContactServiceImpl implements UserContactService {
 
     @Override
     @Transactional
-    public int createContact(Contact contact, int userId) {
+    public int createContact(Contact contact, Long userId) {
         log.info("createContact, userId={}", userId);
         int result = userContactMapper.insertContact(contact);
         if (result > 0) {
@@ -30,9 +30,9 @@ public class UserContactServiceImpl implements UserContactService {
 
     @Override
     @Transactional
-    public int deleteContact(int id, int userId) {
+    public int deleteContact(int id, Long userId) {
         log.info("deleteContact, id={}, userId={}", id, userId);
-        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(id);
+        List<Long> userIds = userContactMapper.selectUserIdsByContactId(id);
         if (userIds.isEmpty() || !userIds.contains(userId)) {
             return 0;
         }
@@ -42,9 +42,9 @@ public class UserContactServiceImpl implements UserContactService {
 
     @Override
     @Transactional
-    public int updateContact(Contact contact, int userId) {
+    public int updateContact(Contact contact, Long userId) {
         log.info("updateContact, id={}, userId={}", contact.getId(), userId);
-        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
+        List<Long> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
         if (userIds.isEmpty() || !userIds.contains(userId)) {
             return 0;
         }
@@ -52,15 +52,15 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
-    public List<Contact> getContactsByUserId(int userId) {
+    public List<Contact> getContactsByUserId(Long userId) {
         log.info("getContactsByUserId, userId={}", userId);
         return userContactMapper.selectByUserId(userId);
     }
 
     @Override
-    public int setDefaultContact(int id, int userId) {
+    public int setDefaultContact(int id, Long userId) {
         log.info("setDefaultContact, id={}, userId={}", id, userId);
-        List<Integer> userIds = userContactMapper.selectUserIdsByContactId(id);
+        List<Long> userIds = userContactMapper.selectUserIdsByContactId(id);
         if (userIds.isEmpty() || !userIds.contains(userId)) {
             return 0;
         }
