@@ -50,12 +50,6 @@ public class ProductConverter {
         if (products == null) return List.of();
         return products.stream().map(this::toAbstractDTO).collect(Collectors.toList());
     }
-
-    public List<ProductDetailDTO> toDetailDTOList(List<Product> products) {
-        if (products == null) return List.of();
-        return products.stream().map(this::toDetailDTO).collect(Collectors.toList());
-    }
-
     public List<ProductImageDTO> toImageDTOList(List<ProductImageInfo> infos) {
         if (infos == null) return List.of();
         return infos.stream().map(this::toImageDTO).collect(Collectors.toList());
