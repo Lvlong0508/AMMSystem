@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.product.common;
+package com.gzasc.aishopping.common.response;
 
 import java.io.Serializable;
 
