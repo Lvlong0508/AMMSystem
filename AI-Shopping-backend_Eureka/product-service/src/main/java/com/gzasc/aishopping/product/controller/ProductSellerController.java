@@ -3,6 +3,8 @@ package com.gzasc.aishopping.product.controller;
 import com.gzasc.aishopping.product.common.ApiResponse;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -12,6 +14,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/seller/product")
 @RequiredArgsConstructor
@@ -19,6 +24,24 @@ public class ProductSellerController {
 
     private static final Logger log = LoggerFactory.getLogger(ProductSellerController.class);
     private final ProductService productService;
+
+    @GetMapping("/{productId}")
+    public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") String productId) {
+        log.info("商家查询商品详情, productId={}", productId);
+        ProductWithImageDetailDTO product = productService.getProductById(productId);
+        if (product == null) {
+            throw new ProductException(404, "商品不存在");
+        }
+        return ApiResponse.success(product);
+    }
+
+    @GetMapping("/batch")
+    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
+        log.info("商家批量查询商品, ids={}", ids);
+        List<String> idList = Arrays.asList(ids.split(","));
+        List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForMerchant(idList);
+        return ApiResponse.success(products);
+    }
 
     @PostMapping("/create")
     public ApiResponse<String> createProduct(@RequestBody @Valid CreateProductRequest request) {
@@ -28,12 +51,11 @@ public class ProductSellerController {
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
-        product.setImageId(0);
         product.setSale(false);
 
-        int result = productService.createProduct(product);
+        int result = productService.createProductWithImage(product, request.getImageUrl());
         if (result > 0) {
-            return ApiResponse.success("创建商品成功", product.getId() != null ? product.getId().toString() : null);
+            return ApiResponse.success("创建商品成功", product.getId().toString());
         }
         throw new ProductException(500, "创建商品失败");
     }
@@ -50,7 +72,7 @@ public class ProductSellerController {
         if (request.getPrice() != null) product.setPrice(request.getPrice());
         if (request.getStock() != null) product.setStock(request.getStock());
 
-        int result = productService.updateProduct(product);
+        int result = productService.updateProductWithImage(product, request.getImageUrl());
         if (result > 0) {
             return ApiResponse.success("更新商品成功", null);
         }
@@ -87,19 +109,4 @@ public class ProductSellerController {
         return ApiResponse.success("下架成功", null);
     }
 
-    @PostMapping("/{productId}/image")
-    public ApiResponse<Void> addImage(
-            @PathVariable("productId") String productId,
-            @RequestParam("imageUrl") String imageUrl) {
-        log.info("添加商品图片, productId={}, imageUrl={}", productId, imageUrl);
-        return ApiResponse.success("添加图片成功", null);
-    }
-
-    @DeleteMapping("/{productId}/image/{imageId}")
-    public ApiResponse<Void> deleteImage(
-            @PathVariable("productId") String productId,
-            @PathVariable("imageId") String imageId) {
-        log.info("删除商品图片, productId={}, imageId={}", productId, imageId);
-        return ApiResponse.success("删除图片成功", null);
-    }
 }

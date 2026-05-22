@@ -190,4 +190,23 @@ public interface ProductService {
      * 批量查询图片 DTO
      */
     List<ProductImageDTO> getImageDTOs(List<Integer> ids);
+
+
+    // ==================== 统一创建/更新（含图片） ====================
+
+    /**
+     * 创建商品并关联图片（同一事务：先写图片 → 获取ID → 再写商品）
+     * @param product 商品信息（不含 imageId，由方法内部设置）
+     * @param imageUrl 图片URL，为空则不创建图片
+     * @return 影响的行数
+     */
+    int createProductWithImage(Product product, String imageUrl);
+
+    /**
+     * 更新商品并关联新图片（同一事务：先写图片 → 获取ID → 再更新商品）
+     * @param product 商品基本信息（需包含ID）
+     * @param imageUrl 新图片URL，为空则不更新图片
+     * @return 影响的行数
+     */
+    int updateProductWithImage(Product product, String imageUrl);
 }

@@ -8,8 +8,7 @@ import com.gzasc.aishopping.product.dto.ProductDetailDTO;
 import com.gzasc.aishopping.product.dto.ProductImageDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
-import com.gzasc.aishopping.product.exception.ProductOnSaleException;
-import com.gzasc.aishopping.product.exception.ProductNotFoundException;
+
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.mapper.SalableProductMapper;
@@ -121,10 +120,10 @@ public class ProductServiceImpl implements ProductService {
     public int deleteProduct(String productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductNotFoundException(productId);
+            throw new ProductException(404, "商品不存在: " + productId);
         }
         if (product.isSale()) {
-            throw new ProductOnSaleException(productId);
+            throw new ProductException(400, "商品在上架中，请先下架: " + productId);
         }
         return productMapper.deleteProduct(productId);
     }
@@ -188,7 +187,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean listProduct(String productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductNotFoundException(productId);
+            throw new ProductException(404, "商品不存在: " + productId);
         }
         productMapper.updateSaleStatus(productId, true);
         salableProductMapper.addSalable(productId);
@@ -200,7 +199,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean unlistProduct(String productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductNotFoundException(productId);
+            throw new ProductException(404, "商品不存在: " + productId);
         }
         productMapper.updateSaleStatus(productId, false);
         salableProductMapper.removeSalable(productId);
@@ -245,7 +244,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductDetailDTO getProductDetailDTO(String productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductNotFoundException(productId);
+            throw new ProductException(404, "商品不存在: " + productId);
         }
         // TODO: 启用缓存
         // ProductDetailDTO cached = (ProductDetailDTO) productCache.get("detail:" + productId);
@@ -275,5 +274,41 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductImageDTO> getImageDTOs(List<Integer> ids) {
         List<ProductImageInfo> infos = getImagesByIds(ids);
         return productConverter.toImageDTOList(infos);
+    }
+
+    @Override
+    @Transactional
+    public int createProductWithImage(Product product, String imageUrl) {
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            ProductImageInfo image = new ProductImageInfo();
+            image.setUrl(imageUrl);
+            productImageInfoMapper.insert(image);
+            product.setImageId(image.getId());
+        } else {
+            product.setImageId(0);
+        }
+        product.setId(SnowflakeIdGenerator.nextId());
+        return productMapper.insertProduct(product);
+    }
+
+    @Override
+    @Transactional
+    public int updateProductWithImage(Product product, String imageUrl) {
+        Product existingProduct = productMapper.selectProductById(String.valueOf(product.getId()));
+        if (existingProduct == null) {
+            throw new ProductException(404, "商品不存在: " + String.valueOf(product.getId()));
+        }
+
+        if (imageUrl != null && !imageUrl.isBlank()) {
+            if (existingProduct.getImageId() != null && existingProduct.getImageId() > 0) {
+                ProductImageInfo imageInfo = new ProductImageInfo();
+                imageInfo.setId(existingProduct.getImageId());
+                imageInfo.setUrl(imageUrl);
+                productImageInfoMapper.updateUrl(imageInfo);
+            }
+        }
+
+        product.setImageId(existingProduct.getImageId());
+        return productMapper.updateProduct(product);
     }
 }

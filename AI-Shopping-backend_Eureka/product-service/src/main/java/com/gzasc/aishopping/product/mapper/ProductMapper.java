@@ -60,4 +60,7 @@ public interface ProductMapper {
 
     @Select("SELECT id,name,price,tags,imageId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
     List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);
+
+    @Update("UPDATE products SET image_id = #{imageId}, updated_at = NOW() WHERE id = #{id}")
+    int updateProductImageId(@Param("id") String id, @Param("imageId") int imageId);
 }
