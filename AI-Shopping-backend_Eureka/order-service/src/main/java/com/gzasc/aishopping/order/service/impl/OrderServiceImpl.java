@@ -80,12 +80,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public int updateOrder(Order order) {
-        System.out.println(new Date() + ": run updateOrder");
-        return orderMapper.updateOrder(order);
-    }
-
-    @Override
     public Order getOrderById(String orderId) {
         System.out.println(new Date() + ": run getOrderById");
         return orderMapper.selectOrderById(orderId);

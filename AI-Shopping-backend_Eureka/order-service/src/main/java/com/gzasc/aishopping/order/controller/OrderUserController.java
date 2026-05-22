@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.dto.shop.OrderShopDTO;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -211,14 +212,10 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
         orderMap.put("contactId", order.getContactId());
 
         try {
-            Map<String, Object> logisticsResult = logisticsFeignClient.getLatestLogistics(order.getOrderId(), "DELIVERY");
-            if (logisticsResult != null && logisticsResult.containsKey("data")) {
-                Object data = logisticsResult.get("data");
-                if (data instanceof Map) {
-                    Map<String, Object> logistics = (Map<String, Object>) data;
-                    orderMap.put("trackingNumber", logistics.get("trackingNumber"));
-                    orderMap.put("logistics", logistics);
-                }
+            ApiResponse<Map<String, Object>> logisticsResponse = logisticsFeignClient.getLatestLogistics(order.getOrderId(), "DELIVERY");
+            if (logisticsResponse != null && logisticsResponse.getData() != null) {
+                orderMap.put("trackingNumber", logisticsResponse.getData().get("trackingNumber"));
+                orderMap.put("logistics", logisticsResponse.getData());
             }
         } catch (Exception e) {
             System.err.println("获取物流信息失败: " + e.getMessage());

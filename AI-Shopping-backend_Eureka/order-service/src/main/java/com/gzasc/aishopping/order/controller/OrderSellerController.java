@@ -4,6 +4,7 @@ import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.dto.ShipOrderRequest;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -38,14 +39,10 @@ public class OrderSellerController {
             orderMap.put("orderDate", order.getOrderDate());
             orderMap.put("contactId", order.getContactId());
             try {
-                Map<String, Object> logisticsResult = logisticsFeignClient.getLatestLogistics(orderId, "DELIVERY");
-                if (logisticsResult != null && logisticsResult.containsKey("data")) {
-                    Object data = logisticsResult.get("data");
-                    if (data instanceof Map) {
-                        Map<String, Object> logistics = (Map<String, Object>) data;
-                        orderMap.put("trackingNumber", logistics.get("trackingNumber"));
-                        orderMap.put("logistics", logistics);
-                    }
+                ApiResponse<Map<String, Object>> logisticsResponse = logisticsFeignClient.getLatestLogistics(orderId, "DELIVERY");
+                if (logisticsResponse != null && logisticsResponse.getData() != null) {
+                    orderMap.put("trackingNumber", logisticsResponse.getData().get("trackingNumber"));
+                    orderMap.put("logistics", logisticsResponse.getData());
                 }
             } catch (Exception e) {
                 System.err.println("获取物流信息失败: " + e.getMessage());
@@ -125,11 +122,9 @@ public class OrderSellerController {
             logisticsRequest.setContactId(request.getContactId());
             logisticsRequest.setTrackingNumber(request.getTrackingNumber());
 
-            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(logisticsRequest);
-            Object data = logisticsResult.get("data");
-            if (data == null) {
-                String logisticsMessage = (String) logisticsResult.get("message");
-                return Map.of("message", "发货失败：" + (logisticsMessage != null ? logisticsMessage : "创建物流返回数据为空"));
+            ApiResponse<Map<String, Object>> logisticsResponse = logisticsFeignClient.createLogistics(logisticsRequest);
+            if (logisticsResponse.getData() == null) {
+                return Map.of("message", "发货失败：" + (logisticsResponse.getMessage() != null ? logisticsResponse.getMessage() : "创建物流返回数据为空"));
             }
 
             int result = orderService.updateOrderStatus(orderId, Order.SHIPPED);
