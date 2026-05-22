@@ -13,10 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 订单商家端控制器
- * 提供商家订单管理、发货、状态更新功能
- */
 @RestController
 @RequestMapping("/api/seller/order")
 @RequiredArgsConstructor
@@ -40,22 +36,19 @@ public class OrderSellerController {
             orderMap.put("totalPrice", order.getTotalPrice());
             orderMap.put("orderStatus", order.getOrderStatus());
             orderMap.put("orderDate", order.getOrderDate());
-            orderMap.put("logisticsId", order.getLogisticsId());
             orderMap.put("contactId", order.getContactId());
-            if (order.getLogisticsId() != null) {
-                try {
-                    Map<String, Object> logisticsResult = logisticsFeignClient.getLogisticsById(order.getLogisticsId());
-                    if (logisticsResult != null && logisticsResult.containsKey("data")) {
-                        Object data = logisticsResult.get("data");
-                        if (data instanceof Map) {
-                            Map<String, Object> logistics = (Map<String, Object>) data;
-                            orderMap.put("trackingNumber", logistics.get("trackingNumber"));
-                            orderMap.put("logistics", logistics);
-                        }
+            try {
+                Map<String, Object> logisticsResult = logisticsFeignClient.getLatestLogistics(orderId, "DELIVERY");
+                if (logisticsResult != null && logisticsResult.containsKey("data")) {
+                    Object data = logisticsResult.get("data");
+                    if (data instanceof Map) {
+                        Map<String, Object> logistics = (Map<String, Object>) data;
+                        orderMap.put("trackingNumber", logistics.get("trackingNumber"));
+                        orderMap.put("logistics", logistics);
                     }
-                } catch (Exception e) {
-                    System.err.println("获取物流信息失败: " + e.getMessage());
                 }
+            } catch (Exception e) {
+                System.err.println("获取物流信息失败: " + e.getMessage());
             }
             return Map.of("success", true, "order", orderMap);
         } catch (Exception e) {
@@ -118,68 +111,36 @@ public class OrderSellerController {
         }
 
         if (Order.SHIPPED.equals(order.getOrderStatus())) {
-            return Map.of("message", "发货成功（已发货）", "logisticsId", String.valueOf(order.getLogisticsId()));
+            return Map.of("message", "发货成功（已发货）");
         }
 
         if (!Order.PAID.equals(order.getOrderStatus())) {
             return Map.of("message", "发货失败：订单状态为【" + order.getOrderStatus() + "】，只有已支付订单才能发货");
         }
 
-        if (order.getLogisticsId() != null) {
-            return Map.of("message", "发货成功（已发货）", "logisticsId", String.valueOf(order.getLogisticsId()));
-        }
-
-        Integer logisticsId = null;
         try {
-            LogisticsRequest logisticsRequest = new LogisticsRequest(
-                    request.getContactId(),
-                    request.getTrackingNumber(),
-                    request.getShippingDate()
-            );
-            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(logisticsRequest);
+            LogisticsRequest logisticsRequest = new LogisticsRequest();
+            logisticsRequest.setOrderId(orderId);
+            logisticsRequest.setType("DELIVERY");
+            logisticsRequest.setContactId(request.getContactId());
+            logisticsRequest.setTrackingNumber(request.getTrackingNumber());
 
+            Map<String, Object> logisticsResult = logisticsFeignClient.createLogistics(logisticsRequest);
             Object data = logisticsResult.get("data");
             if (data == null) {
                 String logisticsMessage = (String) logisticsResult.get("message");
                 return Map.of("message", "发货失败：" + (logisticsMessage != null ? logisticsMessage : "创建物流返回数据为空"));
             }
 
-            if (data instanceof java.util.Map) {
-                java.util.Map<?, ?> logisticsData = (java.util.Map<?, ?>) data;
-                Object id = logisticsData.get("id");
-                if (id instanceof Number) {
-                    logisticsId = ((Number) id).intValue();
-                }
-            }
-            if (logisticsId == null) {
-                return Map.of("message", "发货失败：无法获取物流ID");
-            }
-
-            Order updateOrder = new Order();
-            updateOrder.setOrderId(orderId);
-            updateOrder.setLogisticsId(logisticsId);
-            updateOrder.setOrderStatus(Order.SHIPPED);
-            int result = orderService.updateOrder(updateOrder);
+            int result = orderService.updateOrderStatus(orderId, Order.SHIPPED);
 
             if (result > 0) {
-                return Map.of("message", "发货成功", "logisticsId", String.valueOf(logisticsId));
+                return Map.of("message", "发货成功");
             } else {
-                compensateCloseLogistics(logisticsId);
-                return Map.of("message", "发货失败：更新订单状态失败，已回滚物流记录");
+                return Map.of("message", "发货失败：更新订单状态失败");
             }
         } catch (Exception e) {
-            if (logisticsId != null) {
-                compensateCloseLogistics(logisticsId);
-            }
             return Map.of("message", "发货错误：" + e.getMessage());
-        }
-    }
-
-    private void compensateCloseLogistics(Integer logisticsId) {
-        try {
-            logisticsFeignClient.closeLogistics(logisticsId);
-        } catch (Exception ex) {
-            System.err.println("[发货补偿失败] 物流ID=" + logisticsId + "，需要人工处理，错误：" + ex.getMessage());
         }
     }
 }
