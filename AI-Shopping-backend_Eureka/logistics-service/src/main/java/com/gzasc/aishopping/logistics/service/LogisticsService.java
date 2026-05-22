@@ -1,20 +1,27 @@
 package com.gzasc.aishopping.logistics.service;
 
+import com.gzasc.aishopping.logistics.dto.CreateLogisticsRequest;
+import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
+import com.gzasc.aishopping.logistics.dto.UpdateLogisticsRequest;
 import com.gzasc.aishopping.logistics.model.Logistics;
 
 import java.util.List;
 
 public interface LogisticsService {
 
-    int createLogistics(Logistics logistics);
+    LogisticsResponse createLogistics(CreateLogisticsRequest request);
 
-    int deleteLogisticsById(Integer id);
+    LogisticsResponse createLogistics(Logistics logistics);
 
-    int updateLogistics(Logistics logistics);
+    void deleteLogisticsById(Integer id);
 
-    Logistics getLogisticsById(Integer id);
+    LogisticsResponse updateLogistics(UpdateLogisticsRequest request);
 
-    List<Logistics> getAllLogistics();
+    LogisticsResponse getLogisticsById(Integer id);
 
-    Logistics getLogisticsByTrackingNumber(String trackingNumber);
+    List<LogisticsResponse> getAllLogistics();
+
+    LogisticsResponse getLogisticsByTrackingNumber(String trackingNumber);
+
+    Logistics getLogisticsModelById(Integer id);
 }

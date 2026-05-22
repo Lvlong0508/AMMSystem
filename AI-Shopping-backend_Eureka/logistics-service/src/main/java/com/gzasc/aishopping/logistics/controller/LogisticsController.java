@@ -1,12 +1,15 @@
 package com.gzasc.aishopping.logistics.controller;
 
-import com.gzasc.aishopping.logistics.model.Logistics;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.logistics.dto.CreateLogisticsRequest;
+import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
+import com.gzasc.aishopping.logistics.dto.UpdateLogisticsRequest;
 import com.gzasc.aishopping.logistics.service.LogisticsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/logistics")
@@ -16,82 +19,38 @@ public class LogisticsController {
     private final LogisticsService logisticsService;
 
     @PostMapping("/create")
-    public Map<String, Object> createLogistics(@RequestBody Logistics logistics) {
-        try {
-            int result = logisticsService.createLogistics(logistics);
-            if (result > 0) {
-                return Map.of("message", "创建物流信息成功", "data", logistics);
-            } else {
-                return Map.of("message", "创建物流信息失败");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "创建物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<LogisticsResponse> createLogistics(@RequestBody @Valid CreateLogisticsRequest request) {
+        LogisticsResponse result = logisticsService.createLogistics(request);
+        return ApiResponse.success("创建物流信息成功", result);
     }
 
     @GetMapping("/get/{id}")
-    public Map<String, Object> getLogisticsById(@PathVariable("id") Integer id) {
-        try {
-            Logistics logistics = logisticsService.getLogisticsById(id);
-            if (logistics != null) {
-                return Map.of("message", "查询成功", "data", logistics);
-            } else {
-                return Map.of("message", "查询失败：物流信息不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "查询物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<LogisticsResponse> getLogisticsById(@PathVariable("id") Integer id) {
+        LogisticsResponse logistics = logisticsService.getLogisticsById(id);
+        return ApiResponse.success("查询成功", logistics);
     }
 
     @GetMapping("/list")
-    public Map<String, Object> getAllLogistics() {
-        try {
-            List<Logistics> logistics = logisticsService.getAllLogistics();
-            return Map.of("message", "查询成功", "data", logistics, "total", logistics.size());
-        } catch (Exception e) {
-            return Map.of("message", "查询物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<List<LogisticsResponse>> getAllLogistics() {
+        List<LogisticsResponse> logistics = logisticsService.getAllLogistics();
+        return ApiResponse.success("查询成功", logistics);
     }
 
     @GetMapping("/search/tracking")
-    public Map<String, Object> getLogisticsByTrackingNumber(@RequestParam("trackingNumber") String trackingNumber) {
-        try {
-            Logistics logistics = logisticsService.getLogisticsByTrackingNumber(trackingNumber);
-            if (logistics != null) {
-                return Map.of("message", "查询成功", "data", logistics);
-            } else {
-                return Map.of("message", "查询失败：物流信息不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "查询物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<LogisticsResponse> getLogisticsByTrackingNumber(@RequestParam("trackingNumber") String trackingNumber) {
+        LogisticsResponse logistics = logisticsService.getLogisticsByTrackingNumber(trackingNumber);
+        return ApiResponse.success("查询成功", logistics);
     }
 
     @PutMapping("/update")
-    public Map<String, String> updateLogistics(@RequestBody Logistics logistics) {
-        try {
-            int result = logisticsService.updateLogistics(logistics);
-            if (result > 0) {
-                return Map.of("message", "更新物流信息成功");
-            } else {
-                return Map.of("message", "更新物流信息失败：物流信息不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "更新物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<LogisticsResponse> updateLogistics(@RequestBody @Valid UpdateLogisticsRequest request) {
+        LogisticsResponse result = logisticsService.updateLogistics(request);
+        return ApiResponse.success("更新物流信息成功", result);
     }
 
     @DeleteMapping("/delete/{id}")
-    public Map<String, String> deleteLogistics(@PathVariable("id") Integer id) {
-        try {
-            int result = logisticsService.deleteLogisticsById(id);
-            if (result > 0) {
-                return Map.of("message", "删除物流信息成功");
-            } else {
-                return Map.of("message", "删除物流信息失败：物流信息不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "删除物流信息错误：" + e.getMessage());
-        }
+    public ApiResponse<Void> deleteLogistics(@PathVariable("id") Integer id) {
+        logisticsService.deleteLogisticsById(id);
+        return ApiResponse.success("删除物流信息成功", null);
     }
 }

@@ -10,8 +10,7 @@ CREATE TABLE IF NOT EXISTS t_order (
     total_price DECIMAL(10, 2) NOT NULL COMMENT '订单总价',
     order_status VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '订单状态：PENDING待支付/PAID待发货/SHIPPED已发货/DELIVERED已送达/CANCELLED已取消/RETURNED已退货',
     order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '下单时间',
-    contact_id INT COMMENT '联系人ID',
-    logistics_id INT COMMENT '物流信息ID'
+    contact_id INT COMMENT '联系人ID'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单表';
 
 CREATE TABLE IF NOT EXISTS deleted_orders (
@@ -23,7 +22,6 @@ CREATE TABLE IF NOT EXISTS deleted_orders (
     order_status VARCHAR(20) NOT NULL COMMENT '删除时的订单状态',
     order_date TIMESTAMP NOT NULL COMMENT '原下单时间',
     contact_id INT COMMENT '联系人ID',
-    logistics_id INT COMMENT '物流信息ID',
     deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '删除时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='已删除订单备份表';
 
