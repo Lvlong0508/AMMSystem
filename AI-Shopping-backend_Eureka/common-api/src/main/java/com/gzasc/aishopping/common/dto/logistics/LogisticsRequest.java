@@ -6,15 +6,12 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-/**
- * 物流请求 DTO
- * 用于创建物流记录
- */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class LogisticsRequest implements Serializable {
+    private String orderId;
+    private String type;
     private Integer contactId;
     private String trackingNumber;
-    private String shippingDate;
 }
