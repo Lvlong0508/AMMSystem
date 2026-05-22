@@ -18,7 +18,6 @@ public class Order {
     private double totalPrice;
     private String orderStatus;
     private Timestamp orderDate;
-    private Integer logisticsId;
     private Integer contactId;
 
     private boolean canTransition(String fromStatus, String toStatus) {
@@ -57,12 +56,10 @@ public class Order {
         return order;
     }
 
-    public Order shipOrder(Order order, Integer logisticsId, Integer contactId) {
+    public Order shipOrder(Order order) {
         if (!canTransition(order.orderStatus, SHIPPED)) {
             throw new IllegalStateException("订单状态不允许发货操作，当前状态: " + order.orderStatus);
         }
-        order.logisticsId = logisticsId;
-        order.contactId = contactId;
         order.orderStatus = SHIPPED;
         return order;
     }
