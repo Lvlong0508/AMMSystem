@@ -3,7 +3,6 @@ package com.gzasc.aishopping.logistics.controller;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.logistics.dto.CreateLogisticsRequest;
 import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
-import com.gzasc.aishopping.logistics.dto.UpdateLogisticsRequest;
 import com.gzasc.aishopping.logistics.service.LogisticsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,12 +23,6 @@ public class LogisticsController {
         return ApiResponse.success("创建物流信息成功", result);
     }
 
-    @GetMapping("/get/{id}")
-    public ApiResponse<LogisticsResponse> getLogisticsById(@PathVariable("id") Integer id) {
-        LogisticsResponse logistics = logisticsService.getLogisticsById(id);
-        return ApiResponse.success("查询成功", logistics);
-    }
-
     @GetMapping("/list")
     public ApiResponse<List<LogisticsResponse>> getAllLogistics() {
         List<LogisticsResponse> logistics = logisticsService.getAllLogistics();
@@ -42,15 +35,23 @@ public class LogisticsController {
         return ApiResponse.success("查询成功", logistics);
     }
 
-    @PutMapping("/update")
-    public ApiResponse<LogisticsResponse> updateLogistics(@RequestBody @Valid UpdateLogisticsRequest request) {
-        LogisticsResponse result = logisticsService.updateLogistics(request);
-        return ApiResponse.success("更新物流信息成功", result);
-    }
-
     @DeleteMapping("/delete/{id}")
     public ApiResponse<Void> deleteLogistics(@PathVariable("id") Integer id) {
         logisticsService.deleteLogisticsById(id);
         return ApiResponse.success("删除物流信息成功", null);
+    }
+
+    @GetMapping("/order/{orderId}")
+    public ApiResponse<List<LogisticsResponse>> getLogisticsByOrder(@PathVariable("orderId") String orderId) {
+        List<LogisticsResponse> logistics = logisticsService.getLogisticsByOrderId(orderId);
+        return ApiResponse.success("查询成功", logistics);
+    }
+
+    @GetMapping("/order/{orderId}/latest")
+    public ApiResponse<LogisticsResponse> getLatestLogistics(
+            @PathVariable("orderId") String orderId,
+            @RequestParam("type") String type) {
+        LogisticsResponse logistics = logisticsService.getLatestLogistics(orderId, type);
+        return ApiResponse.success("查询成功", logistics);
     }
 }
