@@ -9,16 +9,13 @@ import java.util.List;
 public interface OrderMapper {
 
     @Insert("INSERT INTO t_order (order_id, product_id, quantity, total_price, " +
-            "order_status, order_date, contact_id, logistics_id) " +
+            "order_status, order_date, contact_id) " +
             "VALUES (#{orderId}, #{productId}, #{quantity}, #{totalPrice}, " +
-            "#{orderStatus}, #{orderDate}, #{contactId}, #{logisticsId})")
+            "#{orderStatus}, #{orderDate}, #{contactId})")
     int insertOrder(Order order);
 
     @Delete("DELETE FROM t_order WHERE order_id = #{orderId}")
     int deleteOrderById(String orderId);
-
-    @Update("UPDATE t_order SET logistics_id = #{logisticsId}, order_status = #{orderStatus} WHERE order_id = #{orderId}")
-    int updateOrder(Order order);
 
     @Select("SELECT * FROM t_order WHERE order_id = #{orderId}")
     @Results({
@@ -28,8 +25,7 @@ public interface OrderMapper {
             @Result(property = "totalPrice", column = "total_price"),
             @Result(property = "orderStatus", column = "order_status"),
             @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "logisticsId", column = "logistics_id")
+            @Result(property = "contactId", column = "contact_id")
     })
     Order selectOrderById(String orderId);
 
@@ -41,8 +37,7 @@ public interface OrderMapper {
             @Result(property = "totalPrice", column = "total_price"),
             @Result(property = "orderStatus", column = "order_status"),
             @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "logisticsId", column = "logistics_id")
+            @Result(property = "contactId", column = "contact_id")
     })
     List<Order> selectAllOrders();
 
@@ -54,16 +49,12 @@ public interface OrderMapper {
             @Result(property = "totalPrice", column = "total_price"),
             @Result(property = "orderStatus", column = "order_status"),
             @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "logisticsId", column = "logistics_id")
+            @Result(property = "contactId", column = "contact_id")
     })
     List<Order> selectOrdersByStatus(String status);
 
     @Update("UPDATE t_order SET order_status = #{status} WHERE order_id = #{orderId}")
     int updateOrderStatus(@Param("orderId") String orderId, @Param("status") String status);
-
-    @Update("UPDATE t_order SET logistics_id = #{logisticsId} WHERE order_id = #{orderId}")
-    int updateOrderLogisticsId(@Param("orderId") String orderId, @Param("logisticsId") Integer logisticsId);
 
     @Select("<script>" +
             "SELECT * FROM t_order WHERE order_id IN " +
@@ -78,8 +69,7 @@ public interface OrderMapper {
             @Result(property = "totalPrice", column = "total_price"),
             @Result(property = "orderStatus", column = "order_status"),
             @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "logisticsId", column = "logistics_id")
+            @Result(property = "contactId", column = "contact_id")
     })
     List<Order> selectOrdersByIds(@Param("orderIds") List<String> orderIds);
 }
