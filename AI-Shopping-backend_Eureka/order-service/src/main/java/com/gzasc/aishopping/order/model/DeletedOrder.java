@@ -17,7 +17,6 @@ public class DeletedOrder {
     private String orderStatus;   // 删除时的订单状态
     private Timestamp orderDate;  // 原下单时间
     private Integer contactId;    // 联系人ID
-    private Integer logisticsId;  // 物流信息ID
     private Timestamp deletedAt;  // 删除时间
 
     /**
@@ -32,7 +31,6 @@ public class DeletedOrder {
         deletedOrder.setOrderStatus(order.getOrderStatus());
         deletedOrder.setOrderDate(order.getOrderDate());
         deletedOrder.setContactId(order.getContactId());
-        deletedOrder.setLogisticsId(order.getLogisticsId());
         deletedOrder.setDeletedAt(new Timestamp(System.currentTimeMillis()));
         return deletedOrder;
     }
