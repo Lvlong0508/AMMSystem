@@ -1,13 +1,12 @@
 package com.gzasc.aishopping.product.controller.internal;
 
+import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
-import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -19,95 +18,30 @@ public class InternalProductController {
 
     private final ProductService productService;
 
+    // 内部接口：根据ID查询商品详情（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/{productId}")
     public ProductWithImageDetailDTO getProductById(@PathVariable("productId") String productId) {
         return productService.getProductById(productId);
     }
 
+    // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/batch")
     public List<ProductWithImageAbstractDTO> getProductsByIds(@RequestParam("ids") String ids) {
         List<String> idList = Arrays.asList(ids.split(","));
         return productService.getAbstractProductsForBuyer(idList);
     }
 
-    @PostMapping("/create")
-    public Map<String, String> createProduct(@RequestBody Product product) {
-        if (product == null || product.getName() == null || product.getName().trim().isEmpty()) {
-            return Map.of("message", "创建商品错误：商品名称为空");
-        }
-        if (product.getPrice() == null || product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            return Map.of("message", "创建商品错误：商品价格必须大于0");
-        }
-        if (product.getStock() == null || product.getStock() < 0) {
-            return Map.of("message", "创建商品错误：商品库存不能小于0");
-        }
-        try {
-            int result = productService.createProduct(product);
-            if (result > 0) {
-                return Map.of("message", "创建商品成功", "id", String.valueOf(product.getId()));
-            } else {
-                return Map.of("message", "创建商品失败");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "创建商品错误：" + e.getMessage());
-        }
-    }
-
-    @PutMapping("/{productId}")
-    public Map<String, String> updateProduct(
-            @PathVariable("productId") String productId,
-            @RequestBody Product product) {
-        if (product == null) {
-            return Map.of("message", "更新商品错误：商品信息为空");
-        }
-        if (product.getPrice() != null && product.getPrice().compareTo(BigDecimal.ZERO) <= 0) {
-            return Map.of("message", "更新商品错误：商品价格必须大于0");
-        }
-        if (product.getStock() != null && product.getStock() < 0) {
-            return Map.of("message", "更新商品错误：商品库存不能小于0");
-        }
-        try {
-            product.setId(Long.parseLong(productId));
-            int result = productService.updateProduct(product);
-            if (result > 0) {
-                return Map.of("message", "更新商品成功");
-            } else {
-                return Map.of("message", "更新商品失败：商品不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "更新商品错误：" + e.getMessage());
-        }
-    }
-
-    @DeleteMapping("/{productId}")
-    public Map<String, String> deleteProduct(@PathVariable("productId") String productId) {
-        try {
-            int result = productService.deleteProduct(productId);
-            if (result > 0) {
-                return Map.of("message", "删除商品成功");
-            } else {
-                return Map.of("message", "删除商品失败：商品不存在");
-            }
-        } catch (Exception e) {
-            return Map.of("message", "删除商品错误：" + e.getMessage());
-        }
-    }
-
+    // 内部接口：扣减库存（订单服务下单成功就执行）
     @PostMapping("/deduct-stock")
     public Map<String, Object> deductStock(@RequestBody StockDeductRequest request) {
         boolean success = productService.deductStock(request.getProductId(), request.getQuantity());
         return Map.of("success", success, "message", success ? "扣减成功" : "扣减失败：库存不足");
     }
 
+    // 内部接口：恢复库存（订单服务取消订单时执行）
     @PostMapping("/restore-stock")
     public Map<String, Object> restoreStock(@RequestBody StockDeductRequest request) {
         boolean success = productService.restoreStock(request.getProductId(), request.getQuantity());
         return Map.of("success", success, "message", success ? "恢复成功" : "恢复失败");
-    }
-
-    @lombok.Data
-    public static class StockDeductRequest {
-        private String productId;
-        private int quantity;
     }
 }
