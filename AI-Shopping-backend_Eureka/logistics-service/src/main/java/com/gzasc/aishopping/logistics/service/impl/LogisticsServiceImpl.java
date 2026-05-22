@@ -3,7 +3,6 @@ package com.gzasc.aishopping.logistics.service.impl;
 import com.gzasc.aishopping.logistics.converter.LogisticsConverter;
 import com.gzasc.aishopping.logistics.dto.CreateLogisticsRequest;
 import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
-import com.gzasc.aishopping.logistics.dto.UpdateLogisticsRequest;
 import com.gzasc.aishopping.logistics.exception.LogisticsException;
 import com.gzasc.aishopping.logistics.mapper.LogisticsMapper;
 import com.gzasc.aishopping.logistics.model.Logistics;
@@ -50,21 +49,6 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     @Override
-    @Transactional
-    public LogisticsResponse updateLogistics(UpdateLogisticsRequest request) {
-        Logistics exists = logisticsMapper.selectLogisticsById(request.getId());
-        if (exists == null) {
-            throw new LogisticsException("物流信息不存在");
-        }
-        Logistics logistics = logisticsConverter.toModel(request);
-        int result = logisticsMapper.updateLogistics(logistics);
-        if (result <= 0) {
-            throw new LogisticsException("更新物流信息失败");
-        }
-        return logisticsConverter.toResponse(logisticsMapper.selectLogisticsById(request.getId()));
-    }
-
-    @Override
     public LogisticsResponse getLogisticsById(Integer id) {
         Logistics logistics = logisticsMapper.selectLogisticsById(id);
         if (logistics == null) {
@@ -90,7 +74,18 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     @Override
-    public Logistics getLogisticsModelById(Integer id) {
-        return logisticsMapper.selectLogisticsById(id);
+    public List<LogisticsResponse> getLogisticsByOrderId(String orderId) {
+        return logisticsMapper.selectLogisticsByOrderId(orderId).stream()
+                .map(logisticsConverter::toResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public LogisticsResponse getLatestLogistics(String orderId, String type) {
+        Logistics logistics = logisticsMapper.selectLatestLogisticsByOrderIdAndType(orderId, type);
+        if (logistics == null) {
+            throw new LogisticsException("物流信息不存在");
+        }
+        return logisticsConverter.toResponse(logistics);
     }
 }
