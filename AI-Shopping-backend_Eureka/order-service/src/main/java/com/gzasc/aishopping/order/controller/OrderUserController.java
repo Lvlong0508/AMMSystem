@@ -208,24 +208,22 @@ Map<String, Object> productMap = productFeignClient.getProductById(request.getPr
         orderMap.put("totalPrice", order.getTotalPrice());
         orderMap.put("orderStatus", order.getOrderStatus());
         orderMap.put("orderDate", order.getOrderDate());
-        orderMap.put("logisticsId", order.getLogisticsId());
         orderMap.put("contactId", order.getContactId());
 
-        if (order.getLogisticsId() != null) {
-            try {
-                Map<String, Object> logisticsResult = logisticsFeignClient.getLogisticsById(order.getLogisticsId());
-                if (logisticsResult != null && logisticsResult.containsKey("data")) {
-                    Object data = logisticsResult.get("data");
-                    if (data instanceof Map) {
-                        Map<String, Object> logistics = (Map<String, Object>) data;
-                        orderMap.put("trackingNumber", logistics.get("trackingNumber"));
-                        orderMap.put("logistics", logistics);
-                    }
+        try {
+            Map<String, Object> logisticsResult = logisticsFeignClient.getLatestLogistics(order.getOrderId(), "DELIVERY");
+            if (logisticsResult != null && logisticsResult.containsKey("data")) {
+                Object data = logisticsResult.get("data");
+                if (data instanceof Map) {
+                    Map<String, Object> logistics = (Map<String, Object>) data;
+                    orderMap.put("trackingNumber", logistics.get("trackingNumber"));
+                    orderMap.put("logistics", logistics);
                 }
-            } catch (Exception e) {
-                System.err.println("获取物流信息失败: " + e.getMessage());
             }
+        } catch (Exception e) {
+            System.err.println("获取物流信息失败: " + e.getMessage());
         }
+
         return orderMap;
     }
 }
