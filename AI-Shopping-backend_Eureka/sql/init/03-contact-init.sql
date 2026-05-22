@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS t_contact (
 -- 用户-联系人关联表
 CREATE TABLE IF NOT EXISTS user_contact (
     id INT AUTO_INCREMENT PRIMARY KEY COMMENT 'ID',
-    user_id INT NOT NULL COMMENT '用户ID',
+    user_id BIGINT NOT NULL COMMENT '用户ID（auth-service雪花ID）',
     contact_id INT NOT NULL COMMENT '联系人ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_user_id (user_id),
