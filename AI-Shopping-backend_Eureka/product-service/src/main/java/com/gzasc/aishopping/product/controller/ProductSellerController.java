@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.product.controller;
 
-import com.gzasc.aishopping.product.common.ApiResponse;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;

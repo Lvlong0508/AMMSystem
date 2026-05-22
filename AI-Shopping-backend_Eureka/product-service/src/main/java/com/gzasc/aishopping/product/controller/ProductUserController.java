@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.product.controller;
 
-import com.gzasc.aishopping.product.common.ApiResponse;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
