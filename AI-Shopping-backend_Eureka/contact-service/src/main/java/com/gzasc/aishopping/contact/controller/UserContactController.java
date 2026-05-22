@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.contact.controller;
 
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.contact.model.Contact;
 import com.gzasc.aishopping.contact.dto.ContactResponse;
 import com.gzasc.aishopping.contact.dto.CreateContactRequest;
@@ -22,109 +23,99 @@ public class UserContactController {
     private final UserContactService userContactService;
 
     @PostMapping("/create")
-    public Map<String, Object> createContact(
+    public ApiResponse<?> createContact(
             @RequestBody @Valid CreateContactRequest request,
             BindingResult bindingResult,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
-        if (userIdStr == null || userIdStr.trim().isEmpty()) {
-            return Map.of("code", 401, "message", "未登录");
-        }
         if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
+            return ApiResponse.error(400, "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
         }
 
-        Integer userId;
-        try {
-            userId = Integer.parseInt(userIdStr);
-        } catch (NumberFormatException e) {
-            return Map.of("code", 401, "message", "未登录");
+        Long userId = getUserId(userIdStr);
+        if (userId == null) {
+            return ApiResponse.error(401, "未登录");
         }
 
         Contact contact = toContact(request);
         int id = userContactService.createContact(contact, userId);
-        return Map.of("code", 200, "message", "创建地址成功", "data", Map.of("id", id));
+        return ApiResponse.success("创建地址成功", Map.of("id", id));
     }
 
     @DeleteMapping("/delete/{id}")
-    public Map<String, Object> deleteContact(
+    public ApiResponse<?> deleteContact(
             @PathVariable int id,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
-        Integer userId = getUserId(userIdStr);
+        Long userId = getUserId(userIdStr);
         if (userId == null) {
-            return Map.of("code", 401, "message", "未登录");
+            return ApiResponse.error(401, "未登录");
         }
 
         int result = userContactService.deleteContact(id, userId);
         if (result <= 0) {
-            return Map.of("code", 400, "message", "删除地址失败：地址不存在");
+            return ApiResponse.error(400, "删除地址失败：地址不存在");
         }
-        return Map.of("code", 200, "message", "删除地址成功");
+        return ApiResponse.success("删除地址成功", null);
     }
 
     @PutMapping("/update")
-    public Map<String, Object> updateContact(
+    public ApiResponse<?> updateContact(
             @RequestBody @Valid UpdateContactRequest request,
             BindingResult bindingResult,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
-        if (userIdStr == null || userIdStr.trim().isEmpty()) {
-            return Map.of("code", 401, "message", "未登录");
-        }
         if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
+            return ApiResponse.error(400, "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
         }
 
-        Integer userId;
-        try {
-            userId = Integer.parseInt(userIdStr);
-        } catch (NumberFormatException e) {
-            return Map.of("code", 401, "message", "未登录");
+        Long userId = getUserId(userIdStr);
+        if (userId == null) {
+            return ApiResponse.error(401, "未登录");
         }
 
         Contact contact = toContact(request);
         int result = userContactService.updateContact(contact, userId);
         if (result <= 0) {
-            return Map.of("code", 400, "message", "更新联系人失败：地址不存在");
+            return ApiResponse.error(400, "更新联系人失败：地址不存在");
         }
-        return Map.of("code", 200, "message", "更新地址成功");
+        return ApiResponse.success("更新地址成功", null);
     }
 
     @GetMapping("/list")
-    public Map<String, Object> getContacts(
+    public ApiResponse<?> getContacts(
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
-        Integer userId = getUserId(userIdStr);
+        Long userId = getUserId(userIdStr);
         if (userId == null) {
-            return Map.of("code", 401, "message", "未登录");
+            return ApiResponse.error(401, "未登录");
         }
 
         List<Contact> contacts = userContactService.getContactsByUserId(userId);
         List<ContactResponse> data = contacts.stream()
                 .map(ContactResponse::fromContact)
                 .collect(Collectors.toList());
-        return Map.of("code", 200, "message", "查询成功", "data", Map.of("contacts", data, "total", data.size()));
+        return ApiResponse.success("查询成功", Map.of("contacts", data, "total", data.size()));
     }
 
     @PutMapping("/set-default/{id}")
-    public Map<String, Object> setDefaultContact(
+    public ApiResponse<?> setDefaultContact(
             @PathVariable int id,
             @RequestHeader(value = "X-User-Id", required = false) String userIdStr) {
-        Integer userId = getUserId(userIdStr);
+        Long userId = getUserId(userIdStr);
         if (userId == null) {
-            return Map.of("code", 401, "message", "未登录");
+            return ApiResponse.error(401, "未登录");
         }
 
         int result = userContactService.setDefaultContact(id, userId);
         if (result <= 0) {
-            return Map.of("code", 400, "message", "设置失败：地址不存在");
+            return ApiResponse.error(400, "设置失败：地址不存在");
         }
-        return Map.of("code", 200, "message", "设置成功");
+        return ApiResponse.success("设置成功", null);
     }
 
-    private Integer getUserId(String userIdStr) {
+    private Long getUserId(String userIdStr) {
         if (userIdStr == null || userIdStr.trim().isEmpty()) {
             return null;
         }
         try {
-            return Integer.parseInt(userIdStr);
+            return Long.parseLong(userIdStr);
         } catch (NumberFormatException e) {
             return null;
         }
