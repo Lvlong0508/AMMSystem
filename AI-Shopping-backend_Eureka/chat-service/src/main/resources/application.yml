@@ -13,7 +13,7 @@ spring:
 langchain4j:
   dashscope:
     chat-model:
-      api-key: sk-04f193be640441ecb82410f96a686368
+      api-key: ${DASHSCOPE_API_KEY}
       model-name: glm-5.1
       enable-search: false
       temperature: 0.7
