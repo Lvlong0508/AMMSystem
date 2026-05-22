@@ -24,7 +24,6 @@ public class OrderDTO implements Serializable {
     private double totalPrice;
     private String orderStatus;
     private Timestamp orderDate;
-    private Integer logisticsId;
     private Integer contactId;
     private String contactName;
 }
