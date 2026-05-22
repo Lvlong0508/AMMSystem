@@ -13,7 +13,9 @@ import java.sql.Timestamp;
 @AllArgsConstructor
 public class LogisticsResponse {
     private Integer id;
+    private String orderId;
+    private String type;
     private Integer contactId;
     private String trackingNumber;
-    private Timestamp shippingDate;
+    private Timestamp createdAt;
 }
