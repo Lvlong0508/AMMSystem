@@ -14,6 +14,8 @@ mybatis:
   type-aliases-package: com.gzasc.aishopping.contact.model
   configuration:
     map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    default-executor-type: simple
 
 eureka:
   client:
