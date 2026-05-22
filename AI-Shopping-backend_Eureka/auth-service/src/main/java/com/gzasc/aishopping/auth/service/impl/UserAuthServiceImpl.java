@@ -10,6 +10,7 @@ import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
+import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
 
         User user = new User();
+        user.setId(SnowflakeIdGenerator.nextId());
         user.setUsername(request.getUsername());
         user.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         user.setPhone(request.getPhone());
@@ -99,7 +101,7 @@ public class UserAuthServiceImpl implements UserAuthService {
     }
 
     @Override
-    public User getUserById(Integer id) {
+    public User getUserById(Long id) {
         return userMapper.selectById(id);
     }
 }

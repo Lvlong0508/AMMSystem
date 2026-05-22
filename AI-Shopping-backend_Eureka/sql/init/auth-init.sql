@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS merchant_info (
 
 -- 消费者用户表
 CREATE TABLE IF NOT EXISTS t_user (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID',
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '用户ID（Snowflake）',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     password VARCHAR(255) NOT NULL COMMENT 'BCrypt加密密码（含Salt），格式: $2a$12$...',
     phone VARCHAR(20) UNIQUE COMMENT '手机号',
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS t_user (
 
 -- 商家用户表
 CREATE TABLE IF NOT EXISTS t_merchant (
-    id INT AUTO_INCREMENT PRIMARY KEY COMMENT '商家ID',
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '商家ID（Snowflake）',
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '商家用户名',
     password VARCHAR(255) NOT NULL COMMENT 'BCrypt加密密码（含Salt），格式: $2a$12$...',
     phone VARCHAR(20) UNIQUE COMMENT '联系电话',

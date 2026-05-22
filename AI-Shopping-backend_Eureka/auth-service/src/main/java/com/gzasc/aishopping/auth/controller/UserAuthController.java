@@ -1,17 +1,18 @@
 package com.gzasc.aishopping.auth.controller;
 
+import com.gzasc.aishopping.auth.converter.AuthConverter;
 import com.gzasc.aishopping.auth.model.User;
+import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.dto.LoginRequest;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -21,86 +22,53 @@ public class UserAuthController {
 
     private final UserAuthService userAuthService;
     private final UserInfoService userInfoService;
+    private final AuthConverter authConverter;
 
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody @Valid RegisterRequest request,
-                                        BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
-        }
-
+    public ApiResponse<Map<String, Object>> register(@RequestBody @Valid RegisterRequest request) {
         LoginResult result = userAuthService.register(request);
-        return Map.of(
-                "code", 200,
-                "message", "注册成功",
-                "data", Map.of(
-                        "token", result.getToken(),
-                        "accountType", result.getAccountType(),
-                        "userInfo", buildUserInfo((User) result.getAccount())
-                )
-        );
+        User user = (User) result.getAccount();
+        UserInfo userInfo = user.getInfoId() != null ? userInfoService.getUserInfoById(user.getInfoId()) : null;
+        return ApiResponse.success("注册成功", Map.of(
+                "token", result.getToken(),
+                "accountType", result.getAccountType(),
+                "userInfo", authConverter.toUserInfoMap(user, userInfo)
+        ));
     }
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody @Valid LoginRequest request,
-                                      BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + bindingResult.getFieldError().getDefaultMessage());
-        }
-
+    public ApiResponse<Map<String, Object>> login(@RequestBody @Valid LoginRequest request) {
         LoginResult result = userAuthService.login(request.getUsername(), request.getPassword());
-        return Map.of(
-                "code", 200,
-                "message", "登录成功",
-                "data", Map.of(
-                        "token", result.getToken(),
-                        "accountType", result.getAccountType(),
-                        "userInfo", buildUserInfo((User) result.getAccount())
-                )
-        );
+        User user = (User) result.getAccount();
+        UserInfo userInfo = user.getInfoId() != null ? userInfoService.getUserInfoById(user.getInfoId()) : null;
+        return ApiResponse.success("登录成功", Map.of(
+                "token", result.getToken(),
+                "accountType", result.getAccountType(),
+                "userInfo", authConverter.toUserInfoMap(user, userInfo)
+        ));
     }
 
     @PostMapping("/logout")
-    public Map<String, Object> logout() {
+    public ApiResponse<Void> logout() {
         userAuthService.logout();
-        return Map.of("code", 200, "message", "登出成功");
+        return ApiResponse.success("登出成功", null);
     }
 
     @GetMapping("/check-username")
-    public Map<String, Object> checkUsername(@RequestParam String username) {
+    public ApiResponse<Map<String, Object>> checkUsername(@RequestParam String username) {
         boolean exists = userAuthService.existsByUsername(username);
-        return Map.of(
-                "code", 200,
-                "message", exists ? "用户名已被使用" : "用户名可用",
-                "data", Map.of("available", !exists)
+        return ApiResponse.success(
+                exists ? "用户名已被使用" : "用户名可用",
+                Map.of("available", !exists)
         );
     }
 
     @GetMapping("/check-phone")
-    public Map<String, Object> checkPhone(@RequestParam String phone) {
+    public ApiResponse<Map<String, Object>> checkPhone(@RequestParam String phone) {
         boolean exists = userAuthService.existsByPhone(phone);
-        return Map.of(
-                "code", 200,
-                "message", exists ? "手机号已被注册" : "手机号可用",
-                "data", Map.of("available", !exists)
+        return ApiResponse.success(
+                exists ? "手机号已被注册" : "手机号可用",
+                Map.of("available", !exists)
         );
-    }
-
-    private Map<String, Object> buildUserInfo(User user) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", user.getId());
-        info.put("username", user.getUsername());
-        info.put("phone", user.getPhone());
-        info.put("email", user.getEmail());
-        info.put("infoId", user.getInfoId());
-        info.put("status", user.getStatus());
-        if (user.getInfoId() != null) {
-            var userInfo = userInfoService.getUserInfoById(user.getInfoId());
-            if (userInfo != null) {
-                info.put("nickname", userInfo.getNickname());
-                info.put("avatar", userInfo.getAvatar());
-            }
-        }
-        return info;
     }
 }

@@ -1,19 +1,19 @@
 package com.gzasc.aishopping.auth.controller;
 
+import com.gzasc.aishopping.auth.converter.AuthConverter;
 import com.gzasc.aishopping.auth.model.Merchant;
+import com.gzasc.aishopping.auth.model.MerchantInfo;
 import com.gzasc.aishopping.auth.dto.LoginRequest;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import com.gzasc.aishopping.auth.service.MerchantInfoService;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/seller/auth")
@@ -22,86 +22,53 @@ public class MerchantAuthController {
 
     private final MerchantAuthService merchantAuthService;
     private final MerchantInfoService merchantInfoService;
+    private final AuthConverter authConverter;
 
     @PostMapping("/register")
-    public Map<String, Object> register(@RequestBody @Valid RegisterRequest request,
-                                         BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
-        }
-
+    public ApiResponse<Map<String, Object>> register(@RequestBody @Valid RegisterRequest request) {
         LoginResult result = merchantAuthService.register(request);
-        return Map.of(
-                "code", 200,
-                "message", "注册成功",
-                "data", Map.of(
-                        "token", result.getToken(),
-                        "accountType", result.getAccountType(),
-                        "merchantInfo", buildMerchantInfo((Merchant) result.getAccount())
-                )
-        );
+        Merchant merchant = (Merchant) result.getAccount();
+        MerchantInfo merchantInfo = merchant.getInfoId() != null ? merchantInfoService.getMerchantInfoById(merchant.getInfoId()) : null;
+        return ApiResponse.success("注册成功", Map.of(
+                "token", result.getToken(),
+                "accountType", result.getAccountType(),
+                "merchantInfo", authConverter.toMerchantInfoMap(merchant, merchantInfo)
+        ));
     }
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody @Valid LoginRequest request,
-                                      BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return Map.of("code", 400, "message", "参数错误：" + Objects.requireNonNull(bindingResult.getFieldError()).getDefaultMessage());
-        }
-
+    public ApiResponse<Map<String, Object>> login(@RequestBody @Valid LoginRequest request) {
         LoginResult result = merchantAuthService.login(request.getUsername(), request.getPassword());
-        return Map.of(
-                "code", 200,
-                "message", "登录成功",
-                "data", Map.of(
-                        "token", result.getToken(),
-                        "accountType", result.getAccountType(),
-                        "merchantInfo", buildMerchantInfo((Merchant) result.getAccount())
-                )
-        );
+        Merchant merchant = (Merchant) result.getAccount();
+        MerchantInfo merchantInfo = merchant.getInfoId() != null ? merchantInfoService.getMerchantInfoById(merchant.getInfoId()) : null;
+        return ApiResponse.success("登录成功", Map.of(
+                "token", result.getToken(),
+                "accountType", result.getAccountType(),
+                "merchantInfo", authConverter.toMerchantInfoMap(merchant, merchantInfo)
+        ));
     }
 
     @PostMapping("/logout")
-    public Map<String, Object> logout() {
+    public ApiResponse<Void> logout() {
         merchantAuthService.logout();
-        return Map.of("code", 200, "message", "登出成功");
+        return ApiResponse.success("登出成功", null);
     }
 
     @GetMapping("/check-username")
-    public Map<String, Object> checkUsername(@RequestParam String username) {
+    public ApiResponse<Map<String, Object>> checkUsername(@RequestParam String username) {
         boolean exists = merchantAuthService.existsByUsername(username);
-        return Map.of(
-                "code", 200,
-                "message", exists ? "用户名已被使用" : "用户名可用",
-                "data", Map.of("available", !exists)
+        return ApiResponse.success(
+                exists ? "用户名已被使用" : "用户名可用",
+                Map.of("available", !exists)
         );
     }
 
     @GetMapping("/check-phone")
-    public Map<String, Object> checkPhone(@RequestParam String phone) {
+    public ApiResponse<Map<String, Object>> checkPhone(@RequestParam String phone) {
         boolean exists = merchantAuthService.existsByPhone(phone);
-        return Map.of(
-                "code", 200,
-                "message", exists ? "手机号已被注册" : "手机号可用",
-                "data", Map.of("available", !exists)
+        return ApiResponse.success(
+                exists ? "手机号已被注册" : "手机号可用",
+                Map.of("available", !exists)
         );
-    }
-
-    private Map<String, Object> buildMerchantInfo(Merchant merchant) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("id", merchant.getId());
-        info.put("username", merchant.getUsername());
-        info.put("phone", merchant.getPhone());
-        info.put("email", merchant.getEmail());
-        info.put("infoId", merchant.getInfoId());
-        info.put("status", merchant.getStatus());
-        if (merchant.getInfoId() != null) {
-            var merchantInfo = merchantInfoService.getMerchantInfoById(merchant.getInfoId());
-            if (merchantInfo != null) {
-                info.put("nickname", merchantInfo.getNickname());
-                info.put("avatar", merchantInfo.getAvatar());
-            }
-        }
-        return info;
     }
 }

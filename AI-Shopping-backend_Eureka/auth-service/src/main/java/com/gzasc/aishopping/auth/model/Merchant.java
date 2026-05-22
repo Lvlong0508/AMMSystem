@@ -14,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Merchant {
-    private Integer id;           // 商家ID
+    private Long id;              // 商家ID
     private String username;      // 商家用户名
     private String password;      // BCrypt加密密码（含Salt）
     private String phone;         // 联系电话

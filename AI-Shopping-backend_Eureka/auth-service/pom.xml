@@ -88,6 +88,13 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Common API -->
+        <dependency>
+            <groupId>com.gzasc</groupId>
+            <artifactId>common-api</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- 测试依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

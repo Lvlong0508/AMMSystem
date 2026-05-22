@@ -11,7 +11,7 @@ public interface MerchantAuthService {
 
     LoginResult login(String username, String password);
 
-    Integer registerEmployee(RegisterEmployeeRequest request);
+    Long registerEmployee(RegisterEmployeeRequest request);
 
     void logout();
 
@@ -19,5 +19,5 @@ public interface MerchantAuthService {
 
     boolean existsByPhone(String phone);
 
-    Merchant getMerchantById(Integer id);
+    Merchant getMerchantById(Long id);
 }

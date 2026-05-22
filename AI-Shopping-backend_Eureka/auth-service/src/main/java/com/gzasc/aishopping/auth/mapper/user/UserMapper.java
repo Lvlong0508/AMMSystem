@@ -16,7 +16,7 @@ public interface UserMapper {
      * 根据ID查询用户
      */
     @Select("SELECT * FROM t_user WHERE id = #{id}")
-    User selectById(Integer id);
+    User selectById(Long id);
 
     /**
      * 根据用户名查询用户
@@ -33,9 +33,8 @@ public interface UserMapper {
     /**
      * 插入用户
      */
-    @Insert("INSERT INTO t_user (username, password, phone, email, info_id, status, created_at, updated_at) " +
-            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
-    @Options(useGeneratedKeys = true, keyProperty = "id")
+    @Insert("INSERT INTO t_user (id, username, password, phone, email, info_id, status, created_at, updated_at) " +
+            "VALUES (#{id}, #{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
     int insert(User user);
 
     /**

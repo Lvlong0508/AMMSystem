@@ -11,6 +11,7 @@ import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import com.gzasc.aishopping.auth.service.MerchantInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
+import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +50,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
         // 4. 创建商家账号
         Merchant merchant = new Merchant();
+        merchant.setId(SnowflakeIdGenerator.nextId());
         merchant.setUsername(request.getUsername());
         merchant.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         merchant.setPhone(request.getPhone());
@@ -98,7 +100,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
     // 给店主用来创建店员账号的方法，网关验证店主身份后调用
     @Override
     @Transactional
-    public Integer registerEmployee(RegisterEmployeeRequest request) {
+    public Long registerEmployee(RegisterEmployeeRequest request) {
         // 1. 校验用户名是否已存在
         if (merchantMapper.countByUsername(request.getUsername()) > 0) {
             throw new AuthException("用户名已存在");
@@ -120,6 +122,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
         // 4. 创建店员账号
         Merchant employee = new Merchant();
+        employee.setId(SnowflakeIdGenerator.nextId());
         employee.setUsername(request.getUsername());
         employee.setPhone(request.getPhone());
         employee.setStatus(1);
@@ -150,7 +153,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
     // 辅助方法：根据商家ID查询商家账号信息
     @Override
-    public Merchant getMerchantById(Integer id) {
+    public Merchant getMerchantById(Long id) {
         return merchantMapper.selectById(id);
     }
 }

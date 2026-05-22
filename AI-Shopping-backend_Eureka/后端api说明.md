@@ -138,6 +138,60 @@
 
 ---
 
+## Product Service（商品服务）
+
+**端口**: 8081
+
+### 商品查询 API (`/api/user/product`)
+
+| 方法 | 路径 | 作用 | 参数 |
+|------|------|------|------|
+| GET | `/api/user/product/all?page=0` | 分页查询可售商品列表 | `page`（默认0） |
+| GET | `/api/user/product/{productId}` | 根据ID查询商品详情 | `productId`（路径参数） |
+| GET | `/api/user/product/search?name=xxx` | 按名称模糊搜索商品 | `name` |
+| GET | `/api/user/product/price-range?minPrice=0&maxPrice=100&page=0` | 按价格区间查询 | `minPrice`, `maxPrice`, `page`（默认0） |
+
+#### 响应示例（列表）:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "id": 1,
+      "name": "商品名称",
+      "price": 99.99,
+      "tags": "标签1,标签2",
+      "imageId": 1,
+      "imageUrl": "http://example.com/image.jpg"
+    }
+  ]
+}
+```
+
+#### 响应示例（详情）:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "id": 1,
+    "name": "商品名称",
+    "price": 99.99,
+    "tags": "标签1,标签2",
+    "description": "商品描述",
+    "stock": 100,
+    "isSale": true,
+    "imageId": 1,
+    "imageUrl": "http://example.com/image.jpg",
+    "createdAt": "2025-01-01T00:00:00",
+    "updatedAt": "2025-01-01T00:00:00"
+  }
+}
+```
+
+---
+
 # Merchant API（商家端）
 
 ## Auth Service（认证服务）
@@ -171,6 +225,76 @@
 | 方法 | 路径 | 作用                         |
 |------|------|----------------------------|
 | POST | `/internal/auth/register-employee` | 内部调用（店长为自己店铺添加店员账号）：注册店员账号 |
+
+---
+
+## Product Service（商品服务）
+
+**端口**: 8081
+
+### 商家商品 API (`/api/seller/product`)
+
+**Header**: `satoken: <token>`
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| POST | `/api/seller/product/create` | 创建商品 |
+| PUT | `/api/seller/product/{productId}` | 更新商品 |
+| DELETE | `/api/seller/product/{productId}` | 删除商品 |
+| GET | `/api/seller/product/{productId}` | 查询商品详情 |
+| GET | `/api/seller/product/batch?ids=1,2,3` | 批量查询商品抽象信息 |
+| POST | `/api/seller/product/{productId}/list` | 上架商品 |
+| POST | `/api/seller/product/{productId}/unlist` | 下架商品 |
+
+#### 请求体:
+
+**创建商品**:
+```json
+{
+  "name": "商品名称",
+  "description": "商品描述",
+  "price": 99.99,
+  "stock": 100,
+  "imageUrl": "http://example.com/image.jpg"
+}
+```
+
+- `name`、`imageUrl` 必填
+- `price` 必须为正数
+- `stock` 必须 >= 0
+
+**更新商品**（全部可选）:
+```json
+{
+  "name": "新名称",
+  "description": "新描述",
+  "price": 199.99,
+  "stock": 50,
+  "imageUrl": "http://example.com/new-image.jpg"
+}
+```
+
+---
+
+### 内部接口 API (`/internal/product`)
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| GET | `/internal/product/{productId}` | 根据ID查询商品详情（订单服务调用） |
+| GET | `/internal/product/batch?ids=1,2,3` | 批量查询商品抽象信息 |
+| POST | `/internal/product/deduct-stock` | 扣减库存 |
+| POST | `/internal/product/restore-stock` | 恢复库存 |
+
+#### 请求体（扣减/恢复库存）:
+```json
+{
+  "productId": "1",
+  "quantity": 2
+}
+```
+
+- `productId`、`quantity` 必填
+- `quantity` 必须为正数
 
 ---
 

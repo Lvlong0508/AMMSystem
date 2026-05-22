@@ -16,5 +16,5 @@ public interface UserAuthService {
 
     boolean existsByPhone(String phone);
 
-    User getUserById(Integer id);
+    User getUserById(Long id);
 }

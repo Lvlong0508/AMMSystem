@@ -16,7 +16,7 @@ public interface MerchantMapper {
      * 根据ID查询商家
      */
     @Select("SELECT * FROM t_merchant WHERE id = #{id}")
-    Merchant selectById(Integer id);
+    Merchant selectById(Long id);
 
     /**
      * 根据用户名查询商家
@@ -33,9 +33,8 @@ public interface MerchantMapper {
     /**
      * 插入商家
      */
-    @Insert("INSERT INTO t_merchant (username, password, phone, email, info_id, status, created_at, updated_at) " +
-            "VALUES (#{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
-    @Options(useGeneratedKeys = true, keyProperty = "id")
+    @Insert("INSERT INTO t_merchant (id, username, password, phone, email, info_id, status, created_at, updated_at) " +
+            "VALUES (#{id}, #{username}, #{password}, #{phone}, #{email}, #{infoId}, #{status}, NOW(), NOW())")
     int insert(Merchant merchant);
 
     /**

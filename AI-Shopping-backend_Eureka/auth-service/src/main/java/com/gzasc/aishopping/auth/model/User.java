@@ -14,7 +14,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    private Integer id;           // 用户ID
+    private Long id;              // 用户ID
     private String username;      // 用户名
     private String password;      // BCrypt加密密码（含Salt）
     private String phone;         // 手机号
