@@ -34,7 +34,7 @@ public interface UserContactMapper {
             "INNER JOIN user_contact uc ON c.id = uc.contact_id " +
             "WHERE uc.user_id = #{userId}")
     @ResultMap("CONTACT_RESULT_MAPPING")
-    List<Contact> selectByUserId(int userId);
+    List<Contact> selectByUserId(Long userId);
 
     // 内部微服务专属
     @Select("SELECT * FROM t_contact WHERE id = #{id}")
@@ -46,7 +46,7 @@ public interface UserContactMapper {
      * 插入用户-联系人关联记录
      */
     @Insert("INSERT INTO user_contact (user_id, contact_id) VALUES (#{userId}, #{contactId})")
-    int insertUserRelContact(@Param("userId") int userId, @Param("contactId") int contactId);
+    int insertUserRelContact(@Param("userId") Long userId, @Param("contactId") int contactId);
 
     @Delete("DELETE FROM user_contact WHERE contact_id = #{contactId}")
     int deleteRelByContactId(int contactId);
@@ -82,5 +82,5 @@ public interface UserContactMapper {
      * 查询联系人关联的用户ID列表(用以检验userId是否关联了该ContactId)
      */
     @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
-    List<Integer> selectUserIdsByContactId(int contactId);
+    List<Long> selectUserIdsByContactId(int contactId);
 }
