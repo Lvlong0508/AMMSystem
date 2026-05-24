@@ -48,6 +48,7 @@ public class InternalProductController {
         return Map.of("success", success, "message", success ? "恢复成功" : "恢复失败");
     }
 
+    // 内部接口：预占库存（订单服务下单成功后执行）
     @PostMapping("/reserve-stock")
     public Map<String, Object> reserveStock(@RequestBody StockReserveRequest req) {
         try {
@@ -58,6 +59,7 @@ public class InternalProductController {
         }
     }
 
+    // 内部接口：确认预占并扣减库存（订单服务支付时执行）
     @PostMapping("/confirm-reservation")
     public Map<String, Object> confirmReservation(@RequestParam String orderId) {
         try {
@@ -68,6 +70,7 @@ public class InternalProductController {
         }
     }
 
+    // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
     @PostMapping("/release-reservation")
     public Map<String, Object> releaseReservation(@RequestParam String orderId) {
         try {
