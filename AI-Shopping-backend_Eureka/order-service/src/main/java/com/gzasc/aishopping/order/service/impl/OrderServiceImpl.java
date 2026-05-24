@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.order.service.impl;
 
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
+import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
@@ -67,6 +68,8 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("创建订单失败");
         }
 
+        productFeignClient.reserveStock(new StockReserveRequest(orderId, order.getProductId(), request.getQuantity()));
+
         return orderId;
     }
 
@@ -105,6 +108,8 @@ public class OrderServiceImpl implements OrderService {
         if (Order.PAID.equals(originalStatus)) {
             StockDeductRequest stockReq = new StockDeductRequest(order.getProductId(), order.getQuantity());
             productFeignClient.restoreStock(stockReq);
+        } else if (Order.PENDING.equals(originalStatus)) {
+            productFeignClient.releaseReservation(orderId);
         }
 
         orderMapper.updateOrderStatus(orderId, Order.CANCELLED);
@@ -171,11 +176,10 @@ public class OrderServiceImpl implements OrderService {
         if (!order.canTransition(order.getOrderStatus(), Order.PAID)) {
             throw new OrderException("当前订单状态不允许支付");
         }
-        Map<String, Object> result = productFeignClient.deductStock(
-                new StockDeductRequest(order.getProductId(), order.getQuantity()));
+        Map<String, Object> result = productFeignClient.confirmReservation(orderId);
         Boolean success = (Boolean) result.get("success");
         if (!Boolean.TRUE.equals(success)) {
-            throw new OrderException("商品库存不足");
+            throw new OrderException((String) result.get("message"));
         }
         orderMapper.updateOrderStatus(orderId, Order.PAID);
     }
