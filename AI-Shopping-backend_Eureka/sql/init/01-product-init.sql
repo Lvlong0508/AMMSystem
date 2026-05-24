@@ -23,6 +23,19 @@ CREATE TABLE IF NOT EXISTS products (
     FOREIGN KEY (image_id) REFERENCES product_images(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品表';
 
+CREATE TABLE IF NOT EXISTS product_reservations (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    product_id VARCHAR(50) NOT NULL,
+    order_id VARCHAR(50) NOT NULL UNIQUE,
+    quantity INT NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'RESERVED',
+    created_at DATETIME NOT NULL DEFAULT NOW(),
+    expired_at DATETIME NOT NULL,
+    INDEX idx_product_status (product_id, status),
+    INDEX idx_expired (status, expired_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品预留表';
+
+
 -- 索引：加速价格区间查询
 CREATE INDEX idx_price ON products(price);
 

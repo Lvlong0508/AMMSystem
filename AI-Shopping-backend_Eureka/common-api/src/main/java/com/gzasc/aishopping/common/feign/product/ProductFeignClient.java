@@ -2,6 +2,7 @@ package com.gzasc.aishopping.common.feign.product;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
+import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,4 +69,22 @@ public interface ProductFeignClient {
      */
     @DeleteMapping("/internal/product/{productId}")
     Map<String, Object> deleteProduct(@PathVariable("productId") String productId);
+
+    /**
+     * 预占库存
+     */
+    @PostMapping("/internal/product/reserve-stock")
+    Map<String, Object> reserveStock(@RequestBody StockReserveRequest request);
+
+    /**
+     * 确认预占（支付时扣库存）
+     */
+    @PostMapping("/internal/product/confirm-reservation")
+    Map<String, Object> confirmReservation(@RequestParam("orderId") String orderId);
+
+    /**
+     * 释放预占（取消/超时）
+     */
+    @PostMapping("/internal/product/release-reservation")
+    Map<String, Object> releaseReservation(@RequestParam("orderId") String orderId);
 }
