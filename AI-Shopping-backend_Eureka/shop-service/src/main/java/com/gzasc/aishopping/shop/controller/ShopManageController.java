@@ -1,16 +1,12 @@
 package com.gzasc.aishopping.shop.controller;
 
-import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
-import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.shop.model.MerchantRole;
-import com.gzasc.aishopping.shop.model.OrderShop;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;
-import com.gzasc.aishopping.shop.service.OrderShopService;
 import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
@@ -28,17 +24,11 @@ public class ShopManageController {
     private final ShopService shopService;
     private final MerchantRoleService merchantRoleService;
     private final ProductShopService productShopService;
-    private final OrderShopService orderShopService;
     private final ProductFeignClient productFeignClient;
-    private final OrderFeignClient orderFeignClient;
     private final AuthFeignClient authFeignClient;
 
     private boolean isShopOwner(String userId, String shopId) {
         return merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") != null;
-    }
-
-    private boolean hasShopAccess(String userId, String shopId) {
-        return merchantRoleService.selectByMerchantAndShop(userId, shopId) != null;
     }
 
     // ===== 店铺管理 =====
@@ -227,35 +217,4 @@ public class ShopManageController {
         }
     }
 
-    // ===== 订单管理（发货） =====
-
-    @PostMapping("/{shopId}/orders/ship")
-    public Map<String, Object> shipOrder(
-            @PathVariable("shopId") String shopId,
-            @RequestBody ShipOrderRequest request,
-            @RequestHeader("X-User-Id") String userId) {
-        // 店员和店长都可以发货
-        if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
-        }
-        // 验证订单属于该店铺
-        List<OrderShop> orderShops = orderShopService.selectByOrderId(request.getOrderId());
-        if (orderShops.isEmpty() || !orderShops.get(0).getShopId().equals(shopId)) {
-            return Map.of("success", false, "message", "订单不存在");
-        }
-
-        try {
-            Map<String, Object> result = orderFeignClient.shipOrder(request.getOrderId(), request);
-            if (result != null && result.containsKey("message")) {
-                String message = (String) result.get("message");
-                if (message.contains("成功")) {
-                    return Map.of("success", true, "message", message);
-                }
-                return Map.of("success", false, "message", message);
-            }
-            return Map.of("success", false, "message", "发货失败");
-        } catch (Exception e) {
-            return Map.of("success", false, "message", "发货失败：" + e.getMessage());
-        }
-    }
 }

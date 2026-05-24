@@ -14,6 +14,10 @@ public interface OrderFeignClient {
     @GetMapping("/internal/order/shop/{shopId}")
     List<OrderAbstractSellerDTO> getOrdersByShopId(@PathVariable("shopId") String shopId);
 
+    @GetMapping("/internal/order/{orderId}/shop/{shopId}")
+    Map<String, Object> getOrderDetailByShop(@PathVariable("shopId") String shopId,
+                                              @PathVariable("orderId") String orderId);
+
     @PutMapping("/api/seller/order/{orderId}/ship")
     Map<String, Object> shipOrder(@PathVariable("orderId") String orderId,
                                   @RequestParam("shopId") String shopId,

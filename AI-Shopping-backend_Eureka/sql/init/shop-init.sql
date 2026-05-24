@@ -46,16 +46,6 @@ CREATE TABLE IF NOT EXISTS product_shops (
     UNIQUE KEY uk_product_shop (product_id, shop_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品店铺关联表';
 
--- 订单-店铺关联表
-CREATE TABLE IF NOT EXISTS order_shops (
-    id VARCHAR(33) PRIMARY KEY COMMENT '关联ID',
-    order_id VARCHAR(20) NOT NULL COMMENT '订单ID',
-    shop_id VARCHAR(32) NOT NULL COMMENT '店铺ID',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_shop_id (shop_id),
-    INDEX idx_order_id (order_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='订单店铺关联表';
-
 -- ============================================
 -- 完成提示
 -- ============================================

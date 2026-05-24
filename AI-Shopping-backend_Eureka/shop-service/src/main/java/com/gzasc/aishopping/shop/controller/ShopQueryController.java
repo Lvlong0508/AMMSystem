@@ -1,14 +1,10 @@
 package com.gzasc.aishopping.shop.controller;
 
-import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
-import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.shop.model.MerchantRole;
-import com.gzasc.aishopping.shop.model.OrderShop;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;
-import com.gzasc.aishopping.shop.service.OrderShopService;
 import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +23,7 @@ public class ShopQueryController {
     private final ShopService shopService;
     private final MerchantRoleService merchantRoleService;
     private final ProductShopService productShopService;
-    private final OrderShopService orderShopService;
     private final ProductFeignClient productFeignClient;
-    private final OrderFeignClient orderFeignClient;
-    private final ContactFeignClient contactFeignClient;
 
     private boolean hasShopAccess(String userId, String shopId) {
         return merchantRoleService.selectByMerchantAndShop(userId, shopId) != null;
@@ -75,80 +68,6 @@ public class ShopQueryController {
             }
         }
         return Map.of("success", true, "products", products, "total", products.size());
-    }
-
-    @GetMapping("/{shopId}/orders")
-    public Map<String, Object> getOrders(
-            @PathVariable("shopId") String shopId,
-            @RequestHeader(value = "X-User-Id", required = false) String userId) {
-        if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
-        }
-        List<OrderShop> orderShops = orderShopService.selectByShopId(shopId);
-        if (orderShops.isEmpty()) {
-            return Map.of("success", true, "orders", new ArrayList<>(), "total", 0);
-        }
-
-        List<Map<String, Object>> orderDetails = new ArrayList<>();
-        for (OrderShop os : orderShops) {
-            try {
-                Map<String, Object> orderMap = orderFeignClient.getOrderById(os.getOrderId());
-                if (orderMap != null && orderMap.containsKey("order")) {
-                    Map<String, Object> orderData = (Map<String, Object>) orderMap.get("order");
-                    orderData.put("orderId", os.getOrderId());
-
-                    Object productIdObj = orderData.get("productId");
-                    if (productIdObj != null) {
-                        try {
-                            Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(productIdObj));
-                            if (productMap != null && productMap.containsKey("name")) {
-                                orderData.put("productName", productMap.get("name"));
-                            }
-                        } catch (Exception e) {
-                        }
-                    }
-
-                    Object contactIdObj = orderData.get("contactId");
-                    if (contactIdObj != null && contactIdObj instanceof Number) {
-                        int contactId = ((Number) contactIdObj).intValue();
-                        if (contactId > 0) {
-                            try {
-                                Map<String, Object> contactMap = contactFeignClient.getContactById(contactId);
-                                if (contactMap != null && contactMap.containsKey("data")) {
-                                    Map<String, Object> contactData = (Map<String, Object>) contactMap.get("data");
-                                    Map<String, Object> contact = new HashMap<>();
-                                    contact.put("name", contactData.get("name"));
-                                    contact.put("phone", contactData.get("phone"));
-                                    contact.put("address", contactData.get("address"));
-                                    orderData.put("contact", contact);
-                                }
-                            } catch (Exception e) {
-                            }
-                        }
-                    }
-
-                    orderDetails.add(orderData);
-                }
-            } catch (Exception e) {
-            }
-        }
-        return Map.of("success", true, "orders", orderDetails, "total", orderDetails.size());
-    }
-
-    @GetMapping("/{shopId}/orders/{orderId}")
-    public Map<String, Object> getOrderDetail(
-            @PathVariable("shopId") String shopId,
-            @PathVariable("orderId") String orderId,
-            @RequestHeader("X-User-Id") String userId) {
-        if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
-        }
-        List<OrderShop> orderShops = orderShopService.selectByOrderId(orderId);
-        if (orderShops.isEmpty() || !orderShops.get(0).getShopId().equals(shopId)) {
-            return Map.of("success", false, "message", "订单不存在");
-        }
-        Map<String, Object> order = orderFeignClient.getOrderById(orderId);
-        return Map.of("success", true, "order", order);
     }
 
     @GetMapping("/{shopId}/employees")
