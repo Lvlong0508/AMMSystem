@@ -25,28 +25,12 @@ public class OrderSellerController {
         return ApiResponse.success(orders);
     }
 
-    @GetMapping("/shop/{shopId}/list/status")
-    public ApiResponse<List<OrderAbstractSellerDTO>> listShopOrdersByStatus(
-            @PathVariable("shopId") String shopId,
-            @RequestParam("status") String status) {
-        List<OrderAbstractSellerDTO> orders = orderService.getOrdersByShopIdAndStatus(shopId, status);
-        return ApiResponse.success(orders);
-    }
-
     @GetMapping("/shop/{shopId}/{orderId}")
     public ApiResponse<OrderDetailDTO> getShopOrderDetail(
             @PathVariable("shopId") String shopId,
             @PathVariable("orderId") String orderId) {
         OrderDetailDTO detail = orderService.getOrderDetailByShop(shopId, orderId);
         return ApiResponse.success(detail);
-    }
-
-    @PutMapping("/{orderId}/pay")
-    public ApiResponse<Void> payOrder(
-            @PathVariable("orderId") String orderId,
-            @RequestParam("shopId") String shopId) {
-        orderService.payOrder(shopId, orderId);
-        return ApiResponse.success("支付成功", null);
     }
 
     @PutMapping("/{orderId}/ship")

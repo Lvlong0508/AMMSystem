@@ -1,24 +1,25 @@
 package com.gzasc.aishopping.order.service.impl;
 
+import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
+import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
+import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
+import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.order.converter.OrderConverter;
+import com.gzasc.aishopping.order.dto.*;
+import com.gzasc.aishopping.order.exception.OrderException;
+import com.gzasc.aishopping.order.id.OrderIdSelector;
 import com.gzasc.aishopping.order.mapper.DeletedOrderMapper;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
-import com.gzasc.aishopping.order.mapper.UserOrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
 import com.gzasc.aishopping.order.model.Order;
-import com.gzasc.aishopping.order.model.UserOrder;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -26,162 +27,236 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrderMapper orderMapper;
     private final DeletedOrderMapper deletedOrderMapper;
-    private final UserOrderMapper userOrderMapper;
-    private final StringRedisTemplate redisTemplate;
+    private final OrderIdSelector orderIdSelector;
+    private final ProductFeignClient productFeignClient;
     private final ShopFeignClient shopFeignClient;
+    private final LogisticsFeignClient logisticsFeignClient;
+    private final ContactFeignClient contactFeignClient;
+    private final OrderConverter orderConverter;
 
     @Override
-    public int createOrder(Order order) {
-        System.out.println(new Date() + ":run createOrder");
+    @Transactional
+    public String createOrder(PlaceOrderRequest request, Long userId) {
+        Map<String, Object> productMap = productFeignClient.getProductById(request.getProductId());
+        if (productMap == null) {
+            throw new OrderException("商品不存在（错误代码：O-003）");
+        }
+
+        double price = productMap.get("price") != null
+                ? ((Number) productMap.get("price")).doubleValue() : 0.0;
+        int stock = productMap.get("stock") != null
+                ? ((Number) productMap.get("stock")).intValue() : 0;
+
+        if (stock < request.getQuantity()) {
+            throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
+        }
+
+        Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(request.getProductId());
+        if (shopResult == null || !Boolean.TRUE.equals(shopResult.get("success"))) {
+            throw new OrderException("获取店铺信息失败");
+        }
+        String shopId = String.valueOf(shopResult.get("shopId"));
+
+        String orderId = orderIdSelector.generate();
+        Order order = Order.buildInitOrder(orderId, userId, shopId, request.getProductId(),
+                request.getQuantity(), price * request.getQuantity());
+        order.setContactId(request.getContactId());
+
+        int result = orderMapper.insertOrder(order);
+        if (result <= 0) {
+            throw new OrderException("创建订单失败");
+        }
+
+        return orderId;
+    }
+
+    @Override
+    @Transactional
+    public void deleteOrder(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限删除");
+        }
+
+        if (!order.canTransition(order.getOrderStatus(), Order.DELETED)) {
+            throw new OrderException("当前订单状态不允许删除");
+        }
+
+        DeletedOrder deletedOrder = DeletedOrder.fromOrder(order);
+        int backupResult = deletedOrderMapper.insertDeletedOrder(deletedOrder);
+        if (backupResult <= 0) {
+            throw new OrderException("备份订单失败");
+        }
+
+        orderMapper.deleteOrderById(orderId);
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限取消");
+        }
+
+        String originalStatus = order.getOrderStatus();
+        new Order().cancelOrder(order);
+
+        if (Order.PAID.equals(originalStatus)) {
+            StockDeductRequest stockReq = new StockDeductRequest(order.getProductId(), order.getQuantity());
+            productFeignClient.restoreStock(stockReq);
+        }
+
+        orderMapper.updateOrderStatus(orderId, Order.CANCELLED);
+    }
+
+    @Override
+    @Transactional
+    public void shipOrder(String orderId, ShipOrderRequest request) {
+        Order order = orderMapper.selectOrderById(orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在");
+        }
+
+        new Order().shipOrder(order);
+
+        com.gzasc.aishopping.common.dto.logistics.LogisticsRequest logisticsRequest =
+                new com.gzasc.aishopping.common.dto.logistics.LogisticsRequest();
+        logisticsRequest.setOrderId(orderId);
+        logisticsRequest.setType("DELIVERY");
+        logisticsRequest.setContactId(request.getContactId());
+        logisticsRequest.setTrackingNumber(request.getTrackingNumber());
+
+        ApiResponse<Map<String, Object>> logisticsResponse =
+                logisticsFeignClient.createLogistics(logisticsRequest);
+        if (logisticsResponse == null || logisticsResponse.getData() == null) {
+            throw new OrderException("创建物流记录失败");
+        }
+
+        int result = orderMapper.updateOrderStatus(orderId, Order.SHIPPED);
+        if (result <= 0) {
+            throw new OrderException("更新订单状态失败");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deliverOrder(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        order.transitionTo(Order.DELIVERED);
+        orderMapper.updateOrderStatus(orderId, Order.DELIVERED);
+    }
+
+    @Override
+    @Transactional
+    public void requestReturn(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        order.transitionTo(Order.RETURN_PENDING);
+        orderMapper.updateOrderStatus(orderId, Order.RETURN_PENDING);
+    }
+
+    @Override
+    @Transactional
+    public void payOrder(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        if (!order.canTransition(order.getOrderStatus(), Order.PAID)) {
+            throw new OrderException("当前订单状态不允许支付");
+        }
+        Map<String, Object> result = productFeignClient.deductStock(
+                new StockDeductRequest(order.getProductId(), order.getQuantity()));
+        Boolean success = (Boolean) result.get("success");
+        if (!Boolean.TRUE.equals(success)) {
+            throw new OrderException("商品库存不足");
+        }
+        orderMapper.updateOrderStatus(orderId, Order.PAID);
+    }
+
+    @Override
+    @Transactional
+    public void approveReturn(String shopId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByShop(shopId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        order.transitionTo(Order.RETURNING);
+        orderMapper.updateOrderStatus(orderId, Order.RETURNING);
+    }
+
+    @Override
+    @Transactional
+    public void confirmReturn(String shopId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByShop(shopId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        order.transitionTo(Order.RETURNED);
+        orderMapper.updateOrderStatus(orderId, Order.RETURNED);
+    }
+
+    @Override
+    public List<OrderAbstractUserDTO> getOrdersByUserId(Long userId) {
+        List<Order> orders = orderMapper.selectAbstractOrdersByUserId(userId);
+        return orderConverter.toUserAbstractDTOList(orders);
+    }
+
+    @Override
+    public OrderDetailDTO getOrderDetailByUser(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限查看");
+        }
+        return buildDetailDTO(order);
+    }
+
+    @Override
+    public List<OrderAbstractSellerDTO> getOrdersByShopId(String shopId) {
+        List<Order> orders = orderMapper.selectAbstractOrdersByShopId(shopId);
+        return orderConverter.toSellerAbstractDTOList(orders);
+    }
+
+    @Override
+    public OrderDetailDTO getOrderDetailByShop(String shopId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByShop(shopId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限查看");
+        }
+        return buildDetailDTO(order);
+    }
+
+    private OrderDetailDTO buildDetailDTO(Order order) {
+        OrderDetailDTO dto = orderConverter.toDetailDTO(order);
+
+        Map<String, Object> contactInfo = null;
         try {
-            return orderMapper.insertOrder(order);
+            if (order.getContactId() != null) {
+                contactInfo = contactFeignClient.getContactById(order.getContactId());
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
+            System.err.println("获取联系人信息失败: " + e.getMessage());
         }
-    }
 
-    @Override
-    public int deleteOrder(String orderId) {
-        System.out.println(new Date() + ": run deleteOrder");
+        Map<String, Object> logisticsInfo = null;
         try {
-            // 1. 先查询订单信息
-            Order order = orderMapper.selectOrderById(orderId);
-            if (order == null) {
-                System.out.println(new Date() + ": 订单不存在，无需删除: " + orderId);
-                return -1;
-            }
-
-            // 2. 将订单信息备份到 deleted_orders 表
-            DeletedOrder deletedOrder = DeletedOrder.fromOrder(order);
-            int backupResult = deletedOrderMapper.insertDeletedOrder(deletedOrder);
-            if (backupResult <= 0) {
-                System.err.println(new Date() + ": 备份订单到 deleted_orders 失败: " + orderId);
-                return -1;
-            }
-            System.out.println(new Date() + ": 订单已备份到 deleted_orders 表: " + orderId);
-
-            // 3. 从原表删除订单
-            int deleteResult = orderMapper.deleteOrderById(orderId);
-            if (deleteResult > 0) {
-                // 4. 删除用户订单关联
-                userOrderMapper.deleteByOrderId(orderId);
-                System.out.println(new Date() + ": 订单删除成功: " + orderId);
-                return deleteResult;
-            } else {
-                System.err.println(new Date() + ": 从 t_order 删除订单失败: " + orderId);
-                return -1;
+            ApiResponse<Map<String, Object>> response =
+                    logisticsFeignClient.getLatestLogistics(order.getOrderId(), "DELIVERY");
+            if (response != null) {
+                logisticsInfo = Map.of("data", response.getData());
             }
         } catch (Exception e) {
-            System.err.println(new Date() + ": 删除订单异常: " + e.getMessage());
-            e.printStackTrace();
-            return -1;
+            System.err.println("获取物流信息失败: " + e.getMessage());
         }
+
+        orderConverter.enrichDetailDTO(dto, contactInfo, logisticsInfo);
+        return dto;
     }
 
-    @Override
-    public Order getOrderById(String orderId) {
-        System.out.println(new Date() + ": run getOrderById");
-        return orderMapper.selectOrderById(orderId);
-    }
-
-    @Override
-    public List<Order> getAllOrders() {
-        System.out.println(new Date() + ": run getAllOrders");
-        return orderMapper.selectAllOrders();
-    }
-
-    @Override
-    public List<Order> getOrdersByStatus(String status) {
-        System.out.println(new Date() + ": run getOrdersByStatus");
-        return orderMapper.selectOrdersByStatus(status);
-    }
-
-    @Override
-    public int updateOrderStatus(String orderId, String status) {
-        System.out.println(new Date() + ": run updateOrderStatus");
-        return orderMapper.updateOrderStatus(orderId, status);
-    }
-
-    @Override
-    public String generateOrderId() {
-        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String key = "order:seq:" + currentDate;
-        Long sequence = redisTemplate.opsForValue().increment(key);
-        if (sequence != null && sequence == 1) {
-            redisTemplate.expire(key, 24, TimeUnit.HOURS);
-        }
-        String seqStr = String.format("%05d", sequence);
-        String randomChars = generateRandomLetters();
-        return currentDate + seqStr + randomChars;
-    }
-
-    @Override
-    public List<Order> getOrdersByIds(List<String> orderIds) {
-        System.out.println(new Date() + ": run getOrdersByIds");
-        if (orderIds == null || orderIds.isEmpty()) {
-            return List.of();
-        }
-        return orderMapper.selectOrdersByIds(orderIds);
-    }
-
-    @Override
-    public String getShopIdByProductId(String productId) {
-        System.out.println(new Date() + ": run getShopIdByProductId, productId=" + productId);
-        Map<String, Object> result = shopFeignClient.getShopIdByProductId(productId);
-        if (result != null && result.get("shopId") != null) {
-            return result.get("shopId").toString();
-        }
-        return null;
-    }
-
-    @Override
-    public int createUserOrder(Integer userId, String orderId) {
-        System.out.println(new Date() + ": run createUserOrder, userId=" + userId + ", orderId=" + orderId);
-        try {
-            UserOrder userOrder = new UserOrder();
-            userOrder.setUserId(userId);
-            userOrder.setOrderId(orderId);
-            return userOrderMapper.insert(userOrder);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    @Override
-    public List<Order> getOrdersByUserId(Integer userId) {
-        System.out.println(new Date() + ": run getOrdersByUserId, userId=" + userId);
-        List<String> orderIds = userOrderMapper.selectOrderIdsByUserId(userId);
-        if (orderIds == null || orderIds.isEmpty()) {
-            return List.of();
-        }
-        return orderMapper.selectOrdersByIds(orderIds);
-    }
-
-    @Override
-    public Order getOrderByUserId(Integer userId, String orderId) {
-        System.out.println(new Date() + ": run getOrderByUserId, userId=" + userId + ", orderId=" + orderId);
-        UserOrder userOrder = userOrderMapper.selectByUserIdAndOrderId(userId, orderId);
-        if (userOrder == null) {
-            return null;
-        }
-        return orderMapper.selectOrderById(orderId);
-    }
-
-    @Override
-    public int deleteUserOrder(String orderId) {
-        System.out.println(new Date() + ": run deleteUserOrder, orderId=" + orderId);
-        return userOrderMapper.deleteByOrderId(orderId);
-    }
-
-    private String generateRandomLetters() {
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            char c = (char) ('A' + random.nextInt(26));
-            sb.append(c);
-        }
-        return sb.toString();
-    }
 }

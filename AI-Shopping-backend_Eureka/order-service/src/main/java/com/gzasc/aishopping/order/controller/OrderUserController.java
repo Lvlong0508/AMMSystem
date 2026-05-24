@@ -66,6 +66,14 @@ public class OrderUserController {
         return ApiResponse.success("删除订单成功", null);
     }
 
+    @PutMapping("/{orderId}/pay")
+    public ApiResponse<Void> payOrder(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable("orderId") String orderId) {
+        orderService.payOrder(userId, orderId);
+        return ApiResponse.success("支付成功", null);
+    }
+
     @PutMapping("/{orderId}/deliver")
     public ApiResponse<Void> deliverOrder(
             @RequestHeader("X-User-Id") Long userId,

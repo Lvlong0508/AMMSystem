@@ -8,9 +8,9 @@ import java.util.List;
 @Mapper
 public interface DeletedOrderMapper {
 
-    @Insert("INSERT INTO deleted_orders (order_id, product_id, quantity, total_price, " +
+    @Insert("INSERT INTO deleted_orders (order_id, user_id, shop_id, product_id, quantity, total_price, " +
             "order_status, order_date, contact_id, deleted_at) " +
-            "VALUES (#{orderId}, #{productId}, #{quantity}, #{totalPrice}, " +
+            "VALUES (#{orderId}, #{userId}, #{shopId}, #{productId}, #{quantity}, #{totalPrice}, " +
             "#{orderStatus}, #{orderDate}, #{contactId}, #{deletedAt})")
     int insertDeletedOrder(DeletedOrder deletedOrder);
 
@@ -18,6 +18,8 @@ public interface DeletedOrderMapper {
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "orderId", column = "order_id"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "shopId", column = "shop_id"),
             @Result(property = "productId", column = "product_id"),
             @Result(property = "quantity", column = "quantity"),
             @Result(property = "totalPrice", column = "total_price"),
@@ -32,6 +34,8 @@ public interface DeletedOrderMapper {
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "orderId", column = "order_id"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "shopId", column = "shop_id"),
             @Result(property = "productId", column = "product_id"),
             @Result(property = "quantity", column = "quantity"),
             @Result(property = "totalPrice", column = "total_price"),
@@ -46,6 +50,8 @@ public interface DeletedOrderMapper {
     @Results({
             @Result(property = "id", column = "id"),
             @Result(property = "orderId", column = "order_id"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "shopId", column = "shop_id"),
             @Result(property = "productId", column = "product_id"),
             @Result(property = "quantity", column = "quantity"),
             @Result(property = "totalPrice", column = "total_price"),

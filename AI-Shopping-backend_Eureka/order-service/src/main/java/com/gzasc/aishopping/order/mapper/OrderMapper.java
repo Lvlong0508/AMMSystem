@@ -8,68 +8,28 @@ import java.util.List;
 @Mapper
 public interface OrderMapper {
 
-    @Insert("INSERT INTO t_order (order_id, product_id, quantity, total_price, " +
-            "order_status, order_date, contact_id) " +
-            "VALUES (#{orderId}, #{productId}, #{quantity}, #{totalPrice}, " +
-            "#{orderStatus}, #{orderDate}, #{contactId})")
+    @Insert("INSERT INTO t_order (order_id, user_id, shop_id, product_id, quantity, total_price, order_status, order_date, contact_id) " +
+            "VALUES (#{orderId}, #{userId}, #{shopId}, #{productId}, #{quantity}, #{totalPrice}, #{orderStatus}, #{orderDate}, #{contactId})")
     int insertOrder(Order order);
 
     @Delete("DELETE FROM t_order WHERE order_id = #{orderId}")
-    int deleteOrderById(String orderId);
-
-    @Select("SELECT * FROM t_order WHERE order_id = #{orderId}")
-    @Results({
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id")
-    })
-    Order selectOrderById(String orderId);
-
-    @Select("SELECT * FROM t_order")
-    @Results({
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id")
-    })
-    List<Order> selectAllOrders();
-
-    @Select("SELECT * FROM t_order WHERE order_status = #{status}")
-    @Results({
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id")
-    })
-    List<Order> selectOrdersByStatus(String status);
+    int deleteOrderById(@Param("orderId") String orderId);
 
     @Update("UPDATE t_order SET order_status = #{status} WHERE order_id = #{orderId}")
     int updateOrderStatus(@Param("orderId") String orderId, @Param("status") String status);
 
-    @Select("<script>" +
-            "SELECT * FROM t_order WHERE order_id IN " +
-            "<foreach collection='orderIds' item='orderId' open='(' separator=',' close=')'>" +
-            "#{orderId}" +
-            "</foreach>" +
-            "</script>")
-    @Results({
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id")
-    })
-    List<Order> selectOrdersByIds(@Param("orderIds") List<String> orderIds);
+    @Select("SELECT * FROM t_order WHERE order_id = #{orderId}")
+    Order selectOrderById(@Param("orderId") String orderId);
+
+    @Select("SELECT order_id, user_id, shop_id, product_id, quantity, total_price, order_status, order_date FROM t_order WHERE user_id = #{userId}")
+    List<Order> selectAbstractOrdersByUserId(@Param("userId") Long userId);
+
+    @Select("SELECT * FROM t_order WHERE user_id = #{userId} AND order_id = #{orderId}")
+    Order selectOrderDetailByUser(@Param("userId") Long userId, @Param("orderId") String orderId);
+
+    @Select("SELECT order_id, shop_id, product_id, contact_id, quantity, order_status, order_date FROM t_order WHERE shop_id = #{shopId}")
+    List<Order> selectAbstractOrdersByShopId(@Param("shopId") String shopId);
+
+    @Select("SELECT * FROM t_order WHERE shop_id = #{shopId} AND order_id = #{orderId}")
+    Order selectOrderDetailByShop(@Param("shopId") String shopId, @Param("orderId") String orderId);
 }

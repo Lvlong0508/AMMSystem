@@ -13,11 +13,11 @@ public interface OrderService {
     String createOrder(PlaceOrderRequest request, Long userId);
     void cancelOrder(Long userId, String orderId);
     void deleteOrder(Long userId, String orderId);
+    void payOrder(Long userId, String orderId);
     void deliverOrder(Long userId, String orderId);
     void requestReturn(Long userId, String orderId);
 
     // 商家端操作
-    void payOrder(String shopId, String orderId);
     void shipOrder(String orderId, ShipOrderRequest request);
     void approveReturn(String shopId, String orderId);
     void confirmReturn(String shopId, String orderId);
@@ -26,8 +26,5 @@ public interface OrderService {
     List<OrderAbstractUserDTO> getOrdersByUserId(Long userId);
     OrderDetailDTO getOrderDetailByUser(Long userId, String orderId);
     List<OrderAbstractSellerDTO> getOrdersByShopId(String shopId);
-    List<OrderAbstractSellerDTO> getOrdersByShopIdAndStatus(String shopId, String status);
     OrderDetailDTO getOrderDetailByShop(String shopId, String orderId);
-
-    String generateOrderId();
 }

@@ -2,17 +2,43 @@ package com.gzasc.aishopping.order.model;
 
 import lombok.Data;
 import java.sql.Timestamp;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 public class Order {
+    /** 待支付 */
     public static final String PENDING = "PENDING";
+    /** 待发货 */
     public static final String PAID = "PAID";
-    public static final String CANCELLED = "CANCELLED";
+    /** 待收货 */
     public static final String SHIPPED = "SHIPPED";
+    /** 已完成 */
     public static final String DELIVERED = "DELIVERED";
+    /** 已取消 */
+    public static final String CANCELLED = "CANCELLED";
+    /** 已删除 */
+    public static final String DELETED = "DELETED";
+    /** 待退货 */
+    public static final String RETURN_PENDING = "RETURN_PENDING";
+    /** 退货中 */
+    public static final String RETURNING = "RETURNING";
+    /** 已退货 */
     public static final String RETURNED = "RETURNED";
 
+    private static final Map<String, Set<String>> TRANSITIONS = Map.of(
+            PENDING, Set.of(PAID, CANCELLED),
+            PAID, Set.of(SHIPPED, CANCELLED),
+            SHIPPED, Set.of(DELIVERED, RETURN_PENDING),
+            DELIVERED, Set.of(RETURN_PENDING, DELETED),
+            RETURN_PENDING, Set.of(RETURNING),
+            RETURNING, Set.of(RETURNED),
+            CANCELLED, Set.of(DELETED)
+    );
+
     private String orderId;
+    private Long userId;
+    private String shopId;
     private String productId;
     private int quantity;
     private double totalPrice;
@@ -20,25 +46,25 @@ public class Order {
     private Timestamp orderDate;
     private Integer contactId;
 
-    private boolean canTransition(String fromStatus, String toStatus) {
+    public boolean canTransition(String fromStatus, String toStatus) {
         if (fromStatus == null) return true;
-        switch (fromStatus) {
-            case PENDING:
-                return toStatus.equals(PAID);
-            case PAID:
-                return toStatus.equals(SHIPPED) || toStatus.equals(CANCELLED);
-            case SHIPPED:
-                return toStatus.equals(DELIVERED) || toStatus.equals(RETURNED);
-            case DELIVERED:
-                return toStatus.equals(RETURNED);
-            default:
-                return false;
-        }
+        return TRANSITIONS.getOrDefault(fromStatus, Set.of()).contains(toStatus);
     }
 
-    public Order buildInitOrder(String orderId, String productId, int quantity, double totalPrice) {
+    public Order transitionTo(String targetStatus) {
+        if (!canTransition(this.orderStatus, targetStatus)) {
+            throw new IllegalStateException("订单状态不允许从 " + this.orderStatus + " 转换为 " + targetStatus);
+        }
+        this.orderStatus = targetStatus;
+        return this;
+    }
+
+    public static Order buildInitOrder(String orderId, Long userId, String shopId,
+                                       String productId, int quantity, double totalPrice) {
         Order order = new Order();
         order.orderId = orderId;
+        order.userId = userId;
+        order.shopId = shopId;
         order.productId = productId;
         order.quantity = quantity;
         order.totalPrice = totalPrice;
@@ -48,43 +74,11 @@ public class Order {
         return order;
     }
 
-    public Order payOrder(Order order) {
-        if (!canTransition(order.orderStatus, PAID)) {
-            throw new IllegalStateException("订单状态不允许支付操作，当前状态: " + order.orderStatus);
-        }
-        order.orderStatus = PAID;
-        return order;
-    }
-
     public Order shipOrder(Order order) {
-        if (!canTransition(order.orderStatus, SHIPPED)) {
-            throw new IllegalStateException("订单状态不允许发货操作，当前状态: " + order.orderStatus);
-        }
-        order.orderStatus = SHIPPED;
-        return order;
-    }
-
-    public Order deliverOrder(Order order) {
-        if (!canTransition(order.orderStatus, DELIVERED)) {
-            throw new IllegalStateException("订单状态不允许送达操作，当前状态: " + order.orderStatus);
-        }
-        order.orderStatus = DELIVERED;
-        return order;
+        return order.transitionTo(SHIPPED);
     }
 
     public Order cancelOrder(Order order) {
-        if (!canTransition(order.orderStatus, CANCELLED)) {
-            throw new IllegalStateException("订单状态不允许取消操作，当前状态: " + order.orderStatus);
-        }
-        order.orderStatus = CANCELLED;
-        return order;
-    }
-
-    public Order returnOrder(Order order) {
-        if (!canTransition(order.orderStatus, RETURNED)) {
-            throw new IllegalStateException("订单状态不允许退货操作，当前状态: " + order.orderStatus);
-        }
-        order.orderStatus = RETURNED;
-        return order;
+        return order.transitionTo(CANCELLED);
     }
 }
