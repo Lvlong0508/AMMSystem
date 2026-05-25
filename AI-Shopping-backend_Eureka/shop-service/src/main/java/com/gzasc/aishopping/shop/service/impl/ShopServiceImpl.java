@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -212,9 +213,86 @@ public class ShopServiceImpl implements ShopService {
         }
     }
 
+    @Override
+    @Transactional
+    public void updateShop(String shopId, Shop shop, String userId) {
+        checkShopOwner(userId, shopId);
+        shop.setId(shopId);
+        int result = shopMapper.updateShop(shop);
+        if (result <= 0) {
+            throw new ShopException("更新店铺失败");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void closeShop(String shopId, String userId) {
+        checkShopOwner(userId, shopId);
+        int result = shopMapper.closeShop(shopId);
+        if (result <= 0) {
+            throw new ShopException("关闭店铺失败");
+        }
+    }
+
+    @Override
+    public Shop getShopWithAccessCheck(String shopId, String userId) {
+        checkShopAccess(userId, shopId);
+        Shop shop = shopMapper.selectShopById(shopId);
+        if (shop == null) {
+            throw new ShopException("店铺不存在");
+        }
+        return shop;
+    }
+
+    @Override
+    public List<Map<String, Object>> getShopProductsWithDetails(String shopId, String userId) {
+        checkShopAccess(userId, shopId);
+        List<ProductShop> productShops = productShopService.selectByShopId(shopId);
+        List<Map<String, Object>> products = new ArrayList<>();
+        for (ProductShop ps : productShops) {
+            try {
+                Map<String, Object> productMap = productFeignClient.getProductById(ps.getProductId());
+                if (productMap != null && productMap.containsKey("id")) {
+                    Map<String, Object> detail = new HashMap<>();
+                    detail.put("productId", productMap.get("id"));
+                    detail.put("name", productMap.get("name"));
+                    detail.put("description", productMap.get("description"));
+                    detail.put("price", productMap.get("price"));
+                    detail.put("stock", productMap.get("stock"));
+                    products.add(detail);
+                }
+            } catch (Exception e) {
+                // skip failed product
+            }
+        }
+        return products;
+    }
+
+    @Override
+    public List<Map<String, Object>> getShopEmployees(String shopId, String userId) {
+        checkShopAccess(userId, shopId);
+        List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
+        List<Map<String, Object>> result = new ArrayList<>();
+        for (MerchantRole mr : employees) {
+            Map<String, Object> emp = new HashMap<>();
+            emp.put("merchantId", mr.getMerchantId());
+            emp.put("shopId", mr.getShopId());
+            emp.put("role", mr.getRole());
+            emp.put("assignedBy", mr.getAssignedBy());
+            result.add(emp);
+        }
+        return result;
+    }
+
     private void checkShopOwner(String userId, String shopId) {
         if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
             throw new ShopException("仅店长可操作");
+        }
+    }
+
+    private void checkShopAccess(String userId, String shopId) {
+        if (merchantRoleService.selectByMerchantAndShop(userId, shopId) == null) {
+            throw new ShopException("无权限访问该店铺");
         }
     }
 }
