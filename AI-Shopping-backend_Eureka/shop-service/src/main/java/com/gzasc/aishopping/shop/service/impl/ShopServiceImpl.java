@@ -1,5 +1,7 @@
 package com.gzasc.aishopping.shop.service.impl;
 
+import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
 import com.gzasc.aishopping.shop.mapper.ShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
@@ -57,6 +59,31 @@ public class ShopServiceImpl implements ShopService {
         } catch (Exception e) {
             throw new RuntimeException("创建店铺失败", e);
         }
+    }
+
+    @Override
+    @Transactional
+    public Shop createShop(CreateShopRequest request, String userId) {
+        Shop shop = new Shop();
+        shop.setId(UUID.randomUUID().toString().replace("-", ""));
+        shop.setMerchantId(userId);
+        shop.setName(request.getName());
+        shop.setDescription(request.getDescription());
+        shop.setLogoId(request.getLogoId());
+        shop.setStatus(1);
+        int result = shopMapper.insertShop(shop);
+        if (result > 0) {
+            MerchantRole merchantRole = new MerchantRole();
+            merchantRole.setMerchantId(userId);
+            merchantRole.setShopId(shop.getId());
+            merchantRole.setRole("1");
+            merchantRole.setAssignedBy(userId);
+            merchantRoleMapper.insert(merchantRole);
+        }
+        if (result <= 0) {
+            throw new ShopException("创建店铺失败");
+        }
+        return shop;
     }
 
     @Override
