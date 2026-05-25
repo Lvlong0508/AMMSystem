@@ -17,8 +17,8 @@ public class InternalShopController {
     private final MerchantRoleService merchantRoleService;
 
     @GetMapping("/employees/roles/{merchantId}")
-    public ApiResponse<Map<String, Object>> getMerchantRoles(@PathVariable("merchantId") String merchantId) {
-        List<MerchantRole> roles = merchantRoleService.selectByMerchantId(Long.valueOf(merchantId));
+    public ApiResponse<Map<String, Object>> getMerchantRoles(@PathVariable("merchantId") Long merchantId) {
+        List<MerchantRole> roles = merchantRoleService.selectByMerchantId(merchantId);
         return ApiResponse.success(Map.of("roles", roles));
     }
 }

@@ -17,24 +17,24 @@ public class ShopQueryController {
 
     @GetMapping("/shop/{shopId}")
     public ApiResponse<Map<String, Object>> getShop(
-            @PathVariable("shopId") String shopId,
-            @RequestHeader("X-User-Id") String userId) {
-        return ApiResponse.success(Map.of("shop", shopService.getShopWithAccessCheck(Long.valueOf(shopId), Long.valueOf(userId))));
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ApiResponse.success(Map.of("shop", shopService.getShopWithAccessCheck(shopId, userId)));
     }
 
     @GetMapping("/{shopId}/products")
     public ApiResponse<Map<String, Object>> getProducts(
-            @PathVariable("shopId") String shopId,
-            @RequestHeader("X-User-Id") String userId) {
-        List<Map<String, Object>> products = shopService.getShopProductsWithDetails(Long.valueOf(shopId), Long.valueOf(userId));
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        List<Map<String, Object>> products = shopService.getShopProductsWithDetails(shopId, userId);
         return ApiResponse.success(Map.of("products", products, "total", products.size()));
     }
 
     @GetMapping("/{shopId}/employees")
     public ApiResponse<Map<String, Object>> getEmployees(
-            @PathVariable("shopId") String shopId,
-            @RequestHeader("X-User-Id") String userId) {
-        List<Map<String, Object>> employees = shopService.getShopEmployees(Long.valueOf(shopId), Long.valueOf(userId));
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        List<Map<String, Object>> employees = shopService.getShopEmployees(shopId, userId);
         return ApiResponse.success(Map.of("employees", employees, "total", employees.size()));
     }
 }

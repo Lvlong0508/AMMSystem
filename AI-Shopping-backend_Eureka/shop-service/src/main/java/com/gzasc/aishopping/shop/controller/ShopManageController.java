@@ -24,25 +24,25 @@ public class ShopManageController {
     @PostMapping("/shop/register")
     public ApiResponse<Map<String, Object>> createShop(
             @RequestBody @Valid CreateShopRequest request,
-            @RequestHeader("X-User-Id") String userId) {
-        Shop shop = shopService.createShop(request, Long.valueOf(userId));
+            @RequestHeader("X-User-Id") Long userId) {
+        Shop shop = shopService.createShop(request, userId);
         return ApiResponse.success("创建店铺成功", Map.of("id", shop.getId()));
     }
 
     @PutMapping("/shop/{shopId}")
     public ApiResponse<Map<String, Object>> updateShop(
-            @PathVariable("shopId") String shopId,
+            @PathVariable("shopId") Long shopId,
             @RequestBody Shop shop,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.updateShop(Long.valueOf(shopId), shop, Long.valueOf(userId));
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.updateShop(shopId, shop, userId);
         return ApiResponse.success("更新店铺成功", null);
     }
 
     @DeleteMapping("/shop/{shopId}")
     public ApiResponse<Map<String, Object>> closeShop(
-            @PathVariable("shopId") String shopId,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.closeShop(Long.valueOf(shopId), Long.valueOf(userId));
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.closeShop(shopId, userId);
         return ApiResponse.success("关闭店铺成功", null);
     }
 
@@ -50,29 +50,29 @@ public class ShopManageController {
 
     @PostMapping("/{shopId}/products")
     public ApiResponse<Map<String, Object>> createProduct(
-            @PathVariable("shopId") String shopId,
+            @PathVariable("shopId") Long shopId,
             @RequestBody ProductDTO productDTO,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.createProduct(Long.valueOf(shopId), productDTO, Long.valueOf(userId));
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.createProduct(shopId, productDTO, userId);
         return ApiResponse.success("创建商品成功", null);
     }
 
     @PutMapping("/{shopId}/products/{productId}")
     public ApiResponse<Map<String, Object>> updateProduct(
-            @PathVariable("shopId") String shopId,
-            @PathVariable("productId") String productId,
+            @PathVariable("shopId") Long shopId,
+            @PathVariable("productId") Long productId,
             @RequestBody ProductDTO productDTO,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.updateProduct(Long.valueOf(shopId), Long.valueOf(productId), productDTO, Long.valueOf(userId));
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.updateProduct(shopId, productId, productDTO, userId);
         return ApiResponse.success("更新商品成功", null);
     }
 
     @DeleteMapping("/{shopId}/products/{productId}")
     public ApiResponse<Map<String, Object>> deleteProduct(
-            @PathVariable("shopId") String shopId,
-            @PathVariable("productId") String productId,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.deleteProduct(Long.valueOf(shopId), Long.valueOf(productId), Long.valueOf(userId));
+            @PathVariable("shopId") Long shopId,
+            @PathVariable("productId") Long productId,
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.deleteProduct(shopId, productId, userId);
         return ApiResponse.success("删除商品成功", null);
     }
 
@@ -80,19 +80,19 @@ public class ShopManageController {
 
     @PostMapping("/{shopId}/employees/register")
     public ApiResponse<Map<String, Object>> addEmployee(
-            @PathVariable("shopId") String shopId,
+            @PathVariable("shopId") Long shopId,
             @RequestBody @Valid AddEmployeeRequest request,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.addEmployee(Long.valueOf(shopId), request, Long.valueOf(userId));
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.addEmployee(shopId, request, userId);
         return ApiResponse.success("添加店员成功", null);
     }
 
     @DeleteMapping("/{shopId}/employees/{merchantId}")
     public ApiResponse<Map<String, Object>> removeEmployee(
-            @PathVariable("shopId") String shopId,
-            @PathVariable("merchantId") String merchantId,
-            @RequestHeader("X-User-Id") String userId) {
-        shopService.removeEmployee(Long.valueOf(shopId), Long.valueOf(merchantId), Long.valueOf(userId));
+            @PathVariable("shopId") Long shopId,
+            @PathVariable("merchantId") Long merchantId,
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.removeEmployee(shopId, merchantId, userId);
         return ApiResponse.success("移除店员成功", null);
     }
 
