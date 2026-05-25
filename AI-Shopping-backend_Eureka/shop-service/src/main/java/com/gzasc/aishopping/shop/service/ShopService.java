@@ -9,36 +9,36 @@ import java.util.List;
 import java.util.Map;
 
 public interface ShopService {
-    Shop getShopById(String shopId);
-    List<Shop> getShopsByMerchantId(String merchantId);
-    List<Shop> getShopsByUserId(String userId);
+    Shop getShopById(Long shopId);
+    List<Shop> getShopsByMerchantId(Long merchantId);
+    List<Shop> getShopsByUserId(Long userId);
     List<Shop> getAllShops(int page);
     int createShop(Shop shop);
 
     /**
      * 使用 DTO 创建店铺
      */
-    Shop createShop(CreateShopRequest request, String userId);
+    Shop createShop(CreateShopRequest request, Long userId);
     int updateShop(Shop shop);
-    int closeShop(String shopId);
+    int closeShop(Long shopId);
     int countActiveShops();
     List<Shop> getActiveShops(int page, int size);
 
     // ===== 带权限检查的店铺操作 =====
-    void updateShop(String shopId, Shop shop, String userId);
-    void closeShop(String shopId, String userId);
+    void updateShop(Long shopId, Shop shop, Long userId);
+    void closeShop(Long shopId, Long userId);
 
     // ===== 商品管理（Feign 调用 product-service） =====
-    void createProduct(String shopId, ProductDTO productDTO, String userId);
-    void updateProduct(String shopId, String productId, ProductDTO productDTO, String userId);
-    void deleteProduct(String shopId, String productId, String userId);
+    void createProduct(Long shopId, ProductDTO productDTO, Long userId);
+    void updateProduct(Long shopId, Long productId, ProductDTO productDTO, Long userId);
+    void deleteProduct(Long shopId, Long productId, Long userId);
 
     // ===== 员工管理（Feign 调用 auth-service） =====
-    void addEmployee(String shopId, AddEmployeeRequest request, String userId);
-    void removeEmployee(String shopId, String merchantId, String userId);
+    void addEmployee(Long shopId, AddEmployeeRequest request, Long userId);
+    void removeEmployee(Long shopId, Long merchantId, Long userId);
 
     // ===== 查询（Feign 调用 + 权限检查） =====
-    Shop getShopWithAccessCheck(String shopId, String userId);
-    List<Map<String, Object>> getShopProductsWithDetails(String shopId, String userId);
-    List<Map<String, Object>> getShopEmployees(String shopId, String userId);
+    Shop getShopWithAccessCheck(Long shopId, Long userId);
+    List<Map<String, Object>> getShopProductsWithDetails(Long shopId, Long userId);
+    List<Map<String, Object>> getShopEmployees(Long shopId, Long userId);
 }

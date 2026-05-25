@@ -25,7 +25,7 @@ public class ShopManageController {
     public ApiResponse<Map<String, Object>> createShop(
             @RequestBody @Valid CreateShopRequest request,
             @RequestHeader("X-User-Id") String userId) {
-        Shop shop = shopService.createShop(request, userId);
+        Shop shop = shopService.createShop(request, Long.valueOf(userId));
         return ApiResponse.success("创建店铺成功", Map.of("id", shop.getId()));
     }
 
@@ -34,7 +34,7 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @RequestBody Shop shop,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.updateShop(shopId, shop, userId);
+        shopService.updateShop(Long.valueOf(shopId), shop, Long.valueOf(userId));
         return ApiResponse.success("更新店铺成功", null);
     }
 
@@ -42,7 +42,7 @@ public class ShopManageController {
     public ApiResponse<Map<String, Object>> closeShop(
             @PathVariable("shopId") String shopId,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.closeShop(shopId, userId);
+        shopService.closeShop(Long.valueOf(shopId), Long.valueOf(userId));
         return ApiResponse.success("关闭店铺成功", null);
     }
 
@@ -53,7 +53,7 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.createProduct(shopId, productDTO, userId);
+        shopService.createProduct(Long.valueOf(shopId), productDTO, Long.valueOf(userId));
         return ApiResponse.success("创建商品成功", null);
     }
 
@@ -63,7 +63,7 @@ public class ShopManageController {
             @PathVariable("productId") String productId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.updateProduct(shopId, productId, productDTO, userId);
+        shopService.updateProduct(Long.valueOf(shopId), Long.valueOf(productId), productDTO, Long.valueOf(userId));
         return ApiResponse.success("更新商品成功", null);
     }
 
@@ -72,7 +72,7 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @PathVariable("productId") String productId,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.deleteProduct(shopId, productId, userId);
+        shopService.deleteProduct(Long.valueOf(shopId), Long.valueOf(productId), Long.valueOf(userId));
         return ApiResponse.success("删除商品成功", null);
     }
 
@@ -83,7 +83,7 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @RequestBody @Valid AddEmployeeRequest request,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.addEmployee(shopId, request, userId);
+        shopService.addEmployee(Long.valueOf(shopId), request, Long.valueOf(userId));
         return ApiResponse.success("添加店员成功", null);
     }
 
@@ -92,7 +92,7 @@ public class ShopManageController {
             @PathVariable("shopId") String shopId,
             @PathVariable("merchantId") String merchantId,
             @RequestHeader("X-User-Id") String userId) {
-        shopService.removeEmployee(shopId, merchantId, userId);
+        shopService.removeEmployee(Long.valueOf(shopId), Long.valueOf(merchantId), Long.valueOf(userId));
         return ApiResponse.success("移除店员成功", null);
     }
 

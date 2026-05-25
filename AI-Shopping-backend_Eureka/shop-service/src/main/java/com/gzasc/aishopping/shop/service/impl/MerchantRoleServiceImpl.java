@@ -20,12 +20,12 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     }
 
     @Override
-    public List<MerchantRole> selectByMerchantId(String merchantId) {
+    public List<MerchantRole> selectByMerchantId(Long merchantId) {
         return merchantRoleMapper.selectByMerchantId(merchantId);
     }
 
     @Override
-    public List<MerchantRole> selectByShopId(String shopId) {
+    public List<MerchantRole> selectByShopId(Long shopId) {
         return merchantRoleMapper.selectByShopId(shopId);
     }
 
@@ -45,12 +45,12 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     }
 
     @Override
-    public MerchantRole selectByMerchantAndShop(String merchantId, String shopId) {
+    public MerchantRole selectByMerchantAndShop(Long merchantId, Long shopId) {
         return merchantRoleMapper.selectByMerchantAndShop(merchantId, shopId);
     }
 
     @Override
-    public MerchantRole selectByMerchantShopAndRole(String merchantId, String shopId, String role) {
+    public MerchantRole selectByMerchantShopAndRole(Long merchantId, Long shopId, Integer role) {
         return merchantRoleMapper.selectByMerchantShopAndRole(merchantId, shopId, role);
     }
 }

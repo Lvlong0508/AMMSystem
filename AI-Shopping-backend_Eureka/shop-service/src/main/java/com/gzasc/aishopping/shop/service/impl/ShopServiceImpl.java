@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 
 @Service
 @RequiredArgsConstructor
@@ -36,17 +36,17 @@ public class ShopServiceImpl implements ShopService {
     private final MerchantRoleService merchantRoleService;
 
     @Override
-    public Shop getShopById(String shopId) {
+    public Shop getShopById(Long shopId) {
         return shopMapper.selectShopById(shopId);
     }
 
     @Override
-    public List<Shop> getShopsByMerchantId(String merchantId) {
+    public List<Shop> getShopsByMerchantId(Long merchantId) {
         return shopMapper.selectShopsByMerchantId(merchantId);
     }
 
     @Override
-    public List<Shop> getShopsByUserId(String userId) {
+    public List<Shop> getShopsByUserId(Long userId) {
         return shopMapper.selectShopsByUserId(userId);
     }
 
@@ -65,7 +65,7 @@ public class ShopServiceImpl implements ShopService {
                 MerchantRole merchantRole = new MerchantRole();
                 merchantRole.setMerchantId(shop.getMerchantId());
                 merchantRole.setShopId(shop.getId());
-                merchantRole.setRole("1");
+                merchantRole.setRole(1);
                 merchantRole.setAssignedBy(shop.getMerchantId());
                 merchantRoleMapper.insert(merchantRole);
             }
@@ -77,9 +77,9 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public Shop createShop(CreateShopRequest request, String userId) {
+    public Shop createShop(CreateShopRequest request, Long userId) {
         Shop shop = new Shop();
-        shop.setId(UUID.randomUUID().toString().replace("-", ""));
+        shop.setId(SnowflakeIdGenerator.nextId());
         shop.setMerchantId(userId);
         shop.setName(request.getName());
         shop.setDescription(request.getDescription());
@@ -90,7 +90,7 @@ public class ShopServiceImpl implements ShopService {
             MerchantRole merchantRole = new MerchantRole();
             merchantRole.setMerchantId(userId);
             merchantRole.setShopId(shop.getId());
-            merchantRole.setRole("1");
+            merchantRole.setRole(1);
             merchantRole.setAssignedBy(userId);
             merchantRoleMapper.insert(merchantRole);
         }
@@ -106,7 +106,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public int closeShop(String shopId) {
+    public int closeShop(Long shopId) {
         return shopMapper.closeShop(shopId);
     }
 
@@ -123,17 +123,17 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void createProduct(String shopId, ProductDTO productDTO, String userId) {
+    public void createProduct(Long shopId, ProductDTO productDTO, Long userId) {
         checkShopOwner(shopId, userId);
         try {
             Map<String, Object> result = productFeignClient.createProduct(productDTO);
             if (result == null || !"创建商品成功".equals(result.get("message"))) {
                 throw new ShopException("创建商品失败");
             }
-            String productId = (String) result.get("id");
+            String productIdStr = (String) result.get("id");
             ProductShop ps = new ProductShop();
-            ps.setId(UUID.randomUUID().toString().replace("-", ""));
-            ps.setProductId(productId);
+            ps.setId(SnowflakeIdGenerator.nextId());
+            ps.setProductId(Long.valueOf(productIdStr));
             ps.setShopId(shopId);
             productShopService.insert(ps);
         } catch (ShopException e) {
@@ -144,14 +144,14 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public void updateProduct(String shopId, String productId, ProductDTO productDTO, String userId) {
+    public void updateProduct(Long shopId, Long productId, ProductDTO productDTO, Long userId) {
         checkShopOwner(shopId, userId);
-        String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
+        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
         if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
             throw new ShopException("商品不存在");
         }
         try {
-            productFeignClient.updateProduct(productId, productDTO);
+            productFeignClient.updateProduct(String.valueOf(productId), productDTO);
         } catch (Exception e) {
             throw new ShopException("更新商品失败: " + e.getMessage());
         }
@@ -159,15 +159,15 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void deleteProduct(String shopId, String productId, String userId) {
+    public void deleteProduct(Long shopId, Long productId, Long userId) {
         checkShopOwner(shopId, userId);
-        String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
+        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
         if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
             throw new ShopException("商品不存在");
         }
         try {
             productShopService.deleteByShopAndProduct(shopId, productId);
-            productFeignClient.deleteProduct(productId);
+            productFeignClient.deleteProduct(String.valueOf(productId));
         } catch (Exception e) {
             throw new ShopException("删除商品失败: " + e.getMessage());
         }
@@ -175,7 +175,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void addEmployee(String shopId, AddEmployeeRequest request, String userId) {
+    public void addEmployee(Long shopId, AddEmployeeRequest request, Long userId) {
         checkShopOwner(shopId, userId);
         try {
             Map<String, Object> registerRequest = new HashMap<>();
@@ -190,11 +190,11 @@ public class ShopServiceImpl implements ShopService {
                 throw new ShopException("添加店员失败: " + errorMsg);
             }
 
-            String merchantId = String.valueOf(registerResult.get("merchantId"));
+            Long merchantId = Long.valueOf(String.valueOf(registerResult.get("merchantId")));
             MerchantRole role = new MerchantRole();
             role.setMerchantId(merchantId);
             role.setShopId(shopId);
-            role.setRole("2");
+            role.setRole(2);
             role.setAssignedBy(userId);
             merchantRoleService.insert(role);
         } catch (ShopException e) {
@@ -205,7 +205,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public void removeEmployee(String shopId, String merchantId, String userId) {
+    public void removeEmployee(Long shopId, Long merchantId, Long userId) {
         checkShopOwner(shopId, userId);
         MerchantRole mr = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
         if (mr != null) {
@@ -215,7 +215,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void updateShop(String shopId, Shop shop, String userId) {
+    public void updateShop(Long shopId, Shop shop, Long userId) {
         checkShopOwner(userId, shopId);
         shop.setId(shopId);
         int result = shopMapper.updateShop(shop);
@@ -226,7 +226,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void closeShop(String shopId, String userId) {
+    public void closeShop(Long shopId, Long userId) {
         checkShopOwner(userId, shopId);
         int result = shopMapper.closeShop(shopId);
         if (result <= 0) {
@@ -235,7 +235,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public Shop getShopWithAccessCheck(String shopId, String userId) {
+    public Shop getShopWithAccessCheck(Long shopId, Long userId) {
         checkShopAccess(userId, shopId);
         Shop shop = shopMapper.selectShopById(shopId);
         if (shop == null) {
@@ -245,13 +245,13 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public List<Map<String, Object>> getShopProductsWithDetails(String shopId, String userId) {
+    public List<Map<String, Object>> getShopProductsWithDetails(Long shopId, Long userId) {
         checkShopAccess(userId, shopId);
         List<ProductShop> productShops = productShopService.selectByShopId(shopId);
         List<Map<String, Object>> products = new ArrayList<>();
         for (ProductShop ps : productShops) {
             try {
-                Map<String, Object> productMap = productFeignClient.getProductById(ps.getProductId());
+                Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
                 if (productMap != null && productMap.containsKey("id")) {
                     Map<String, Object> detail = new HashMap<>();
                     detail.put("productId", productMap.get("id"));
@@ -269,7 +269,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public List<Map<String, Object>> getShopEmployees(String shopId, String userId) {
+    public List<Map<String, Object>> getShopEmployees(Long shopId, Long userId) {
         checkShopAccess(userId, shopId);
         List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
         List<Map<String, Object>> result = new ArrayList<>();
@@ -284,13 +284,13 @@ public class ShopServiceImpl implements ShopService {
         return result;
     }
 
-    private void checkShopOwner(String userId, String shopId) {
-        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, "1") == null) {
+    private void checkShopOwner(Long userId, Long shopId) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1) == null) {
             throw new ShopException("仅店长可操作");
         }
     }
 
-    private void checkShopAccess(String userId, String shopId) {
+    private void checkShopAccess(Long userId, Long shopId) {
         if (merchantRoleService.selectByMerchantAndShop(userId, shopId) == null) {
             throw new ShopException("无权限访问该店铺");
         }

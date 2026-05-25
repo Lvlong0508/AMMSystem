@@ -15,17 +15,17 @@ public class ProductShopServiceImpl implements ProductShopService {
     private final ProductShopMapper productShopMapper;
 
     @Override
-    public List<ProductShop> selectByShopId(String shopId) {
+    public List<ProductShop> selectByShopId(Long shopId) {
         return productShopMapper.selectByShopId(shopId);
     }
 
     @Override
-    public List<ProductShop> selectByProductId(String productId) {
+    public List<ProductShop> selectByProductId(Long productId) {
         return productShopMapper.selectByProductId(productId);
     }
 
     @Override
-    public String selectShopIdByProductId(String productId) {
+    public Long selectShopIdByProductId(Long productId) {
         return productShopMapper.selectShopIdByProductId(productId);
     }
 
@@ -35,12 +35,12 @@ public class ProductShopServiceImpl implements ProductShopService {
     }
 
     @Override
-    public int deleteById(String id) {
+    public int deleteById(Long id) {
         return productShopMapper.deleteById(id);
     }
 
     @Override
-    public int deleteByShopAndProduct(String shopId, String productId) {
+    public int deleteByShopAndProduct(Long shopId, Long productId) {
         return productShopMapper.deleteByShopAndProduct(shopId, productId);
     }
 }
