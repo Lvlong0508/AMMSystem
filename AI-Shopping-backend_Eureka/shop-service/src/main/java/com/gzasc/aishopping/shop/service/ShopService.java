@@ -3,6 +3,7 @@ package com.gzasc.aishopping.shop.service;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.model.Shop;
 
 import java.util.List;
@@ -25,8 +26,12 @@ public interface ShopService {
     List<Shop> getActiveShops(int page, int size);
 
     // ===== 带权限检查的店铺操作 =====
-    void updateShop(Long shopId, Shop shop, Long userId);
+    void updateShop(Long shopId, UpdateShopRequest request, Long userId);
     void closeShop(Long shopId, Long userId);
+
+    // ===== 商品查询（分页 + 详情） =====
+    Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size);
+    ProductDTO getProductDetailByShop(Long shopId, Long productId);
 
     // ===== 商品管理（Feign 调用 product-service） =====
     void createProduct(Long shopId, ProductDTO productDTO, Long userId);

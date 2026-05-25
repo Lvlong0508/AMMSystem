@@ -3,6 +3,7 @@ package com.gzasc.aishopping.shop.controller;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
 import com.gzasc.aishopping.common.response.ApiResponse;
@@ -32,9 +33,9 @@ public class ShopManageController {
     @PutMapping("/shop/{shopId}")
     public ApiResponse<Map<String, Object>> updateShop(
             @PathVariable("shopId") Long shopId,
-            @RequestBody Shop shop,
+            @RequestBody @Valid UpdateShopRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        shopService.updateShop(shopId, shop, userId);
+        shopService.updateShop(shopId, request, userId);
         return ApiResponse.success("更新店铺成功", null);
     }
 

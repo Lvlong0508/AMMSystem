@@ -1,21 +1,16 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
-import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.exception.ShopException;
-import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
-import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/user/shop")
@@ -23,8 +18,6 @@ import java.util.Objects;
 public class ShopUserController {
 
     private final ShopService shopService;
-    private final ProductShopService productShopService;
-    private final ProductFeignClient productFeignClient;
 
     @GetMapping("/list")
     public ApiResponse<Map<String, Object>> getShopList(
@@ -34,18 +27,14 @@ public class ShopUserController {
         if (userId == null) {
             throw new ShopException("请先登录");
         }
-        try {
-            List<Shop> shops = shopService.getActiveShops(page, size);
-            int total = shopService.countActiveShops();
-            Map<String, Object> data = new HashMap<>();
-            data.put("shops", shops);
-            data.put("total", total);
-            data.put("page", page);
-            data.put("size", size);
-            return ApiResponse.success(data);
-        } catch (Exception e) {
-            throw new ShopException(e.getMessage());
-        }
+        List<Shop> shops = shopService.getActiveShops(page, size);
+        int total = shopService.countActiveShops();
+        Map<String, Object> data = new HashMap<>();
+        data.put("shops", shops);
+        data.put("total", total);
+        data.put("page", page);
+        data.put("size", size);
+        return ApiResponse.success(data);
     }
 
     @GetMapping("/{shopId}")
@@ -55,16 +44,11 @@ public class ShopUserController {
         if (userId == null) {
             throw new ShopException("请先登录");
         }
-        try {
-            Shop shop = shopService.getShopById(shopId);
-            if (shop != null && shop.getStatus() == 1) {
-                return ApiResponse.success(Map.of("shop", shop));
-            } else {
-                throw new ShopException("店铺不存在或已关闭");
-            }
-        } catch (Exception e) {
-            throw new ShopException(e.getMessage());
+        Shop shop = shopService.getShopById(shopId);
+        if (shop != null && shop.getStatus() == 1) {
+            return ApiResponse.success(Map.of("shop", shop));
         }
+        throw new ShopException("店铺不存在或已关闭");
     }
 
     @GetMapping("/{shopId}/products")
@@ -76,52 +60,12 @@ public class ShopUserController {
         if (userId == null) {
             throw new ShopException("请先登录");
         }
-        try {
-            Shop shop = shopService.getShopById(shopId);
-            if (shop == null || shop.getStatus() != 1) {
-                throw new ShopException("店铺不存在");
-            }
-            List<ProductShop> productShops = productShopService.selectByShopId(shopId);
-            int total = productShops.size();
-            int start = (page - 1) * size;
-            int end = Math.min(start + size, productShops.size());
-            if (start >= total) {
-                Map<String, Object> emptyData = new HashMap<>();
-                emptyData.put("products", List.of());
-                emptyData.put("total", total);
-                emptyData.put("page", page);
-                emptyData.put("size", size);
-                return ApiResponse.success(emptyData);
-            }
-            List<ProductShop> paged = productShops.subList(start, end);
-            
-            List<Map<String, Object>> productDetails = new ArrayList<>();
-            for (ProductShop ps : paged) {
-                try {
-                    Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
-                    if (productMap != null && productMap.containsKey("id")) {
-                        Map<String, Object> detail = new HashMap<>();
-                        detail.put("id", productMap.get("id"));
-                        detail.put("name", productMap.get("name"));
-                        detail.put("description", productMap.get("description"));
-                        detail.put("price", productMap.get("price"));
-                        detail.put("stock", productMap.get("stock"));
-                        detail.put("tags", productMap.get("tags"));
-                        productDetails.add(detail);
-                    }
-                } catch (Exception e) {
-                }
-            }
-            
-            Map<String, Object> data = new HashMap<>();
-            data.put("products", productDetails);
-            data.put("total", total);
-            data.put("page", page);
-            data.put("size", size);
-            return ApiResponse.success(data);
-        } catch (Exception e) {
-            throw new ShopException("查询商品失败: " + e.getMessage());
+        Shop shop = shopService.getShopById(shopId);
+        if (shop == null || shop.getStatus() != 1) {
+            throw new ShopException("店铺不存在");
         }
+        Map<String, Object> result = shopService.getShopProductsWithPagination(shopId, page, size);
+        return ApiResponse.success(result);
     }
 
     @GetMapping("/{shopId}/products/{productId}")
@@ -132,29 +76,11 @@ public class ShopUserController {
         if (userId == null) {
             throw new ShopException("请先登录");
         }
-        try {
-            Shop shop = shopService.getShopById(shopId);
-            if (shop == null || shop.getStatus() != 1) {
-                throw new ShopException("店铺不存在");
-            }
-            Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
-            if (shopIdFromDb == null || !Objects.equals(shopIdFromDb, shopId)) {
-                throw new ShopException("商品不存在");
-            }
-            Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(productId));
-            if (productMap == null) {
-                throw new ShopException("商品不存在");
-            }
-            // 从 Map 转换为 ProductDTO
-            ProductDTO product = new ProductDTO();
-            product.setId((String) productMap.get("id"));
-            product.setName((String) productMap.get("name"));
-            product.setDescription((String) productMap.get("description"));
-            product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
-            product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
-            return ApiResponse.success(Map.of("product", product));
-        } catch (Exception e) {
-            throw new ShopException("查询商品失败");
+        Shop shop = shopService.getShopById(shopId);
+        if (shop == null || shop.getStatus() != 1) {
+            throw new ShopException("店铺不存在");
         }
+        ProductDTO product = shopService.getProductDetailByShop(shopId, productId);
+        return ApiResponse.success(Map.of("product", product));
     }
 }

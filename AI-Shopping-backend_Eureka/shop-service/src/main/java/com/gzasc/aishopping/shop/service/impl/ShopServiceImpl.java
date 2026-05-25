@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
 import com.gzasc.aishopping.shop.mapper.ShopMapper;
@@ -22,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 
 @Service
@@ -215,13 +217,79 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void updateShop(Long shopId, Shop shop, Long userId) {
+    public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
         checkShopOwner(userId, shopId);
+        Shop shop = new Shop();
         shop.setId(shopId);
+        shop.setName(request.getName());
+        shop.setDescription(request.getDescription());
+        shop.setLogoId(request.getLogoId());
         int result = shopMapper.updateShop(shop);
         if (result <= 0) {
             throw new ShopException("更新店铺失败");
         }
+    }
+
+    @Override
+    public Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size) {
+        List<ProductShop> productShops = productShopService.selectByShopId(shopId);
+        int total = productShops.size();
+        int start = (page - 1) * size;
+        int end = Math.min(start + size, productShops.size());
+        if (start >= total) {
+            Map<String, Object> emptyResult = new HashMap<>();
+            emptyResult.put("products", List.of());
+            emptyResult.put("total", total);
+            emptyResult.put("page", page);
+            emptyResult.put("size", size);
+            return emptyResult;
+        }
+        List<ProductShop> paged = productShops.subList(start, end);
+
+        List<Map<String, Object>> productDetails = new ArrayList<>();
+        for (ProductShop ps : paged) {
+            try {
+                Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
+                if (productMap != null && productMap.containsKey("id")) {
+                    Map<String, Object> detail = new HashMap<>();
+                    detail.put("id", productMap.get("id"));
+                    detail.put("name", productMap.get("name"));
+                    detail.put("description", productMap.get("description"));
+                    detail.put("price", productMap.get("price"));
+                    detail.put("stock", productMap.get("stock"));
+                    detail.put("tags", productMap.get("tags"));
+                    productDetails.add(detail);
+                }
+            } catch (Exception e) {
+                // skip failed product
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("products", productDetails);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("size", size);
+        return result;
+    }
+
+    @Override
+    public ProductDTO getProductDetailByShop(Long shopId, Long productId) {
+        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
+        if (shopIdFromDb == null || !Objects.equals(shopIdFromDb, shopId)) {
+            throw new ShopException("商品不存在");
+        }
+        Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(productId));
+        if (productMap == null) {
+            throw new ShopException("商品不存在");
+        }
+        ProductDTO product = new ProductDTO();
+        product.setId((String) productMap.get("id"));
+        product.setName((String) productMap.get("name"));
+        product.setDescription((String) productMap.get("description"));
+        product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
+        product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
+        return product;
     }
 
     @Override
