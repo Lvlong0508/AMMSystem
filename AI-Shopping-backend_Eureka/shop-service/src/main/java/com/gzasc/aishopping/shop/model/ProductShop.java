@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductShop {
-    private String id;
-    private String productId;
-    private String shopId;
+    private Long id;
+    private Long productId;
+    private Long shopId;
     private LocalDateTime createdAt;
 }

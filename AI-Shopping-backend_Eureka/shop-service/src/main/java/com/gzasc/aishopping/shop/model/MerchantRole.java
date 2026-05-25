@@ -11,9 +11,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class MerchantRole {
     private Long id;
-    private String merchantId;
-    private String shopId;
-    private String role; // 1是店长；2是店员
-    private String assignedBy;
+    private Long merchantId;
+    private Long shopId;
+    private Integer role; // 1=店长, 2=店员
+    private Long assignedBy;
     private LocalDateTime createdAt;
 }
