@@ -3,6 +3,8 @@ package com.gzasc.aishopping.shop.controller;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
+import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
@@ -11,6 +13,7 @@ import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.exception.ShopException;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,13 +40,14 @@ public class ShopManageController {
 
     @PostMapping("/shop/register")
     public ApiResponse<Map<String, Object>> createShop(
-            @RequestBody Shop shop,
+            @RequestBody @Valid CreateShopRequest request,
             @RequestHeader("X-User-Id") String userId) {
-        if (shop == null || shop.getName() == null || shop.getName().trim().isEmpty()) {
-            throw new ShopException("店铺名称不能为空");
-        }
+        Shop shop = new Shop();
         shop.setId(UUID.randomUUID().toString().replace("-", ""));
         shop.setMerchantId(userId);
+        shop.setName(request.getName());
+        shop.setDescription(request.getDescription());
+        shop.setLogoId(request.getLogoId());
         shop.setStatus(1);
         int result = shopService.createShop(shop);
         if (result > 0) {
@@ -156,28 +160,19 @@ public class ShopManageController {
     @PostMapping("/{shopId}/employees/register")
     public ApiResponse<Map<String, Object>> addEmployee(
             @PathVariable("shopId") String shopId,
-            @RequestBody Map<String, String> request,
+            @RequestBody @Valid AddEmployeeRequest request,
             @RequestHeader("X-User-Id") String userId) {
-        String username = request.get("username");
-        String password = request.get("password");
-        String phone = request.get("phone");
-        String name = request.get("name");
-
-        if (username == null || username.trim().isEmpty()) {
-            throw new ShopException("账号不能为空");
-        }
-
         try {
             Map<String, Object> registerRequest = new java.util.HashMap<>();
-            registerRequest.put("username", username);
-            if (password != null && !password.trim().isEmpty()) {
-                registerRequest.put("password", password);
+            registerRequest.put("username", request.getUsername());
+            if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+                registerRequest.put("password", request.getPassword());
             }
-            if (phone != null && !phone.trim().isEmpty()) {
-                registerRequest.put("phone", phone);
+            if (request.getPhone() != null && !request.getPhone().trim().isEmpty()) {
+                registerRequest.put("phone", request.getPhone());
             }
-            if (name != null && !name.trim().isEmpty()) {
-                registerRequest.put("nickname", name);
+            if (request.getName() != null && !request.getName().trim().isEmpty()) {
+                registerRequest.put("nickname", request.getName());
             }
 
             Map<String, Object> registerResult = authFeignClient.registerEmployee(registerRequest);
