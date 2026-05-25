@@ -9,6 +9,8 @@ import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;
 import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.shop.exception.ShopException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,61 +36,61 @@ public class ShopManageController {
     // ===== 店铺管理 =====
 
     @PostMapping("/shop/register")
-    public Map<String, Object> createShop(
+    public ApiResponse<Map<String, Object>> createShop(
             @RequestBody Shop shop,
             @RequestHeader("X-User-Id") String userId) {
         if (shop == null || shop.getName() == null || shop.getName().trim().isEmpty()) {
-            return Map.of("success", false, "message", "店铺名称不能为空");
+            throw new ShopException("店铺名称不能为空");
         }
         shop.setId(UUID.randomUUID().toString().replace("-", ""));
         shop.setMerchantId(userId);
         shop.setStatus(1);
         int result = shopService.createShop(shop);
         if (result > 0) {
-            return Map.of("success", true, "message", "创建店铺成功", "id", shop.getId());
+            return ApiResponse.success("创建店铺成功", Map.of("id", shop.getId()));
         }
-        return Map.of("success", false, "message", "创建店铺失败");
+        throw new ShopException("创建店铺失败");
     }
 
     @PutMapping("/shop/{shopId}")
-    public Map<String, Object> updateShop(
+    public ApiResponse<Map<String, Object>> updateShop(
             @PathVariable("shopId") String shopId,
             @RequestBody Shop shop,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可操作");
+            throw new ShopException("仅店长可操作");
         }
         shop.setId(shopId);
         int result = shopService.updateShop(shop);
         if (result > 0) {
-            return Map.of("success", true, "message", "更新店铺成功");
+            return ApiResponse.success("更新店铺成功", null);
         }
-        return Map.of("success", false, "message", "更新店铺失败");
+        throw new ShopException("更新店铺失败");
     }
 
     @DeleteMapping("/shop/{shopId}")
-    public Map<String, Object> closeShop(
+    public ApiResponse<Map<String, Object>> closeShop(
             @PathVariable("shopId") String shopId,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可操作");
+            throw new ShopException("仅店长可操作");
         }
         int result = shopService.closeShop(shopId);
         if (result > 0) {
-            return Map.of("success", true, "message", "关闭店铺成功");
+            return ApiResponse.success("关闭店铺成功", null);
         }
-        return Map.of("success", false, "message", "关闭店铺失败");
+        throw new ShopException("关闭店铺失败");
     }
 
     // ===== 商品管理 =====
 
     @PostMapping("/{shopId}/products")
-    public Map<String, Object> createProduct(
+    public ApiResponse<Map<String, Object>> createProduct(
             @PathVariable("shopId") String shopId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可操作");
+            throw new ShopException("仅店长可操作");
         }
         try {
             Map<String, Object> result = productFeignClient.createProduct(productDTO);
@@ -99,60 +101,60 @@ public class ShopManageController {
                 ps.setProductId(productId);
                 ps.setShopId(shopId);
                 productShopService.insert(ps);
-                return Map.of("success", true, "message", "创建商品成功", "id", productId);
+                return ApiResponse.success("创建商品成功", Map.of("id", productId));
             }
-            return Map.of("success", false, "message", "创建商品失败");
+            throw new ShopException("创建商品失败");
         } catch (Exception e) {
-            return Map.of("success", false, "message", "创建商品失败：" + e.getMessage());
+            throw new ShopException("创建商品失败: " + e.getMessage());
         }
     }
 
     @PutMapping("/{shopId}/products/{productId}")
-    public Map<String, Object> updateProduct(
+    public ApiResponse<Map<String, Object>> updateProduct(
             @PathVariable("shopId") String shopId,
             @PathVariable("productId") String productId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可操作");
+            throw new ShopException("仅店长可操作");
         }
         String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
         if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
-            return Map.of("success", false, "message", "商品不存在");
+            throw new ShopException("商品不存在");
         }
         try {
             productFeignClient.updateProduct(productId, productDTO);
-            return Map.of("success", true, "message", "更新商品成功");
+            return ApiResponse.success("更新商品成功", null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", "更新商品失败");
+            throw new ShopException("更新商品失败: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{shopId}/products/{productId}")
-    public Map<String, Object> deleteProduct(
+    public ApiResponse<Map<String, Object>> deleteProduct(
             @PathVariable("shopId") String shopId,
             @PathVariable("productId") String productId,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可操作");
+            throw new ShopException("仅店长可操作");
         }
         String shopIdFromDb = productShopService.selectShopIdByProductId(productId);
         if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
-            return Map.of("success", false, "message", "商品不存在");
+            throw new ShopException("商品不存在");
         }
         try {
             productShopService.deleteByShopAndProduct(shopId, productId);
             productFeignClient.deleteProduct(productId);
-            return Map.of("success", true, "message", "删除商品成功");
+            return ApiResponse.success("删除商品成功", null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", "删除商品失败");
+            throw new ShopException("删除商品失败: " + e.getMessage());
         }
     }
 
     // ===== 员工管理 =====
 
     @PostMapping("/{shopId}/employees/register")
-    public Map<String, Object> addEmployee(
+    public ApiResponse<Map<String, Object>> addEmployee(
             @PathVariable("shopId") String shopId,
             @RequestBody Map<String, String> request,
             @RequestHeader("X-User-Id") String userId) {
@@ -162,7 +164,7 @@ public class ShopManageController {
         String name = request.get("name");
 
         if (username == null || username.trim().isEmpty()) {
-            return Map.of("success", false, "message", "账号不能为空");
+            throw new ShopException("账号不能为空");
         }
 
         try {
@@ -181,7 +183,7 @@ public class ShopManageController {
             Map<String, Object> registerResult = authFeignClient.registerEmployee(registerRequest);
             if (registerResult == null || !registerResult.containsKey("merchantId")) {
                 String errorMsg = registerResult != null ? (String) registerResult.get("message") : "注册失败";
-                return Map.of("success", false, "message", "添加店员失败：" + errorMsg);
+                throw new ShopException("添加店员失败: " + errorMsg);
             }
 
             String merchantId = String.valueOf(registerResult.get("merchantId"));
@@ -192,28 +194,33 @@ public class ShopManageController {
             merchantRole.setAssignedBy(userId);
 
             int result = merchantRoleService.insert(merchantRole);
-            return Map.of("success", result > 0, "message", result > 0 ? "添加店员成功" : "添加店员失败");
+            if (result > 0) {
+                return ApiResponse.success("添加店员成功", null);
+            }
+            throw new ShopException("添加店员失败");
+        } catch (ShopException e) {
+            throw e;
         } catch (Exception e) {
-            return Map.of("success", false, "message", "添加店员失败：" + e.getMessage());
+            throw new ShopException("添加店员失败: " + e.getMessage());
         }
     }
 
     @DeleteMapping("/{shopId}/employees/{merchantId}")
-    public Map<String, Object> removeEmployee(
+    public ApiResponse<Map<String, Object>> removeEmployee(
             @PathVariable("shopId") String shopId,
             @PathVariable("merchantId") String merchantId,
             @RequestHeader("X-User-Id") String userId) {
         if (!isShopOwner(userId, shopId)) {
-            return Map.of("success", false, "message", "仅店长可移除店员");
+            throw new ShopException("仅店长可移除店员");
         }
         try {
             MerchantRole mr = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
             if (mr != null) {
                 merchantRoleService.deleteById(mr.getId());
             }
-            return Map.of("success", true, "message", "移除店员成功");
+            return ApiResponse.success("移除店员成功", null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", "移除店员失败");
+            throw new ShopException("移除店员失败: " + e.getMessage());
         }
     }
 
