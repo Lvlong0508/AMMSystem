@@ -1,6 +1,8 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
@@ -30,25 +32,25 @@ public class ShopQueryController {
     }
 
     @GetMapping("/shop/{shopId}")
-    public Map<String, Object> getShop(
+    public ApiResponse<Map<String, Object>> getShop(
             @PathVariable("shopId") String shopId,
             @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
+            throw new ShopException("无权限访问该店铺");
         }
         Shop shop = shopService.getShopById(shopId);
         if (shop == null) {
-            return Map.of("success", false, "message", "店铺不存在");
+            throw new ShopException("店铺不存在");
         }
-        return Map.of("success", true, "shop", shop);
+        return ApiResponse.success(Map.of("shop", shop));
     }
 
     @GetMapping("/{shopId}/products")
-    public Map<String, Object> getProducts(
+    public ApiResponse<Map<String, Object>> getProducts(
             @PathVariable("shopId") String shopId,
             @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
+            throw new ShopException("无权限访问该店铺");
         }
         List<ProductShop> productShops = productShopService.selectByShopId(shopId);
         List<Map<String, Object>> products = new ArrayList<>();
@@ -67,17 +69,17 @@ public class ShopQueryController {
             } catch (Exception e) {
             }
         }
-        return Map.of("success", true, "products", products, "total", products.size());
+        return ApiResponse.success(Map.of("products", products, "total", products.size()));
     }
 
     @GetMapping("/{shopId}/employees")
-    public Map<String, Object> getEmployees(
+    public ApiResponse<Map<String, Object>> getEmployees(
             @PathVariable("shopId") String shopId,
             @RequestHeader("X-User-Id") String userId) {
         if (!hasShopAccess(userId, shopId)) {
-            return Map.of("success", false, "message", "无权限访问该店铺");
+            throw new ShopException("无权限访问该店铺");
         }
         List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
-        return Map.of("success", true, "employees", employees, "total", employees.size());
+        return ApiResponse.success(Map.of("employees", employees, "total", employees.size()));
     }
 }
