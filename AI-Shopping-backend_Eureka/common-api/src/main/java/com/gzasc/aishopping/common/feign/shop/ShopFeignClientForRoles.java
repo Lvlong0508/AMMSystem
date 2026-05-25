@@ -10,5 +10,5 @@ import java.util.Map;
 public interface ShopFeignClientForRoles {
 
     @GetMapping("/internal/shop/employees/roles/{merchantId}")
-    Map<String, Object> getMerchantRoles(@PathVariable("merchantId") String merchantId);
+    Map<String, Object> getMerchantRoles(@PathVariable("merchantId") Long merchantId);
 }

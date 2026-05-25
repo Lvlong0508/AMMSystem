@@ -53,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
         }
 
-        Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(request.getProductId());
+        Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(Long.valueOf(request.getProductId()));
         if (shopResult == null || !Boolean.TRUE.equals(shopResult.get("success"))) {
             throw new OrderException("获取店铺信息失败");
         }

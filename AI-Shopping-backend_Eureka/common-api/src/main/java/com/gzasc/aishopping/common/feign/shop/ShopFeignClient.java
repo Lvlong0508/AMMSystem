@@ -17,17 +17,11 @@ public interface ShopFeignClient {
      * 根据商品ID获取店铺ID
      */
     @GetMapping("/internal/shop/shop-id-by-product/{productId}")
-    Map<String, Object> getShopIdByProductId(@PathVariable("productId") String productId);
+    Map<String, Object> getShopIdByProductId(@PathVariable("productId") Long productId);
 
-    /**
-     * 检查是否为店铺所有者
-     */
     @GetMapping("/internal/shop/check-owner/{shopId}/{merchantId}")
-    Boolean checkOwner(@PathVariable("shopId") String shopId, @PathVariable("merchantId") String merchantId);
+    Boolean checkOwner(@PathVariable("shopId") Long shopId, @PathVariable("merchantId") Long merchantId);
 
-    /**
-     * 检查商家访问权限
-     */
     @GetMapping("/internal/shop/check-access/{shopId}/{merchantId}")
-    Boolean checkAccess(@PathVariable("shopId") String shopId, @PathVariable("merchantId") String merchantId);
+    Boolean checkAccess(@PathVariable("shopId") Long shopId, @PathVariable("merchantId") Long merchantId);
 }
