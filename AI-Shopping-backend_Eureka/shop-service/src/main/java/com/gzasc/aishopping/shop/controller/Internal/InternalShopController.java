@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.shop.controller.Internal;
 
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;
 import lombok.RequiredArgsConstructor;
@@ -16,18 +17,8 @@ public class InternalShopController {
     private final MerchantRoleService merchantRoleService;
 
     @GetMapping("/employees/roles/{merchantId}")
-    public Map<String, Object> getMerchantRoles(@PathVariable("merchantId") String merchantId) {
-        try {
-            List<MerchantRole> roles = merchantRoleService.selectByMerchantId(merchantId);
-            return Map.of(
-                "success", true,
-                "roles", roles
-            );
-        } catch (Exception e) {
-            return Map.of(
-                "success", false,
-                "message", "获取角色信息失败：" + e.getMessage()
-            );
-        }
+    public ApiResponse<Map<String, Object>> getMerchantRoles(@PathVariable("merchantId") String merchantId) {
+        List<MerchantRole> roles = merchantRoleService.selectByMerchantId(merchantId);
+        return ApiResponse.success(Map.of("roles", roles));
     }
 }
