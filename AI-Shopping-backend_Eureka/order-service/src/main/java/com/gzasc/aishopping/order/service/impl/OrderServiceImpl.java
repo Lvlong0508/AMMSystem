@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.service.impl;
 
+import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -103,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         String originalStatus = order.getOrderStatus();
-        new Order().cancelOrder(order);
+        order.transitionTo(Order.CANCELLED);
 
         if (Order.PAID.equals(originalStatus)) {
             StockDeductRequest stockReq = new StockDeductRequest(order.getProductId(), order.getQuantity());
@@ -117,16 +118,15 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void shipOrder(String orderId, ShipOrderRequest request) {
-        Order order = orderMapper.selectOrderById(orderId);
+    public void shipOrder(String shopId, String orderId, ShipOrderRequest request) {
+        Order order = orderMapper.selectOrderDetailByShop(shopId, orderId);
         if (order == null) {
-            throw new OrderException("订单不存在");
+            throw new OrderException("订单不存在或无权限发货");
         }
 
-        new Order().shipOrder(order);
+        order.transitionTo(Order.SHIPPED);
 
-        com.gzasc.aishopping.common.dto.logistics.LogisticsRequest logisticsRequest =
-                new com.gzasc.aishopping.common.dto.logistics.LogisticsRequest();
+        LogisticsRequest logisticsRequest = new LogisticsRequest();
         logisticsRequest.setOrderId(orderId);
         logisticsRequest.setType("DELIVERY");
         logisticsRequest.setContactId(request.getContactId());
@@ -262,5 +262,4 @@ public class OrderServiceImpl implements OrderService {
         orderConverter.enrichDetailDTO(dto, contactInfo, logisticsInfo);
         return dto;
     }
-
 }

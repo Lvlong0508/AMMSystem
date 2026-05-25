@@ -38,8 +38,7 @@ public class OrderSellerController {
             @PathVariable("orderId") String orderId,
             @RequestBody @Valid ShipOrderRequest request,
             @RequestParam("shopId") String shopId) {
-        orderService.getOrderDetailByShop(shopId, orderId);
-        orderService.shipOrder(orderId, request);
+        orderService.shipOrder(shopId, orderId, request);
         return ApiResponse.success("发货成功", null);
     }
 

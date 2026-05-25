@@ -10,6 +10,10 @@ spring:
     username: root
     password: 123456
 
+order:
+  timeout:
+    payment-minutes: 30
+
 mybatis:
   type-aliases-package: com.gzasc.aishopping.product.model
   configuration:

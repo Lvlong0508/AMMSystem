@@ -18,7 +18,7 @@ public interface OrderService {
     void requestReturn(Long userId, String orderId);
 
     // 商家端操作
-    void shipOrder(String orderId, ShipOrderRequest request);
+    void shipOrder(String shopId, String orderId, ShipOrderRequest request);
     void approveReturn(String shopId, String orderId);
     void confirmReturn(String shopId, String orderId);
 

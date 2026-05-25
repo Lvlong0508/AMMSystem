@@ -7,6 +7,7 @@ import com.gzasc.aishopping.product.service.ProductReservationService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,9 @@ public class ProductReservationServiceImpl implements ProductReservationService 
 
     private final ProductReservationMapper mapper;
 
+    @Value("${order.timeout.payment-minutes:30}")
+    private int paymentTimeoutMinutes;
+
     @Override
     @Transactional
     public void reserve(String orderId, String productId, int quantity) {
@@ -33,7 +37,7 @@ public class ProductReservationServiceImpl implements ProductReservationService 
 
         Calendar cal = Calendar.getInstance();
         Date now = cal.getTime();
-        cal.add(Calendar.MINUTE, 30);
+        cal.add(Calendar.MINUTE, paymentTimeoutMinutes);
         Date expiredAt = cal.getTime();
 
         ProductReservation reservation = new ProductReservation();

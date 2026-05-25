@@ -9,11 +9,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      timeout: 2000ms
+  redis:
+    host: localhost
+    port: 6379
+    timeout: 2000ms
 
 mybatis:
   type-aliases-package: com.gzasc.aishopping.order.model
@@ -27,6 +26,10 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
+
+order:
+  timeout:
+    payment-minutes: 30
 
 feign:
   client:

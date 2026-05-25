@@ -6,6 +6,7 @@ import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -20,9 +21,12 @@ public class OrderTimeoutTask {
     private final OrderMapper orderMapper;
     private final OrderService orderService;
 
+    @Value("${order.timeout.payment-minutes:30}")
+    private int paymentTimeoutMinutes;
+
     @Scheduled(fixedRate = 60000)
     public void cancelExpiredOrders() {
-        List<Order> expired = orderMapper.selectExpiredPendingOrders(30);
+        List<Order> expired = orderMapper.selectExpiredPendingOrders(paymentTimeoutMinutes);
         for (Order order : expired) {
             try {
                 orderService.cancelOrder(order.getUserId(), order.getOrderId());

@@ -1,12 +1,15 @@
 package com.gzasc.aishopping.order.model;
 
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Set;
 
 @Data
 public class Order {
+    private static final Logger log = LoggerFactory.getLogger(Order.class);
     /** 待支付 */
     public static final String PENDING = "PENDING";
     /** 待发货 */
@@ -47,7 +50,7 @@ public class Order {
     private Integer contactId;
 
     public boolean canTransition(String fromStatus, String toStatus) {
-        if (fromStatus == null) return true;
+        if (fromStatus == null || toStatus == null) return false;
         return TRANSITIONS.getOrDefault(fromStatus, Set.of()).contains(toStatus);
     }
 
@@ -70,15 +73,9 @@ public class Order {
         order.totalPrice = totalPrice;
         order.orderStatus = PENDING;
         order.orderDate = new Timestamp(System.currentTimeMillis());
-        System.out.println("订单创建成功时间: " + order.orderDate);
+        log.info("订单创建成功时间: {}", order.orderDate);
         return order;
     }
 
-    public Order shipOrder(Order order) {
-        return order.transitionTo(SHIPPED);
-    }
 
-    public Order cancelOrder(Order order) {
-        return order.transitionTo(CANCELLED);
-    }
 }
