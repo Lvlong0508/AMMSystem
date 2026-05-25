@@ -12,15 +12,15 @@ public interface ShopMapper {
     List<Shop> selectShopsByPage(@Param("offset") int offset);
 
     @Select("SELECT * FROM shops WHERE id = #{id}")
-    Shop selectShopById(@Param("id") String id);
+    Shop selectShopById(@Param("id") Long id);
 
     @Select("SELECT * FROM shops WHERE merchant_id = #{merchantId}")
-    List<Shop> selectShopsByMerchantId(@Param("merchantId") String merchantId);
+    List<Shop> selectShopsByMerchantId(@Param("merchantId") Long merchantId);
 
     @Select("SELECT s.* FROM shops s " +
             "INNER JOIN merchant_roles mr ON s.id = mr.shop_id " +
             "WHERE mr.merchant_id = #{userId} AND s.status = 1")
-    List<Shop> selectShopsByUserId(@Param("userId") String userId);
+    List<Shop> selectShopsByUserId(@Param("userId") Long userId);
 
     @Insert("INSERT INTO shops (id, merchant_id, name, description, logo_id, status, created_at, updated_at) " +
             "VALUES (#{id}, #{merchantId}, #{name}, #{description}, #{logoId}, #{status}, NOW(), NOW())")
@@ -31,10 +31,10 @@ public interface ShopMapper {
     int updateShop(Shop shop);
 
     @Delete("DELETE FROM shops WHERE id = #{id}")
-    int deleteShop(@Param("id") String id);
+    int deleteShop(@Param("id") Long id);
 
     @Update("UPDATE shops SET status = 0, updated_at = NOW() WHERE id = #{id}")
-    int closeShop(@Param("id") String id);
+    int closeShop(@Param("id") Long id);
 
     @Select("SELECT * FROM shops WHERE status = 1 LIMIT #{size} OFFSET #{offset}")
     List<Shop> selectActiveShops(@Param("offset") int offset, @Param("size") int size);
