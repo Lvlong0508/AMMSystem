@@ -16,6 +16,8 @@ import com.gzasc.aishopping.shop.service.MerchantRoleService;
 import com.gzasc.aishopping.shop.service.ProductShopService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +31,8 @@ import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 @Service
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
+
+    private static final Logger log = LoggerFactory.getLogger(ShopServiceImpl.class);
 
     private final ShopMapper shopMapper;
     private final MerchantRoleMapper merchantRoleMapper;
@@ -252,7 +256,7 @@ public class ShopServiceImpl implements ShopService {
                 Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
                 if (productMap != null && productMap.containsKey("id")) {
                     Map<String, Object> detail = new HashMap<>();
-                    detail.put("id", productMap.get("id"));
+                    detail.put("productId", productMap.get("id"));
                     detail.put("name", productMap.get("name"));
                     detail.put("description", productMap.get("description"));
                     detail.put("price", productMap.get("price"));
@@ -261,7 +265,7 @@ public class ShopServiceImpl implements ShopService {
                     productDetails.add(detail);
                 }
             } catch (Exception e) {
-                // skip failed product
+                log.warn("商品 {} 查询失败: {}", ps.getProductId(), e.getMessage());
             }
         }
 
@@ -313,11 +317,23 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public List<Map<String, Object>> getShopProductsWithDetails(Long shopId, Long userId) {
+    public Map<String, Object> getShopProductsWithDetails(Long shopId, Long userId, int page, int size) {
         checkShopAccess(userId, shopId);
         List<ProductShop> productShops = productShopService.selectByShopId(shopId);
+        int total = productShops.size();
+        int start = (page - 1) * size;
+        int end = Math.min(start + size, productShops.size());
+        if (start >= total) {
+            Map<String, Object> emptyResult = new HashMap<>();
+            emptyResult.put("products", List.of());
+            emptyResult.put("total", total);
+            emptyResult.put("page", page);
+            emptyResult.put("size", size);
+            return emptyResult;
+        }
+        List<ProductShop> paged = productShops.subList(start, end);
         List<Map<String, Object>> products = new ArrayList<>();
-        for (ProductShop ps : productShops) {
+        for (ProductShop ps : paged) {
             try {
                 Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
                 if (productMap != null && productMap.containsKey("id")) {
@@ -330,26 +346,68 @@ public class ShopServiceImpl implements ShopService {
                     products.add(detail);
                 }
             } catch (Exception e) {
-                // skip failed product
+                log.warn("商品 {} 查询失败: {}", ps.getProductId(), e.getMessage());
             }
         }
-        return products;
+        Map<String, Object> result = new HashMap<>();
+        result.put("products", products);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("size", size);
+        return result;
     }
 
     @Override
-    public List<Map<String, Object>> getShopEmployees(Long shopId, Long userId) {
+    public Map<String, Object> getShopEmployees(Long shopId, Long userId) {
         checkShopAccess(userId, shopId);
         List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<Map<String, Object>> employeeList = new ArrayList<>();
         for (MerchantRole mr : employees) {
             Map<String, Object> emp = new HashMap<>();
             emp.put("merchantId", mr.getMerchantId());
             emp.put("shopId", mr.getShopId());
             emp.put("role", mr.getRole());
             emp.put("assignedBy", mr.getAssignedBy());
-            result.add(emp);
+            employeeList.add(emp);
         }
+        Map<String, Object> result = new HashMap<>();
+        result.put("employees", employeeList);
+        result.put("total", employeeList.size());
         return result;
+    }
+
+    @Override
+    public Map<String, Object> getActiveShopById(Long shopId) {
+        Shop shop = shopMapper.selectShopById(shopId);
+        if (shop == null || shop.getStatus() != 1) {
+            throw new ShopException("店铺不存在或已关闭");
+        }
+        return Map.of("shop", shop);
+    }
+
+    @Override
+    public Map<String, Object> getUserShopList(int page, int size) {
+        List<Shop> shops = getActiveShops(page, size);
+        int total = countActiveShops();
+        Map<String, Object> result = new HashMap<>();
+        result.put("shops", shops);
+        result.put("total", total);
+        result.put("page", page);
+        result.put("size", size);
+        return result;
+    }
+
+    @Override
+    public Map<String, Object> getUserShopProducts(Long shopId, int page, int size) {
+        getActiveShopById(shopId);
+        return getShopProductsWithPagination(shopId, page, size);
+    }
+
+    @Override
+    public Map<String, Object> getUserShopProductDetail(Long shopId, Long productId) {
+        getActiveShopById(shopId);
+        ProductDTO product = getProductDetailByShop(shopId, productId);
+        return Map.of("product", product);
     }
 
     private void checkShopOwner(Long userId, Long shopId) {

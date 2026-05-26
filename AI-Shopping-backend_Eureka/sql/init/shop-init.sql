@@ -1,5 +1,6 @@
 -- AI-Shopping 店铺服务数据库初始化脚本
 -- 创建 shop-service 所需的数据库和表结构
+-- 与 auth-service 对齐：ID 统一使用 BIGINT（雪花算法），role 使用 TINYINT
 
 -- ============================================
 -- 1. 店铺服务数据库 (eureka_shop)
@@ -10,8 +11,8 @@ USE eureka_shop;
 
 -- 店铺表
 CREATE TABLE IF NOT EXISTS shops (
-    id VARCHAR(32) PRIMARY KEY COMMENT '店铺ID',
-    merchant_id VARCHAR(16) NOT NULL COMMENT '商户ID(创建者)',
+    id BIGINT PRIMARY KEY COMMENT '店铺ID（雪花算法生成）',
+    merchant_id BIGINT NOT NULL COMMENT '商户ID（雪花算法）',
     name VARCHAR(100) NOT NULL COMMENT '店铺名称',
     description VARCHAR(500) COMMENT '店铺描述',
     logo_id VARCHAR(32) COMMENT '店铺Logo图片ID',
@@ -25,10 +26,10 @@ CREATE TABLE IF NOT EXISTS shops (
 -- 商家角色表（商家员工/权限管理）
 CREATE TABLE IF NOT EXISTS merchant_roles (
     id BIGINT PRIMARY KEY AUTO_INCREMENT COMMENT '角色ID',
-    merchant_id VARCHAR(16) NOT NULL COMMENT '商家/员工ID',
-    shop_id VARCHAR(33) NOT NULL COMMENT '店铺ID',
-    role VARCHAR(20) NOT NULL DEFAULT 'EMPLOYEE' COMMENT '角色：OWNER-店主 MANAGER-经理 EMPLOYEE-员工',
-    assigned_by VARCHAR(16) COMMENT '分配者ID',
+    merchant_id BIGINT NOT NULL COMMENT '商家/员工ID（雪花算法）',
+    shop_id BIGINT NOT NULL COMMENT '店铺ID（雪花算法）',
+    role TINYINT NOT NULL DEFAULT 2 COMMENT '角色：1-店长 2-店员',
+    assigned_by BIGINT COMMENT '分配者ID（雪花算法）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_merchant_id (merchant_id),
     INDEX idx_shop_id (shop_id),
@@ -37,9 +38,9 @@ CREATE TABLE IF NOT EXISTS merchant_roles (
 
 -- 商品-店铺关联表
 CREATE TABLE IF NOT EXISTS product_shops (
-    id VARCHAR(33) PRIMARY KEY COMMENT '关联ID',
-    product_id VARCHAR(20) NOT NULL COMMENT '商品ID',
-    shop_id VARCHAR(32) NOT NULL COMMENT '店铺ID',
+    id BIGINT PRIMARY KEY COMMENT '关联ID（雪花算法生成）',
+    product_id BIGINT NOT NULL COMMENT '商品ID（雪花算法）',
+    shop_id BIGINT NOT NULL COMMENT '店铺ID（雪花算法）',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     INDEX idx_shop_id (shop_id),
     INDEX idx_product_id (product_id),

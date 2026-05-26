@@ -5,7 +5,6 @@ import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -25,16 +24,16 @@ public class ShopQueryController {
     @GetMapping("/{shopId}/products")
     public ApiResponse<Map<String, Object>> getProducts(
             @PathVariable("shopId") Long shopId,
-            @RequestHeader("X-User-Id") Long userId) {
-        List<Map<String, Object>> products = shopService.getShopProductsWithDetails(shopId, userId);
-        return ApiResponse.success(Map.of("products", products, "total", products.size()));
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ApiResponse.success(shopService.getShopProductsWithDetails(shopId, userId, page, size));
     }
 
     @GetMapping("/{shopId}/employees")
     public ApiResponse<Map<String, Object>> getEmployees(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        List<Map<String, Object>> employees = shopService.getShopEmployees(shopId, userId);
-        return ApiResponse.success(Map.of("employees", employees, "total", employees.size()));
+        return ApiResponse.success(shopService.getShopEmployees(shopId, userId));
     }
 }
