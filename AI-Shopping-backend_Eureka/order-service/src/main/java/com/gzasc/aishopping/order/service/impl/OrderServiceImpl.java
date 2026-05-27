@@ -224,8 +224,24 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
-        order.transitionTo(Order.RETURNED);
-        orderMapper.updateOrderStatus(orderId, Order.RETURNED);
+
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURNED, Order.RETURNING);
+        if (updated <= 0) {
+            throw new OrderException("退货确认失败");
+        }
+
+        log.info("退货确认成功, orderId={}, productId={}, quantity={}",
+                orderId, order.getProductId(), order.getQuantity());
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        fileFallbackDaemon.sendOrFallback(
+                                OrderEventType.STOCK_RESTORE.name(), orderId, null);
+                    }
+                }
+        );
     }
 
     @Override
