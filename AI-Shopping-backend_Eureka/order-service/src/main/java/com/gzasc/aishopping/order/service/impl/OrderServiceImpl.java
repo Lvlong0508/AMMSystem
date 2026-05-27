@@ -284,7 +284,7 @@ public class OrderServiceImpl implements OrderService {
                 contactInfo = contactFeignClient.getContactById(order.getContactId());
             }
         } catch (Exception e) {
-            System.err.println("获取联系人信息失败: " + e.getMessage());
+            log.warn("获取联系人信息失败", e);
         }
 
         Map<String, Object> logisticsInfo = null;
@@ -295,7 +295,7 @@ public class OrderServiceImpl implements OrderService {
                 logisticsInfo = Map.of("data", response.getData());
             }
         } catch (Exception e) {
-            System.err.println("获取物流信息失败: " + e.getMessage());
+            log.warn("获取物流信息失败", e);
         }
 
         orderConverter.enrichDetailDTO(dto, contactInfo, logisticsInfo);

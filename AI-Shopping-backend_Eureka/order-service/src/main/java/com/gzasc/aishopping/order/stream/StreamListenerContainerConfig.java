@@ -12,10 +12,13 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.StreamMessageListenerContainer.StreamMessageListenerContainerOptions;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @Configuration
 @Slf4j
 public class StreamListenerContainerConfig {
+
+    private final String consumerId = "consumer-" + UUID.randomUUID();
 
     @Bean(destroyMethod = "stop")
     StreamMessageListenerContainer<String, MapRecord<String, String, String>> container(
@@ -31,7 +34,7 @@ public class StreamListenerContainerConfig {
         var container = StreamMessageListenerContainer.create(cf, opts);
 
         container.receive(
-                Consumer.from(RedisStreamConfig.GROUP_NAME, "consumer-1"),
+                Consumer.from(RedisStreamConfig.GROUP_NAME, consumerId),
                 StreamOffset.create(RedisStreamConfig.STREAM_KEY, ReadOffset.lastConsumed()),
                 consumer
         );
