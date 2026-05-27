@@ -43,8 +43,11 @@ public interface OrderMapper {
 
     @Update({"<script>",
              "UPDATE t_order SET order_status = #{newStatus}",
-             "WHERE order_id = #{orderId} AND order_status IN",
+             "WHERE order_id = #{orderId}",
+             "<if test='expectedStatuses != null and expectedStatuses.size() > 0'>",
+             "AND order_status IN",
              "<foreach collection='expectedStatuses' item='s' open='(' separator=',' close=')'>#{s}</foreach>",
+             "</if>",
              "</script>"})
     int updateOrderStatusCasMulti(@Param("orderId") String orderId,
                                   @Param("newStatus") String newStatus,
