@@ -192,6 +192,51 @@
 
 ---
 
+## Shop Service（店铺服务）
+
+**端口**: 8087
+
+### 用户端店铺 API (`/api/user/shop`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径 | 作用 | 参数 |
+|------|------|------|------|
+| GET | `/api/user/shop/list?page=1&size=10` | 分页获取活跃店铺列表 | `page`（默认1），`size`（默认10） |
+| GET | `/api/user/shop/{shopId}` | 获取店铺详情 | `shopId`（路径参数） |
+
+#### 响应示例（列表）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "shops": [
+      { "id": 1, "merchantId": 1, "shopInfoId": 1, "status": 1, "createdAt": "2026-01-01T00:00:00", "updatedAt": "2026-01-01T00:00:00" }
+    ],
+    "total": 10,
+    "page": 1,
+    "size": 10
+  }
+}
+```
+
+#### 响应示例（详情）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "shop": { "id": 1, "merchantId": 1, "shopInfoId": 1, "status": 1, "createdAt": "2026-01-01T00:00:00", "updatedAt": "2026-01-01T00:00:00" },
+    "shopInfo": { "id": 1, "name": "店铺名称", "description": "店铺描述", "logourl": "http://example.com/logo.jpg" }
+  }
+}
+```
+
+---
+
 ## Order Service（订单服务）
 
 **端口**: 8082
@@ -568,6 +613,153 @@
       "orderStatus": "PENDING"
     }
   ]
+}
+```
+
+---
+
+## Shop Service（店铺服务）
+
+**端口**: 8087
+
+### 商家端店铺 API (`/api/seller/shop`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| GET | `/api/seller/shop/merchant/{merchantId}` | 根据商家ID查询关联店铺ID列表 | - |
+| GET | `/api/seller/shop/{shopId}` | 查询店铺详情（含权限校验） | - |
+| GET | `/api/seller/shop/{shopId}/employees` | 查询店铺员工列表 | - |
+| POST | `/api/seller/shop/register` | 创建店铺 | `CreateShopRequest` |
+| PUT | `/api/seller/shop/{shopId}` | 更新店铺信息 | `UpdateShopRequest` |
+| DELETE | `/api/seller/shop/{shopId}` | 关闭店铺 | - |
+| PUT | `/api/seller/shop/{shopId}/open` | 重新开店 | - |
+| POST | `/api/seller/shop/{shopId}/employees/register` | 添加店员 | `AddEmployeeRequest` |
+| DELETE | `/api/seller/shop/{shopId}/employees/{merchantId}` | 移除店员 | - |
+
+#### 请求体:
+
+**创建店铺**:
+```json
+{
+  "name": "店铺名称",
+  "description": "店铺描述",
+  "logoId": "http://example.com/logo.jpg"
+}
+```
+- `name` 必填，最长100字符
+- `description` 可选，最长500字符
+
+**更新店铺**（全部可选）:
+```json
+{
+  "name": "新名称",
+  "description": "新描述",
+  "logoId": "http://example.com/new-logo.jpg"
+}
+```
+
+**添加店员**:
+```json
+{
+  "username": "employee001",
+  "password": "pass123",
+  "phone": "13800138000",
+  "name": "店员姓名"
+}
+```
+- `username` 必填，3-20位字母数字下划线
+- `password`、`phone`、`name` 可选
+
+#### 响应示例:
+
+**创建成功**:
+```json
+{
+  "code": 200,
+  "message": "创建店铺成功",
+  "data": { "id": 123456789 }
+}
+```
+
+**店铺详情**:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "shop": { "id": 1, "merchantId": 1, "shopInfoId": 1, "status": 1, "createdAt": "2026-01-01T00:00:00", "updatedAt": "2026-01-01T00:00:00" }
+  }
+}
+```
+
+**员工列表**:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "employees": [
+      { "merchantId": 1, "shopId": 1, "role": 1, "assignedBy": 1 }
+    ],
+    "total": 1
+  }
+}
+```
+
+**商家关联店铺**:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": { "shopIds": [1, 2, 3] }
+}
+```
+
+---
+
+### 内部接口 API (`/internal/shop`)
+
+供其他微服务通过 Feign 调用。
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| GET | `/internal/shop/employees/roles/{merchantId}` | 查询商家的所有角色 |
+| GET | `/internal/shop/info/{shopId}` | 查询店铺基本信息 |
+| POST | `/internal/shop/info/batch` | 批量查询店铺基本信息 |
+
+#### 请求体（批量查询）:
+
+```json
+[1, 2, 3]
+```
+
+#### 响应示例:
+
+**店铺基本信息**:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "id": 1,
+    "name": "店铺名称",
+    "description": "店铺描述",
+    "logourl": "http://example.com/logo.jpg"
+  }
+}
+```
+
+**批量查询**:
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "1": { "id": 1, "name": "店铺A", "description": "描述A", "logourl": "http://example.com/a.jpg" },
+    "2": { "id": 2, "name": "店铺B", "description": "描述B", "logourl": "http://example.com/b.jpg" }
+  }
 }
 ```
 
