@@ -230,6 +230,14 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public List<Long> getShopIdsByMerchantId(Long merchantId) {
+        return merchantRoleService.selectByMerchantId(merchantId)
+                .stream()
+                .map(MerchantRole::getShopId)
+                .toList();
+    }
+
+    @Override
     public Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds) {
         if (shopIds == null || shopIds.isEmpty()) {
             return Collections.emptyMap();

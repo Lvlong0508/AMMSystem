@@ -6,6 +6,7 @@ import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.shop.model.Shop;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,6 +29,9 @@ public interface ShopService {
     // ===== C端用户查询 =====
     Map<String, Object> getActiveShopById(Long shopId);
     Map<String, Object> getUserShopList(int page, int size);
+
+    // ===== 查询商户关联店铺 =====
+    List<Long> getShopIdsByMerchantId(Long merchantId);
 
     // ===== 内部接口查询（Feign 调用） =====
     ShopInfoDTO getShopInfoById(Long shopId);
