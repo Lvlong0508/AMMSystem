@@ -6,7 +6,6 @@ import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
-import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.converter.OrderConverter;
 import com.gzasc.aishopping.order.dto.*;
@@ -17,12 +16,18 @@ import com.gzasc.aishopping.order.mapper.OrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
+import com.gzasc.aishopping.order.stream.FileFallbackDaemon;
+import com.gzasc.aishopping.order.stream.OrderEventType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -31,15 +36,15 @@ public class OrderServiceImpl implements OrderService {
     private final DeletedOrderMapper deletedOrderMapper;
     private final OrderIdSelector orderIdSelector;
     private final ProductFeignClient productFeignClient;
-    private final ShopFeignClient shopFeignClient;
     private final LogisticsFeignClient logisticsFeignClient;
     private final ContactFeignClient contactFeignClient;
     private final OrderConverter orderConverter;
+    private final FileFallbackDaemon fileFallbackDaemon;
 
     @Override
     @Transactional
     public String createOrder(PlaceOrderRequest request, Long userId) {
-        Map<String, Object> productMap = productFeignClient.getProductById(request.getProductId());
+        Map<String, Object> productMap = productFeignClient.getProductById(Long.valueOf(request.getProductId()));
         if (productMap == null) {
             throw new OrderException("商品不存在（错误代码：O-003）");
         }
@@ -53,11 +58,11 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
         }
 
-        Map<String, Object> shopResult = shopFeignClient.getShopIdByProductId(Long.valueOf(request.getProductId()));
-        if (shopResult == null || !Boolean.TRUE.equals(shopResult.get("success"))) {
+        Object shopIdObj = productMap.get("shopId");
+        if (shopIdObj == null) {
             throw new OrderException("获取店铺信息失败");
         }
-        String shopId = String.valueOf(shopResult.get("shopId"));
+        String shopId = String.valueOf(shopIdObj);
 
         String orderId = orderIdSelector.generate();
         Order order = Order.buildInitOrder(orderId, userId, shopId, request.getProductId(),
@@ -173,15 +178,27 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
-        if (!order.canTransition(order.getOrderStatus(), Order.PAID)) {
-            throw new OrderException("当前订单状态不允许支付");
+
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.PAID, Order.PENDING);
+        if (updated <= 0) {
+            throw new OrderException("订单状态异常，支付失败");
         }
-        Map<String, Object> result = productFeignClient.confirmReservation(orderId);
-        Boolean success = (Boolean) result.get("success");
-        if (!Boolean.TRUE.equals(success)) {
-            throw new OrderException((String) result.get("message"));
-        }
-        orderMapper.updateOrderStatus(orderId, Order.PAID);
+
+        log.info("订单支付成功, orderId={}, productId={}, quantity={}",
+                orderId, order.getProductId(), order.getQuantity());
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        fileFallbackDaemon.sendOrFallback(
+                                OrderEventType.STOCK_CONFIRM.name(), orderId,
+                                Map.of("productId", order.getProductId(),
+                                        "quantity", String.valueOf(order.getQuantity()))
+                        );
+                    }
+                }
+        );
     }
 
     @Override
