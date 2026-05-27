@@ -26,15 +26,6 @@ public class ShopMerchantController {
         return ApiResponse.success(Map.of("shop", shopService.getShopWithAccessCheck(shopId, userId)));
     }
 
-    @GetMapping("/{shopId}/products")
-    public ApiResponse<Map<String, Object>> getProducts(
-            @PathVariable("shopId") Long shopId,
-            @RequestHeader("X-User-Id") Long userId,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        return ApiResponse.success(shopService.getShopProductsWithDetails(shopId, userId, page, size));
-    }
-
     @GetMapping("/{shopId}/employees")
     public ApiResponse<Map<String, Object>> getEmployees(
             @PathVariable("shopId") Long shopId,

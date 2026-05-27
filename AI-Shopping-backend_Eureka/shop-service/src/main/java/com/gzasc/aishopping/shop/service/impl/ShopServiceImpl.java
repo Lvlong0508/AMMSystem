@@ -1,10 +1,7 @@
 package com.gzasc.aishopping.shop.service.impl;
 
-import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
-import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
-import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
@@ -39,7 +36,6 @@ public class ShopServiceImpl implements ShopService {
 
     private final ShopMapper shopMapper;
     private final MerchantRoleMapper merchantRoleMapper;
-    private final ProductFeignClient productFeignClient;
     private final AuthFeignClient authFeignClient;
     private final MerchantRoleService merchantRoleService;
     private final ShopInfoService shopInfoService;
@@ -153,27 +149,6 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public Map<String, Object> getShopProductsWithDetails(Long shopId, Long userId, int page, int size) {
-        checkShopAccess(userId, shopId);
-        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
-        if (response == null || response.getCode() != 200) {
-            Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("products", Collections.emptyList());
-            emptyResult.put("total", 0);
-            emptyResult.put("page", page);
-            emptyResult.put("size", size);
-            return emptyResult;
-        }
-        List<Map<String, Object>> products = response.getData();
-        Map<String, Object> result = new HashMap<>();
-        result.put("products", products != null ? products : Collections.emptyList());
-        result.put("total", products != null ? products.size() : 0);
-        result.put("page", page);
-        result.put("size", size);
-        return result;
-    }
-
-    @Override
     public Map<String, Object> getShopEmployees(Long shopId, Long userId) {
         checkShopAccess(userId, shopId);
         List<MerchantRole> employees = merchantRoleService.selectByShopId(shopId);
@@ -220,19 +195,6 @@ public class ShopServiceImpl implements ShopService {
         return result;
     }
 
-    @Override
-    public Map<String, Object> getUserShopProducts(Long shopId, int page, int size) {
-        getActiveShopById(shopId);
-        return getShopProductsWithPagination(shopId, page, size);
-    }
-
-    @Override
-    public Map<String, Object> getUserShopProductDetail(Long shopId, Long productId) {
-        getActiveShopById(shopId);
-        ProductDTO product = getProductDetailByShop(shopId, productId);
-        return Map.of("product", product);
-    }
-
     private int countActiveShops() {
         return shopMapper.countActiveShops();
     }
@@ -240,25 +202,6 @@ public class ShopServiceImpl implements ShopService {
     private List<Shop> getActiveShops(int page, int size) {
         int offset = (page - 1) * size;
         return shopMapper.selectActiveShops(offset, size);
-    }
-
-    private Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size) {
-        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
-        if (response == null || response.getCode() != 200) {
-            Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("products", Collections.emptyList());
-            emptyResult.put("total", 0);
-            emptyResult.put("page", page);
-            emptyResult.put("size", size);
-            return emptyResult;
-        }
-        List<Map<String, Object>> products = response.getData();
-        Map<String, Object> result = new HashMap<>();
-        result.put("products", products != null ? products : Collections.emptyList());
-        result.put("total", products != null ? products.size() : 0);
-        result.put("page", page);
-        result.put("size", size);
-        return result;
     }
 
     @Override
@@ -298,20 +241,6 @@ public class ShopServiceImpl implements ShopService {
                     si.getDescription(), si.getLogoUrl()));
         }
         return result;
-    }
-
-    private ProductDTO getProductDetailByShop(Long shopId, Long productId) {
-        Map<String, Object> productMap = productFeignClient.getProductById(productId);
-        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
-            throw new ShopException("商品不存在");
-        }
-        ProductDTO product = new ProductDTO();
-        product.setId(productMap.get("id") != null ? ((Number) productMap.get("id")).longValue() : null);
-        product.setName((String) productMap.get("name"));
-        product.setDescription((String) productMap.get("description"));
-        product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
-        product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
-        return product;
     }
 
     private void checkShopOwner(Long userId, Long shopId) {

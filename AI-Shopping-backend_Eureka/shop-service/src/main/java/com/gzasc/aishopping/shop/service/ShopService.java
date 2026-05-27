@@ -22,14 +22,11 @@ public interface ShopService {
 
     // ===== 查询（含权限检查） =====
     Shop getShopWithAccessCheck(Long shopId, Long userId);
-    Map<String, Object> getShopProductsWithDetails(Long shopId, Long userId, int page, int size);
     Map<String, Object> getShopEmployees(Long shopId, Long userId);
 
     // ===== C端用户查询 =====
     Map<String, Object> getActiveShopById(Long shopId);
     Map<String, Object> getUserShopList(int page, int size);
-    Map<String, Object> getUserShopProducts(Long shopId, int page, int size);
-    Map<String, Object> getUserShopProductDetail(Long shopId, Long productId);
 
     // ===== 内部接口查询（Feign 调用） =====
     ShopInfoDTO getShopInfoById(Long shopId);

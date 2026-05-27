@@ -36,26 +36,4 @@ public class ShopUserController {
         return ApiResponse.success(shopService.getActiveShopById(shopId));
     }
 
-    @GetMapping("/{shopId}/products")
-    public ApiResponse<Map<String, Object>> getShopProducts(
-            @PathVariable("shopId") Long shopId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId,
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size) {
-        if (userId == null) {
-            throw new ShopException("请先登录");
-        }
-        return ApiResponse.success(shopService.getUserShopProducts(shopId, page, size));
-    }
-
-    @GetMapping("/{shopId}/products/{productId}")
-    public ApiResponse<Map<String, Object>> getProductDetail(
-            @PathVariable("shopId") Long shopId,
-            @PathVariable("productId") Long productId,
-            @RequestHeader(value = "X-User-Id", required = false) Long userId) {
-        if (userId == null) {
-            throw new ShopException("请先登录");
-        }
-        return ApiResponse.success(shopService.getUserShopProductDetail(shopId, productId));
-    }
 }
