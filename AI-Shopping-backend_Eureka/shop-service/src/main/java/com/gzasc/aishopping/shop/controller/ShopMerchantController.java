@@ -20,10 +20,10 @@ public class ShopMerchantController {
 
     private final ShopService shopService;
 
-    @GetMapping("/my-shops")
-    public ApiResponse<Map<String, Object>> getMyShops(
-            @RequestHeader("X-User-Id") Long userId) {
-        List<Long> shopIds = shopService.getShopIdsByMerchantId(userId);
+    @GetMapping("/merchant/{merchantId}")
+    public ApiResponse<Map<String, Object>> getShopsByMerchant(
+            @PathVariable("merchantId") Long merchantId) {
+        List<Long> shopIds = shopService.getShopIdsByMerchantId(merchantId);
         return ApiResponse.success(Map.of("shopIds", shopIds));
     }
 
