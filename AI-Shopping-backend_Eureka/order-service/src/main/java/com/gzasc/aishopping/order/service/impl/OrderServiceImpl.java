@@ -109,16 +109,21 @@ public class OrderServiceImpl implements OrderService {
         }
 
         String originalStatus = order.getOrderStatus();
-        order.transitionTo(Order.CANCELLED);
+        int updated = orderMapper.updateOrderStatusCasMulti(
+                orderId, Order.CANCELLED, List.of(Order.PENDING, Order.PAID));
+        if (updated <= 0) {
+            log.warn("取消订单失败，状态已变更, orderId={}", orderId);
+            throw new OrderException("订单状态已变更，取消失败");
+        }
 
         if (Order.PAID.equals(originalStatus)) {
             StockDeductRequest stockReq = new StockDeductRequest(order.getProductId(), order.getQuantity());
             productFeignClient.restoreStock(stockReq);
+            log.info("已支付订单取消，恢复库存, orderId={}", orderId);
         } else if (Order.PENDING.equals(originalStatus)) {
             productFeignClient.releaseReservation(orderId);
+            log.info("未支付订单取消，释放预占, orderId={}", orderId);
         }
-
-        orderMapper.updateOrderStatus(orderId, Order.CANCELLED);
     }
 
     @Override
