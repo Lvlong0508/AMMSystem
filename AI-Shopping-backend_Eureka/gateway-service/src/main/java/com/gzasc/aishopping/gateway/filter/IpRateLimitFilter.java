@@ -1,14 +1,19 @@
 package com.gzasc.aishopping.gateway.filter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.gateway.config.IpRateLimitProperties;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
@@ -19,21 +24,21 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Slf4j
 @Component
 public class IpRateLimitFilter implements GlobalFilter, Ordered {
 
-    @Value("${ip-rate-limit.max-requests:30}")
-    private int maxRequests;
+    private static final Logger log = LoggerFactory.getLogger(IpRateLimitFilter.class);
 
-    @Value("${ip-rate-limit.time-window-seconds:60}")
-    private int timeWindowSeconds;
+    private final int maxRequests;
+    private final int timeWindowSeconds;
+    private final ObjectMapper objectMapper;
+    private final Cache<String, AtomicInteger> ipRequestCache;
 
-    private Cache<String, AtomicInteger> ipRequestCache;
-
-    @jakarta.annotation.PostConstruct
-    public void init() {
-        ipRequestCache = Caffeine.newBuilder()
+    public IpRateLimitFilter(IpRateLimitProperties properties, ObjectMapper objectMapper) {
+        this.maxRequests = properties.getMaxRequests();
+        this.timeWindowSeconds = properties.getTimeWindowSeconds();
+        this.objectMapper = objectMapper;
+        this.ipRequestCache = Caffeine.newBuilder()
                 .expireAfterWrite(Duration.ofSeconds(timeWindowSeconds))
                 .build();
     }
@@ -48,8 +53,8 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
 
         if (currentCount > maxRequests) {
             log.warn("IP: {} 请求过于频繁，已拦截", ip);
-            return returnErrorResponse(exchange, HttpStatus.TOO_MANY_REQUESTS,
-                    "{\"code\":429,\"message\":\"请求过于频繁，请稍后再试\"}");
+            return writeErrorResponse(exchange.getResponse(), HttpStatus.TOO_MANY_REQUESTS,
+                    new ApiResponse<>(429, "请求过于频繁，请稍后再试", null));
         }
 
         return chain.filter(exchange);
@@ -68,12 +73,19 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
         return ip.split(",")[0].trim();
     }
 
-    private Mono<Void> returnErrorResponse(ServerWebExchange exchange, HttpStatus status, String body) {
-        ServerHttpResponse response = exchange.getResponse();
+    private Mono<Void> writeErrorResponse(ServerHttpResponse response, HttpStatus status, ApiResponse<?> body) {
         response.setStatusCode(status);
-        response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
-        DataBuffer buffer = response.bufferFactory().wrap(body.getBytes(StandardCharsets.UTF_8));
-        return response.writeWith(Mono.just(buffer));
+        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        try {
+            byte[] bytes = objectMapper.writeValueAsString(body).getBytes(StandardCharsets.UTF_8);
+            DataBuffer buffer = response.bufferFactory().wrap(bytes);
+            return response.writeWith(Mono.just(buffer));
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize rate limit response", e);
+            DataBuffer buffer = response.bufferFactory()
+                    .wrap("{\"code\":500,\"message\":\"系统错误\"}".getBytes(StandardCharsets.UTF_8));
+            return response.writeWith(Mono.just(buffer));
+        }
     }
 
     @Override
