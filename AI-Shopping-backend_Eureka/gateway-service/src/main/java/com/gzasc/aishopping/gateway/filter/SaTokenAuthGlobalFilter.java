@@ -38,12 +38,7 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
         }
 
         String token = request.getHeaders().getFirst("satoken");
-        String loginId;
-        try {
-            loginId = authService.validateToken(token);
-        } catch (GatewayAuthException e) {
-            throw e;
-        }
+        String loginId = authService.validateToken(token);
 
         if (!authService.hasPermission(loginId, path, request)) {
             log.warn("用户 {} 无权限访问路径 {}", loginId, path);
