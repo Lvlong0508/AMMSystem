@@ -78,7 +78,7 @@ spring:
           predicates:
             - Path=/api/seller/auth/**
         
-# 商家商品服务
+        # 商家商品服务
         - id: seller-product
           uri: lb://product-service
           predicates:
@@ -196,8 +196,12 @@ auth:
     paths:
       - /api/user/auth/login
       - /api/user/auth/register
+      - /api/user/auth/check-username
+      - /api/user/auth/check-phone
       - /api/seller/auth/login
       - /api/seller/auth/register
+      - /api/seller/auth/check-username
+      - /api/seller/auth/check-phone
       - /api/seller/shop/register
 
 eureka:
