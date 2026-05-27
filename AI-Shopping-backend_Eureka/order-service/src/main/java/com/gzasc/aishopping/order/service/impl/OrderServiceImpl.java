@@ -1,6 +1,5 @@
 package com.gzasc.aishopping.order.service.impl;
 
-import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -134,24 +133,25 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("订单不存在或无权限发货");
         }
 
-        order.transitionTo(Order.SHIPPED);
-
-        LogisticsRequest logisticsRequest = new LogisticsRequest();
-        logisticsRequest.setOrderId(orderId);
-        logisticsRequest.setType("DELIVERY");
-        logisticsRequest.setContactId(request.getContactId());
-        logisticsRequest.setTrackingNumber(request.getTrackingNumber());
-
-        ApiResponse<Map<String, Object>> logisticsResponse =
-                logisticsFeignClient.createLogistics(logisticsRequest);
-        if (logisticsResponse == null || logisticsResponse.getData() == null) {
-            throw new OrderException("创建物流记录失败");
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.SHIPPED, Order.PAID);
+        if (updated <= 0) {
+            throw new OrderException("订单状态异常，发货失败");
         }
 
-        int result = orderMapper.updateOrderStatus(orderId, Order.SHIPPED);
-        if (result <= 0) {
-            throw new OrderException("更新订单状态失败");
-        }
+        log.info("订单发货成功, orderId={}", orderId);
+
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        fileFallbackDaemon.sendOrFallback(
+                                OrderEventType.LOGISTICS_CREATE.name(), orderId,
+                                Map.of("contactId", String.valueOf(request.getContactId()),
+                                        "trackingNumber", request.getTrackingNumber())
+                        );
+                    }
+                }
+        );
     }
 
     @Override
