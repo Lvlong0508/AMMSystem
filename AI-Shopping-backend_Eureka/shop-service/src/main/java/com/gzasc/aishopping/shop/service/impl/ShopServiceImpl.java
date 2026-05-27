@@ -100,6 +100,16 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
+    public void openShop(Long shopId, Long userId) {
+        checkShopOwner(userId, shopId);
+        int result = shopMapper.openShop(shopId);
+        if (result <= 0) {
+            throw new ShopException("重新开店失败");
+        }
+    }
+
+    @Override
+    @Transactional
     public void addEmployee(Long shopId, AddEmployeeRequest request, Long userId) {
         checkShopOwner(shopId, userId);
         try {

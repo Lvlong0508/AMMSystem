@@ -15,6 +15,7 @@ public interface ShopService {
     Shop createShop(CreateShopRequest request, Long userId);
     void updateShop(Long shopId, UpdateShopRequest request, Long userId);
     void closeShop(Long shopId, Long userId);
+    void openShop(Long shopId, Long userId);
 
     // ===== 员工管理 =====
     void addEmployee(Long shopId, AddEmployeeRequest request, Long userId);

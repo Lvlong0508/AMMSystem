@@ -37,6 +37,9 @@ public interface ShopMapper {
     @Update("UPDATE shops SET status = 0, updated_at = NOW() WHERE id = #{id}")
     int closeShop(@Param("id") Long id);
 
+    @Update("UPDATE shops SET status = 1, updated_at = NOW() WHERE id = #{id}")
+    int openShop(@Param("id") Long id);
+
     @Select("SELECT * FROM shops WHERE status = 1 LIMIT #{size} OFFSET #{offset}")
     List<Shop> selectActiveShops(@Param("offset") int offset, @Param("size") int size);
 

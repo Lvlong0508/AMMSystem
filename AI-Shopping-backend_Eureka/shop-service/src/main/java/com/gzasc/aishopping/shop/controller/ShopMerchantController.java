@@ -58,6 +58,14 @@ public class ShopMerchantController {
         return ApiResponse.success("关闭店铺成功", null);
     }
 
+    @PutMapping("/{shopId}/open")
+    public ApiResponse<Map<String, Object>> openShop(
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        shopService.openShop(shopId, userId);
+        return ApiResponse.success("重新开店成功", null);
+    }
+
     @PostMapping("/{shopId}/employees/register")
     public ApiResponse<Map<String, Object>> addEmployee(
             @PathVariable("shopId") Long shopId,
