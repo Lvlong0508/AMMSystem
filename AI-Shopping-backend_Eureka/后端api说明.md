@@ -192,6 +192,83 @@
 
 ---
 
+## Order Service（订单服务）
+
+**端口**: 8082
+
+### 用户订单 API (`/api/user/order`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径 | 作用 |
+|------|------|------|
+| GET | `/api/user/order/list` | 查询当前用户的订单列表 |
+| GET | `/api/user/order/{orderId}` | 查询当前用户的订单详情 |
+| POST | `/api/user/order/place` | 创建/下单 |
+| PUT | `/api/user/order/{orderId}/cancel` | 取消订单 |
+| DELETE | `/api/user/order/{orderId}` | 删除订单（逻辑删除） |
+| PUT | `/api/user/order/{orderId}/pay` | 支付订单 |
+| PUT | `/api/user/order/{orderId}/deliver` | 用户确认收货 |
+| POST | `/api/user/order/{orderId}/return-request` | 用户提交退货申请 |
+
+#### 请求体（下单）:
+
+```json
+{
+  "productId": "string",
+  "quantity": 1,
+  "contactId": 1
+}
+```
+
+- `productId`、`quantity`、`contactId` 必填
+- `quantity` 最小值为 1
+
+#### 响应示例（列表）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "orderId": "2026052200001ABCDE",
+      "productId": "1",
+      "shopId": "1",
+      "totalPrice": 99.99,
+      "quantity": 1,
+      "orderStatus": "PENDING"
+    }
+  ]
+}
+```
+
+#### 响应示例（详情）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "orderId": "2026052200001ABCDE",
+    "userId": 1,
+    "shopId": "1",
+    "productId": "1",
+    "quantity": 1,
+    "totalPrice": 99.99,
+    "orderStatus": "PENDING",
+    "orderDate": "2026-05-22T12:00:00",
+    "contactId": 1,
+    "contactName": "张三",
+    "contactPhone": "13800138000",
+    "contactAddress": "广东省深圳市南山区xxx",
+    "trackingNumber": "SF1234567890"
+  }
+}
+```
+
+---
+
 # Merchant API（商家端）
 
 ## Auth Service（认证服务）
@@ -446,3 +523,51 @@
 - **查单**: 订单详情页面调用 `GET /internal/logistics/order/{orderId}/latest?type=DELIVERY` 获取发货物流信息
 
 > 一个订单可关联多条物流记录（如：一次发货 + 一次退货），通过 `orderId` + `type` 进行区分和查询。
+
+---
+
+## Order Service（订单服务）
+
+**端口**: 8082
+
+### 商家订单 API (`/api/seller/order`)
+
+| 方法 | 路径 | 作用 | 参数 |
+|------|------|------|------|
+| GET | `/api/seller/order/shop/{shopId}/list` | 查询指定店铺的订单列表 | `shopId`（路径参数） |
+| GET | `/api/seller/order/shop/{shopId}/{orderId}` | 查询指定店铺的订单详情 | `shopId`、`orderId`（路径参数） |
+| PUT | `/api/seller/order/{orderId}/ship` | 商家发货 | 见下方请求体 |
+| PUT | `/api/seller/order/{orderId}/approve-return` | 商家审核通过退货申请 | `orderId`（路径参数），`shopId`（请求参数） |
+| PUT | `/api/seller/order/{orderId}/confirm-return` | 商家确认退货完成 | `orderId`（路径参数），`shopId`（请求参数） |
+
+#### 请求体（发货）:
+
+```json
+{
+  "trackingNumber": "SF1234567890",
+  "contactId": 1,
+  "shippingDate": "2026-05-22T12:00:00"
+}
+```
+
+- `trackingNumber`、`contactId` 必填
+- `shippingDate` 可选
+
+#### 响应示例（列表）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": [
+    {
+      "orderId": "2026052200001ABCDE",
+      "productId": "1",
+      "contactId": 1,
+      "quantity": 1,
+      "orderStatus": "PENDING"
+    }
+  ]
+}
+```
+

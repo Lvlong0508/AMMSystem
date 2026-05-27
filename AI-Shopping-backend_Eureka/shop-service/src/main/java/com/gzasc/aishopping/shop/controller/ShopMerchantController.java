@@ -1,12 +1,15 @@
 package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
+import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
+import com.gzasc.aishopping.shop.service.MerchantRoleService;
 import com.gzasc.aishopping.shop.service.ShopService;
-import com.gzasc.aishopping.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,13 +17,36 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/seller/shop/manage")
+@RequestMapping("/api/seller/shop")
 @RequiredArgsConstructor
-public class ShopManageController {
+public class ShopMerchantController {
 
     private final ShopService shopService;
+    private final ProductFeignClient productFeignClient;
+    private final MerchantRoleService merchantRoleService;
 
-    // ===== 店铺管理 =====
+    @GetMapping("/shop/{shopId}")
+    public ApiResponse<Map<String, Object>> getShop(
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ApiResponse.success(Map.of("shop", shopService.getShopWithAccessCheck(shopId, userId)));
+    }
+
+    @GetMapping("/{shopId}/products")
+    public ApiResponse<Map<String, Object>> getProducts(
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
+        return ApiResponse.success(shopService.getShopProductsWithDetails(shopId, userId, page, size));
+    }
+
+    @GetMapping("/{shopId}/employees")
+    public ApiResponse<Map<String, Object>> getEmployees(
+            @PathVariable("shopId") Long shopId,
+            @RequestHeader("X-User-Id") Long userId) {
+        return ApiResponse.success(shopService.getShopEmployees(shopId, userId));
+    }
 
     @PostMapping("/shop/register")
     public ApiResponse<Map<String, Object>> createShop(
@@ -47,15 +73,14 @@ public class ShopManageController {
         return ApiResponse.success("关闭店铺成功", null);
     }
 
-    // ===== 商品管理 =====
-
     @PostMapping("/{shopId}/products")
     public ApiResponse<Map<String, Object>> createProduct(
             @PathVariable("shopId") Long shopId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") Long userId) {
-        shopService.createProduct(shopId, productDTO, userId);
-        return ApiResponse.success("创建商品成功", null);
+        checkShopOwner(shopId, userId);
+        productDTO.setShopId(shopId);
+        return productFeignClient.createProduct(productDTO);
     }
 
     @PutMapping("/{shopId}/products/{productId}")
@@ -64,7 +89,8 @@ public class ShopManageController {
             @PathVariable("productId") Long productId,
             @RequestBody ProductDTO productDTO,
             @RequestHeader("X-User-Id") Long userId) {
-        shopService.updateProduct(shopId, productId, productDTO, userId);
+        checkShopOwner(shopId, userId);
+        productFeignClient.updateProduct(productId, productDTO);
         return ApiResponse.success("更新商品成功", null);
     }
 
@@ -73,11 +99,10 @@ public class ShopManageController {
             @PathVariable("shopId") Long shopId,
             @PathVariable("productId") Long productId,
             @RequestHeader("X-User-Id") Long userId) {
-        shopService.deleteProduct(shopId, productId, userId);
+        checkShopOwner(shopId, userId);
+        productFeignClient.deleteProduct(productId);
         return ApiResponse.success("删除商品成功", null);
     }
-
-    // ===== 员工管理 =====
 
     @PostMapping("/{shopId}/employees/register")
     public ApiResponse<Map<String, Object>> addEmployee(
@@ -95,6 +120,12 @@ public class ShopManageController {
             @RequestHeader("X-User-Id") Long userId) {
         shopService.removeEmployee(shopId, merchantId, userId);
         return ApiResponse.success("移除店员成功", null);
+    }
+
+    private void checkShopOwner(Long shopId, Long userId) {
+        if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1) == null) {
+            throw new ShopException("仅店长可操作");
+        }
     }
 
 }

@@ -34,54 +34,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
 
-    private static final Logger log = LoggerFactory.getLogger(ShopServiceImpl.class);
-
     private final ShopMapper shopMapper;
     private final MerchantRoleMapper merchantRoleMapper;
     private final ProductFeignClient productFeignClient;
     private final AuthFeignClient authFeignClient;
     private final MerchantRoleService merchantRoleService;
     private final ShopInfoService shopInfoService;
-
-    @Override
-    public Shop getShopById(Long shopId) {
-        return shopMapper.selectShopById(shopId);
-    }
-
-    @Override
-    public List<Shop> getShopsByMerchantId(Long merchantId) {
-        return shopMapper.selectShopsByMerchantId(merchantId);
-    }
-
-    @Override
-    public List<Shop> getShopsByUserId(Long userId) {
-        return shopMapper.selectShopsByUserId(userId);
-    }
-
-    @Override
-    public List<Shop> getAllShops(int page) {
-        int offset = (page - 1) * 20;
-        return shopMapper.selectShopsByPage(offset);
-    }
-
-    @Override
-    @Transactional
-    public int createShop(Shop shop) {
-        try {
-            int result = shopMapper.insertShop(shop);
-            if (result > 0) {
-                MerchantRole merchantRole = new MerchantRole();
-                merchantRole.setMerchantId(shop.getMerchantId());
-                merchantRole.setShopId(shop.getId());
-                merchantRole.setRole(1);
-                merchantRole.setAssignedBy(shop.getMerchantId());
-                merchantRoleMapper.insert(merchantRole);
-            }
-            return result;
-        } catch (Exception e) {
-            throw new RuntimeException("创建店铺失败", e);
-        }
-    }
 
     @Override
     @Transactional
@@ -114,69 +72,30 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
-    public int updateShop(Shop shop) {
-        return shopMapper.updateShop(shop);
-    }
-
-    @Override
-    public int closeShop(Long shopId) {
-        return shopMapper.closeShop(shopId);
-    }
-
-    @Override
-    public int countActiveShops() {
-        return shopMapper.countActiveShops();
-    }
-
-    @Override
-    public List<Shop> getActiveShops(int page, int size) {
-        int offset = (page - 1) * size;
-        return shopMapper.selectActiveShops(offset, size);
-    }
-
-    @Override
     @Transactional
-    public void createProduct(Long shopId, ProductDTO productDTO, Long userId) {
-        checkShopOwner(shopId, userId);
-        try {
-            productDTO.setShopId(shopId);
-            ApiResponse<Map<String, Object>> response = productFeignClient.createProduct(productDTO);
-            if (response == null || response.getCode() != 200) {
-                throw new ShopException("创建商品失败");
-            }
-        } catch (ShopException e) {
-            throw e;
-        } catch (Exception e) {
-            throw new ShopException("创建商品失败: " + e.getMessage());
+    public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
+        checkShopOwner(userId, shopId);
+        Shop shop = shopMapper.selectShopById(shopId);
+        if (shop == null) {
+            throw new ShopException("店铺不存在");
         }
-    }
-
-    @Override
-    public void updateProduct(Long shopId, Long productId, ProductDTO productDTO, Long userId) {
-        checkShopOwner(shopId, userId);
-        Map<String, Object> productMap = productFeignClient.getProductById(productId);
-        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
-            throw new ShopException("商品不存在");
-        }
-        try {
-            productFeignClient.updateProduct(productId, productDTO);
-        } catch (Exception e) {
-            throw new ShopException("更新商品失败: " + e.getMessage());
+        if (shop.getShopInfoId() != null) {
+            ShopInfo shopInfo = new ShopInfo();
+            shopInfo.setId(shop.getShopInfoId());
+            shopInfo.setName(request.getName());
+            shopInfo.setDescription(request.getDescription());
+            shopInfo.setLogoUrl(request.getLogoId());
+            shopInfoService.update(shopInfo);
         }
     }
 
     @Override
     @Transactional
-    public void deleteProduct(Long shopId, Long productId, Long userId) {
-        checkShopOwner(shopId, userId);
-        Map<String, Object> productMap = productFeignClient.getProductById(productId);
-        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
-            throw new ShopException("商品不存在");
-        }
-        try {
-            productFeignClient.deleteProduct(productId);
-        } catch (Exception e) {
-            throw new ShopException("删除商品失败: " + e.getMessage());
+    public void closeShop(Long shopId, Long userId) {
+        checkShopOwner(userId, shopId);
+        int result = shopMapper.closeShop(shopId);
+        if (result <= 0) {
+            throw new ShopException("关闭店铺失败");
         }
     }
 
@@ -217,69 +136,6 @@ public class ShopServiceImpl implements ShopService {
         MerchantRole mr = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
         if (mr != null) {
             merchantRoleService.deleteById(mr.getId());
-        }
-    }
-
-    @Override
-    @Transactional
-    public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
-        checkShopOwner(userId, shopId);
-        Shop shop = shopMapper.selectShopById(shopId);
-        if (shop == null) {
-            throw new ShopException("店铺不存在");
-        }
-        if (shop.getShopInfoId() != null) {
-            ShopInfo shopInfo = new ShopInfo();
-            shopInfo.setId(shop.getShopInfoId());
-            shopInfo.setName(request.getName());
-            shopInfo.setDescription(request.getDescription());
-            shopInfo.setLogoUrl(request.getLogoId());
-            shopInfoService.update(shopInfo);
-        }
-    }
-
-    @Override
-    public Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size) {
-        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
-        if (response == null || response.getCode() != 200) {
-            Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("products", Collections.emptyList());
-            emptyResult.put("total", 0);
-            emptyResult.put("page", page);
-            emptyResult.put("size", size);
-            return emptyResult;
-        }
-        List<Map<String, Object>> products = response.getData();
-        Map<String, Object> result = new HashMap<>();
-        result.put("products", products != null ? products : Collections.emptyList());
-        result.put("total", products != null ? products.size() : 0);
-        result.put("page", page);
-        result.put("size", size);
-        return result;
-    }
-
-    @Override
-    public ProductDTO getProductDetailByShop(Long shopId, Long productId) {
-        Map<String, Object> productMap = productFeignClient.getProductById(productId);
-        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
-            throw new ShopException("商品不存在");
-        }
-        ProductDTO product = new ProductDTO();
-        product.setId(productMap.get("id") != null ? ((Number) productMap.get("id")).longValue() : null);
-        product.setName((String) productMap.get("name"));
-        product.setDescription((String) productMap.get("description"));
-        product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
-        product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
-        return product;
-    }
-
-    @Override
-    @Transactional
-    public void closeShop(Long shopId, Long userId) {
-        checkShopOwner(userId, shopId);
-        int result = shopMapper.closeShop(shopId);
-        if (result <= 0) {
-            throw new ShopException("关闭店铺失败");
         }
     }
 
@@ -372,6 +228,48 @@ public class ShopServiceImpl implements ShopService {
         getActiveShopById(shopId);
         ProductDTO product = getProductDetailByShop(shopId, productId);
         return Map.of("product", product);
+    }
+
+    private int countActiveShops() {
+        return shopMapper.countActiveShops();
+    }
+
+    private List<Shop> getActiveShops(int page, int size) {
+        int offset = (page - 1) * size;
+        return shopMapper.selectActiveShops(offset, size);
+    }
+
+    private Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size) {
+        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
+        if (response == null || response.getCode() != 200) {
+            Map<String, Object> emptyResult = new HashMap<>();
+            emptyResult.put("products", Collections.emptyList());
+            emptyResult.put("total", 0);
+            emptyResult.put("page", page);
+            emptyResult.put("size", size);
+            return emptyResult;
+        }
+        List<Map<String, Object>> products = response.getData();
+        Map<String, Object> result = new HashMap<>();
+        result.put("products", products != null ? products : Collections.emptyList());
+        result.put("total", products != null ? products.size() : 0);
+        result.put("page", page);
+        result.put("size", size);
+        return result;
+    }
+
+    private ProductDTO getProductDetailByShop(Long shopId, Long productId) {
+        Map<String, Object> productMap = productFeignClient.getProductById(productId);
+        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
+            throw new ShopException("商品不存在");
+        }
+        ProductDTO product = new ProductDTO();
+        product.setId(productMap.get("id") != null ? ((Number) productMap.get("id")).longValue() : null);
+        product.setName((String) productMap.get("name"));
+        product.setDescription((String) productMap.get("description"));
+        product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
+        product.setStock(productMap.get("stock") != null ? ((Number) productMap.get("stock")).intValue() : 0);
+        return product;
     }
 
     private void checkShopOwner(Long userId, Long shopId) {

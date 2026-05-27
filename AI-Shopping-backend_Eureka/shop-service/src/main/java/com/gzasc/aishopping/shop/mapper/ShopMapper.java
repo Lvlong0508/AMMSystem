@@ -3,6 +3,7 @@ package com.gzasc.aishopping.shop.mapper;
 import com.gzasc.aishopping.shop.model.Shop;
 import org.apache.ibatis.annotations.*;
 
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -41,4 +42,10 @@ public interface ShopMapper {
 
     @Select("SELECT COUNT(*) FROM shops WHERE status = 1")
     int countActiveShops();
+
+    @Select({"<script>",
+             "SELECT * FROM shops WHERE id IN",
+             "<foreach item='id' collection='ids' open='(' separator=',' close=')'>#{id}</foreach>",
+             "</script>"})
+    List<Shop> selectShopsByIds(@Param("ids") Collection<Long> ids);
 }
