@@ -29,6 +29,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -255,6 +258,45 @@ public class ShopServiceImpl implements ShopService {
         result.put("total", products != null ? products.size() : 0);
         result.put("page", page);
         result.put("size", size);
+        return result;
+    }
+
+    @Override
+    public ShopInfoDTO getShopInfoById(Long shopId) {
+        if (shopId == null) return null;
+        Shop shop = shopMapper.selectShopById(shopId);
+        if (shop == null || shop.getShopInfoId() == null) {
+            return null;
+        }
+        ShopInfo shopInfo = shopInfoService.getById(shop.getShopInfoId());
+        if (shopInfo == null) {
+            return null;
+        }
+        return new ShopInfoDTO(shopInfo.getId(), shopInfo.getName(),
+                shopInfo.getDescription(), shopInfo.getLogoUrl());
+    }
+
+    @Override
+    public Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds) {
+        if (shopIds == null || shopIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<Shop> shops = shopMapper.selectShopsByIds(shopIds);
+        List<Long> infoIds = shops.stream()
+                .map(Shop::getShopInfoId)
+                .filter(Objects::nonNull)
+                .toList();
+        List<ShopInfo> shopInfos = shopInfoService.getByIds(infoIds);
+        Map<Long, ShopInfo> infoMap = shopInfos.stream()
+                .collect(Collectors.toMap(ShopInfo::getId, si -> si));
+        Map<Long, ShopInfoDTO> result = new HashMap<>();
+        for (Shop shop : shops) {
+            if (shop.getShopInfoId() == null) continue;
+            ShopInfo si = infoMap.get(shop.getShopInfoId());
+            if (si == null) continue;
+            result.put(shop.getId(), new ShopInfoDTO(si.getId(), si.getName(),
+                    si.getDescription(), si.getLogoUrl()));
+        }
         return result;
     }
 

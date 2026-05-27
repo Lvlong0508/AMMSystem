@@ -3,9 +3,11 @@ package com.gzasc.aishopping.shop.service;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.shop.model.Shop;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface ShopService {
 
@@ -28,4 +30,8 @@ public interface ShopService {
     Map<String, Object> getUserShopList(int page, int size);
     Map<String, Object> getUserShopProducts(Long shopId, int page, int size);
     Map<String, Object> getUserShopProductDetail(Long shopId, Long productId);
+
+    // ===== 内部接口查询（Feign 调用） =====
+    ShopInfoDTO getShopInfoById(Long shopId);
+    Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds);
 }
