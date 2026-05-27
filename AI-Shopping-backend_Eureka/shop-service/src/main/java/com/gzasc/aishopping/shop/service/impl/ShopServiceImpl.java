@@ -1,8 +1,11 @@
 package com.gzasc.aishopping.shop.service.impl;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
@@ -10,10 +13,10 @@ import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
 import com.gzasc.aishopping.shop.mapper.ShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
-import com.gzasc.aishopping.shop.model.ProductShop;
 import com.gzasc.aishopping.shop.model.Shop;
+import com.gzasc.aishopping.shop.model.ShopInfo;
 import com.gzasc.aishopping.shop.service.MerchantRoleService;
-import com.gzasc.aishopping.shop.service.ProductShopService;
+import com.gzasc.aishopping.shop.service.ShopInfoService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -22,11 +25,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +40,8 @@ public class ShopServiceImpl implements ShopService {
     private final MerchantRoleMapper merchantRoleMapper;
     private final ProductFeignClient productFeignClient;
     private final AuthFeignClient authFeignClient;
-    private final ProductShopService productShopService;
     private final MerchantRoleService merchantRoleService;
+    private final ShopInfoService shopInfoService;
 
     @Override
     public Shop getShopById(Long shopId) {
@@ -84,12 +86,17 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional
     public Shop createShop(CreateShopRequest request, Long userId) {
+        ShopInfo shopInfo = new ShopInfo();
+        shopInfo.setId(SnowflakeIdGenerator.nextId());
+        shopInfo.setName(request.getName());
+        shopInfo.setDescription(request.getDescription());
+        shopInfo.setLogoUrl(request.getLogoId());
+        shopInfoService.insert(shopInfo);
+
         Shop shop = new Shop();
         shop.setId(SnowflakeIdGenerator.nextId());
         shop.setMerchantId(userId);
-        shop.setName(request.getName());
-        shop.setDescription(request.getDescription());
-        shop.setLogoId(request.getLogoId());
+        shop.setShopInfoId(shopInfo.getId());
         shop.setStatus(1);
         int result = shopMapper.insertShop(shop);
         if (result > 0) {
@@ -132,16 +139,11 @@ public class ShopServiceImpl implements ShopService {
     public void createProduct(Long shopId, ProductDTO productDTO, Long userId) {
         checkShopOwner(shopId, userId);
         try {
-            Map<String, Object> result = productFeignClient.createProduct(productDTO);
-            if (result == null || !"创建商品成功".equals(result.get("message"))) {
+            productDTO.setShopId(shopId);
+            ApiResponse<Map<String, Object>> response = productFeignClient.createProduct(productDTO);
+            if (response == null || response.getCode() != 200) {
                 throw new ShopException("创建商品失败");
             }
-            String productIdStr = (String) result.get("id");
-            ProductShop ps = new ProductShop();
-            ps.setId(SnowflakeIdGenerator.nextId());
-            ps.setProductId(Long.valueOf(productIdStr));
-            ps.setShopId(shopId);
-            productShopService.insert(ps);
         } catch (ShopException e) {
             throw e;
         } catch (Exception e) {
@@ -152,12 +154,12 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public void updateProduct(Long shopId, Long productId, ProductDTO productDTO, Long userId) {
         checkShopOwner(shopId, userId);
-        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
-        if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
+        Map<String, Object> productMap = productFeignClient.getProductById(productId);
+        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
             throw new ShopException("商品不存在");
         }
         try {
-            productFeignClient.updateProduct(String.valueOf(productId), productDTO);
+            productFeignClient.updateProduct(productId, productDTO);
         } catch (Exception e) {
             throw new ShopException("更新商品失败: " + e.getMessage());
         }
@@ -167,13 +169,12 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public void deleteProduct(Long shopId, Long productId, Long userId) {
         checkShopOwner(shopId, userId);
-        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
-        if (shopIdFromDb == null || !shopIdFromDb.equals(shopId)) {
+        Map<String, Object> productMap = productFeignClient.getProductById(productId);
+        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
             throw new ShopException("商品不存在");
         }
         try {
-            productShopService.deleteByShopAndProduct(shopId, productId);
-            productFeignClient.deleteProduct(String.valueOf(productId));
+            productFeignClient.deleteProduct(productId);
         } catch (Exception e) {
             throw new ShopException("删除商品失败: " + e.getMessage());
         }
@@ -223,55 +224,35 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
         checkShopOwner(userId, shopId);
-        Shop shop = new Shop();
-        shop.setId(shopId);
-        shop.setName(request.getName());
-        shop.setDescription(request.getDescription());
-        shop.setLogoId(request.getLogoId());
-        int result = shopMapper.updateShop(shop);
-        if (result <= 0) {
-            throw new ShopException("更新店铺失败");
+        Shop shop = shopMapper.selectShopById(shopId);
+        if (shop == null) {
+            throw new ShopException("店铺不存在");
+        }
+        if (shop.getShopInfoId() != null) {
+            ShopInfo shopInfo = new ShopInfo();
+            shopInfo.setId(shop.getShopInfoId());
+            shopInfo.setName(request.getName());
+            shopInfo.setDescription(request.getDescription());
+            shopInfo.setLogoUrl(request.getLogoId());
+            shopInfoService.update(shopInfo);
         }
     }
 
     @Override
     public Map<String, Object> getShopProductsWithPagination(Long shopId, int page, int size) {
-        List<ProductShop> productShops = productShopService.selectByShopId(shopId);
-        int total = productShops.size();
-        int start = (page - 1) * size;
-        int end = Math.min(start + size, productShops.size());
-        if (start >= total) {
+        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
+        if (response == null || response.getCode() != 200) {
             Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("products", List.of());
-            emptyResult.put("total", total);
+            emptyResult.put("products", Collections.emptyList());
+            emptyResult.put("total", 0);
             emptyResult.put("page", page);
             emptyResult.put("size", size);
             return emptyResult;
         }
-        List<ProductShop> paged = productShops.subList(start, end);
-
-        List<Map<String, Object>> productDetails = new ArrayList<>();
-        for (ProductShop ps : paged) {
-            try {
-                Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
-                if (productMap != null && productMap.containsKey("id")) {
-                    Map<String, Object> detail = new HashMap<>();
-                    detail.put("productId", productMap.get("id"));
-                    detail.put("name", productMap.get("name"));
-                    detail.put("description", productMap.get("description"));
-                    detail.put("price", productMap.get("price"));
-                    detail.put("stock", productMap.get("stock"));
-                    detail.put("tags", productMap.get("tags"));
-                    productDetails.add(detail);
-                }
-            } catch (Exception e) {
-                log.warn("商品 {} 查询失败: {}", ps.getProductId(), e.getMessage());
-            }
-        }
-
+        List<Map<String, Object>> products = response.getData();
         Map<String, Object> result = new HashMap<>();
-        result.put("products", productDetails);
-        result.put("total", total);
+        result.put("products", products != null ? products : Collections.emptyList());
+        result.put("total", products != null ? products.size() : 0);
         result.put("page", page);
         result.put("size", size);
         return result;
@@ -279,16 +260,12 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public ProductDTO getProductDetailByShop(Long shopId, Long productId) {
-        Long shopIdFromDb = productShopService.selectShopIdByProductId(productId);
-        if (shopIdFromDb == null || !Objects.equals(shopIdFromDb, shopId)) {
-            throw new ShopException("商品不存在");
-        }
-        Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(productId));
-        if (productMap == null) {
+        Map<String, Object> productMap = productFeignClient.getProductById(productId);
+        if (productMap == null || !shopId.equals(productMap.get("shopId"))) {
             throw new ShopException("商品不存在");
         }
         ProductDTO product = new ProductDTO();
-        product.setId((String) productMap.get("id"));
+        product.setId(productMap.get("id") != null ? ((Number) productMap.get("id")).longValue() : null);
         product.setName((String) productMap.get("name"));
         product.setDescription((String) productMap.get("description"));
         product.setPrice(productMap.get("price") != null ? ((Number) productMap.get("price")).doubleValue() : 0.0);
@@ -319,39 +296,19 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public Map<String, Object> getShopProductsWithDetails(Long shopId, Long userId, int page, int size) {
         checkShopAccess(userId, shopId);
-        List<ProductShop> productShops = productShopService.selectByShopId(shopId);
-        int total = productShops.size();
-        int start = (page - 1) * size;
-        int end = Math.min(start + size, productShops.size());
-        if (start >= total) {
+        ApiResponse<List<Map<String, Object>>> response = productFeignClient.getProductsByShopId(shopId, page, size);
+        if (response == null || response.getCode() != 200) {
             Map<String, Object> emptyResult = new HashMap<>();
-            emptyResult.put("products", List.of());
-            emptyResult.put("total", total);
+            emptyResult.put("products", Collections.emptyList());
+            emptyResult.put("total", 0);
             emptyResult.put("page", page);
             emptyResult.put("size", size);
             return emptyResult;
         }
-        List<ProductShop> paged = productShops.subList(start, end);
-        List<Map<String, Object>> products = new ArrayList<>();
-        for (ProductShop ps : paged) {
-            try {
-                Map<String, Object> productMap = productFeignClient.getProductById(String.valueOf(ps.getProductId()));
-                if (productMap != null && productMap.containsKey("id")) {
-                    Map<String, Object> detail = new HashMap<>();
-                    detail.put("productId", productMap.get("id"));
-                    detail.put("name", productMap.get("name"));
-                    detail.put("description", productMap.get("description"));
-                    detail.put("price", productMap.get("price"));
-                    detail.put("stock", productMap.get("stock"));
-                    products.add(detail);
-                }
-            } catch (Exception e) {
-                log.warn("商品 {} 查询失败: {}", ps.getProductId(), e.getMessage());
-            }
-        }
+        List<Map<String, Object>> products = response.getData();
         Map<String, Object> result = new HashMap<>();
-        result.put("products", products);
-        result.put("total", total);
+        result.put("products", products != null ? products : Collections.emptyList());
+        result.put("total", products != null ? products.size() : 0);
         result.put("page", page);
         result.put("size", size);
         return result;
@@ -382,7 +339,14 @@ public class ShopServiceImpl implements ShopService {
         if (shop == null || shop.getStatus() != 1) {
             throw new ShopException("店铺不存在或已关闭");
         }
-        return Map.of("shop", shop);
+        ShopInfoDTO shopInfoDTO = null;
+        if (shop.getShopInfoId() != null) {
+            ShopInfo shopInfo = shopInfoService.getById(shop.getShopInfoId());
+            if (shopInfo != null) {
+                shopInfoDTO = new ShopInfoDTO(shopInfo.getId(), shopInfo.getName(), shopInfo.getDescription(), shopInfo.getLogoUrl());
+            }
+        }
+        return Map.of("shop", shop, "shopInfo", shopInfoDTO);
     }
 
     @Override

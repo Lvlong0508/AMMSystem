@@ -209,4 +209,13 @@ public interface ProductService {
      * @return 影响的行数
      */
     int updateProductWithImage(Product product, String imageUrl);
+
+    /**
+     * 根据店铺ID分页查询商品
+     * @param shopId 店铺ID
+     * @param page 页码，从1开始
+     * @param size 每页数量
+     * @return 商品列表
+     */
+    List<ProductWithImageAbstractDTO> getProductsByShopId(Long shopId, int page, int size);
 }

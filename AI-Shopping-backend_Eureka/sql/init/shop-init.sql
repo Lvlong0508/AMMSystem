@@ -9,19 +9,27 @@ CREATE DATABASE IF NOT EXISTS eureka_shop CHARACTER SET utf8mb4 COLLATE utf8mb4_
 
 USE eureka_shop;
 
--- 店铺表
+-- 店铺表（运营属性）
 CREATE TABLE IF NOT EXISTS shops (
     id BIGINT PRIMARY KEY COMMENT '店铺ID（雪花算法生成）',
     merchant_id BIGINT NOT NULL COMMENT '商户ID（雪花算法）',
-    name VARCHAR(100) NOT NULL COMMENT '店铺名称',
-    description VARCHAR(500) COMMENT '店铺描述',
-    logo_id VARCHAR(32) COMMENT '店铺Logo图片ID',
+    shop_info_id BIGINT COMMENT '关联 ShopInfo ID',
     `status` TINYINT NOT NULL DEFAULT 1 COMMENT '店铺状态：1-正常 0-已关闭',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     INDEX idx_merchant_id (merchant_id),
     INDEX idx_status (`status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺表';
+
+-- 店铺展示信息表
+CREATE TABLE IF NOT EXISTS shop_info (
+    id BIGINT PRIMARY KEY COMMENT 'ShopInfo ID（雪花算法生成）',
+    name VARCHAR(100) NOT NULL COMMENT '店铺名称',
+    description VARCHAR(500) COMMENT '店铺描述',
+    logourl VARCHAR(256) COMMENT '店铺Logo URL',
+    address VARCHAR(200) COMMENT '店铺地址',
+    phone VARCHAR(20) COMMENT '联系电话'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='店铺展示信息表';
 
 -- 商家角色表（商家员工/权限管理）
 CREATE TABLE IF NOT EXISTS merchant_roles (
@@ -36,16 +44,7 @@ CREATE TABLE IF NOT EXISTS merchant_roles (
     UNIQUE KEY uk_merchant_shop (merchant_id, shop_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商家角色表';
 
--- 商品-店铺关联表
-CREATE TABLE IF NOT EXISTS product_shops (
-    id BIGINT PRIMARY KEY COMMENT '关联ID（雪花算法生成）',
-    product_id BIGINT NOT NULL COMMENT '商品ID（雪花算法）',
-    shop_id BIGINT NOT NULL COMMENT '店铺ID（雪花算法）',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    INDEX idx_shop_id (shop_id),
-    INDEX idx_product_id (product_id),
-    UNIQUE KEY uk_product_shop (product_id, shop_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品店铺关联表';
+-- product_shops 关联表已废弃，shop_id 直写 products 表
 
 -- ============================================
 -- 完成提示

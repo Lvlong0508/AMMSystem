@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.dto;
 
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,6 +21,7 @@ public class ProductWithImageDetailDTO {
     private boolean isSale;
     private Integer imageId;
     private String imageUrl;
+    private ShopInfoDTO shop;
     private Date createdAt;
     private Date updatedAt;
 }

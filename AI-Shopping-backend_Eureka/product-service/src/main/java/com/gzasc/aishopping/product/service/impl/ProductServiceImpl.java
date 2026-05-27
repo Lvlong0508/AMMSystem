@@ -1,5 +1,8 @@
 package com.gzasc.aishopping.product.service.impl;
 
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
+import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.product.cache.ProductCache;
 import com.gzasc.aishopping.product.converter.ProductConverter;
@@ -23,9 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +43,33 @@ public class ProductServiceImpl implements ProductService {
     private final SalableProductMapper salableProductMapper;
     private final ProductConverter productConverter;
     private final ProductCache productCache;
+    private final ShopFeignClient shopFeignClient;
+
+    private final Map<Long, ShopInfoDTO> shopInfoCache = new ConcurrentHashMap<>();
+
+    private ShopInfoDTO getCachedShopInfo(Long shopId) {
+        if (shopId == null) return null;
+        return shopInfoCache.computeIfAbsent(shopId, id -> {
+            ApiResponse<ShopInfoDTO> response = shopFeignClient.getShopInfo(id);
+            return response != null ? response.getData() : null;
+        });
+    }
+
+    private Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds) {
+        if (shopIds == null || shopIds.isEmpty()) return Map.of();
+        Set<Long> uncached = shopIds.stream()
+            .filter(id -> !shopInfoCache.containsKey(id))
+            .collect(Collectors.toSet());
+        if (!uncached.isEmpty()) {
+            ApiResponse<Map<Long, ShopInfoDTO>> response = shopFeignClient.batchGetShopInfo(uncached);
+            if (response != null && response.getData() != null) {
+                shopInfoCache.putAll(response.getData());
+            }
+        }
+        return shopIds.stream()
+            .filter(shopInfoCache::containsKey)
+            .collect(Collectors.toMap(id -> id, shopInfoCache::get));
+    }
 
     private String getImageUrl(Integer imageId) {
         if (imageId == null || imageId <= 0) {
@@ -69,7 +101,8 @@ public class ProductServiceImpl implements ProductService {
             return null;
         }
         String imageUrl = getImageUrl(product.getImageId());
-        return productConverter.toDetailWithImageDTO(product, imageUrl);
+        ShopInfoDTO shopInfo = getCachedShopInfo(product.getShopId());
+        return productConverter.toDetailWithImageDTO(product, imageUrl, shopInfo);
     }
 
     @Override
@@ -79,7 +112,12 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toDetailWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toDetailWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -92,7 +130,12 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -106,7 +149,12 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -126,7 +174,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.isSale()) {
             throw new ProductException(400, "商品在上架中，请先下架: " + productId);
         }
-        return productMapper.deleteProduct(productId);
+        return productMapper.deleteProduct(Long.valueOf(productId));
     }
 
     @Override
@@ -138,13 +186,13 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public boolean deductStock(String productId, int quantity) {
-        return productMapper.deductStock(productId, quantity) > 0;
+        return productMapper.deductStock(Long.valueOf(productId), quantity) > 0;
     }
 
     @Override
     @Transactional
     public boolean restoreStock(String productId, int quantity) {
-        return productMapper.restoreStock(productId, quantity) > 0;
+        return productMapper.restoreStock(Long.valueOf(productId), quantity) > 0;
     }
 
     @Override
@@ -157,7 +205,22 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
+    public List<ProductWithImageAbstractDTO> getProductsByShopId(Long shopId, int page, int size) {
+        List<Product> products = productMapper.selectByShopId(shopId, (page - 1) * size, size);
+        if (products.isEmpty()) return List.of();
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        ShopInfoDTO shopInfo = getCachedShopInfo(shopId);
+        Map<Long, ShopInfoDTO> shopInfoMap = shopId != null ? Map.of(shopId, shopInfo) : Map.of();
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -190,7 +253,7 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
         }
-        productMapper.updateSaleStatus(productId, true);
+        productMapper.updateSaleStatus(Long.valueOf(productId), true);
         salableProductMapper.addSalable(productId);
         return true;
     }
@@ -202,7 +265,7 @@ public class ProductServiceImpl implements ProductService {
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
         }
-        productMapper.updateSaleStatus(productId, false);
+        productMapper.updateSaleStatus(Long.valueOf(productId), false);
         salableProductMapper.removeSalable(productId);
         return true;
     }
@@ -219,7 +282,12 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -229,7 +297,12 @@ public class ProductServiceImpl implements ProductService {
             return List.of();
         }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override

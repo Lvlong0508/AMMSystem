@@ -12,9 +12,7 @@ import java.time.LocalDateTime;
 public class Shop {
     private Long id;
     private Long merchantId;
-    private String name;
-    private String description;
-    private String logoId;
+    private Long shopInfoId;
     private Integer status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

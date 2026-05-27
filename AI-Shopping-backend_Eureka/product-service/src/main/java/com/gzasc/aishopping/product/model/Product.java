@@ -19,6 +19,7 @@ public class Product {
     private Integer stock;
     private boolean isSale;
     private Integer imageId;
+    private Long shopId;
     private Date createdAt;
     private Date updatedAt;
 }

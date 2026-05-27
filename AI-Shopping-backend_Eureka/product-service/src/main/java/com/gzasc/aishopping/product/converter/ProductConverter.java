@@ -1,8 +1,11 @@
 package com.gzasc.aishopping.product.converter;
 
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductDetailDTO;
 import com.gzasc.aishopping.product.dto.ProductImageDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
 import org.springframework.stereotype.Component;
@@ -55,21 +58,30 @@ public class ProductConverter {
         return infos.stream().map(this::toImageDTO).collect(Collectors.toList());
     }
 
-    public com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl) {
+    public ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl) {
+        return toAbstractWithImageDTO(product, imageUrl, null);
+    }
+
+    public ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
         if (product == null) return null;
-        return new com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO(
+        return new ProductWithImageAbstractDTO(
             product.getId(),
             product.getName(),
             product.getPrice(),
             product.getTags(),
             product.getImageId(),
-            imageUrl
+            imageUrl,
+            shop
         );
     }
 
-    public com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl) {
+    public ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl) {
+        return toDetailWithImageDTO(product, imageUrl, null);
+    }
+
+    public ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
         if (product == null) return null;
-        return new com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO(
+        return new ProductWithImageDetailDTO(
             product.getId(),
             product.getName(),
             product.getPrice(),
@@ -79,12 +91,17 @@ public class ProductConverter {
             product.isSale(),
             product.getImageId(),
             imageUrl,
+            shop,
             product.getCreatedAt(),
             product.getUpdatedAt()
         );
     }
 
-    public List<com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
+    public List<ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
+        return toAbstractWithImageDTOList(products, imageUrlMap, null);
+    }
+
+    public List<ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
         if (products == null) return List.of();
         return products.stream()
             .map(p -> {
@@ -92,12 +109,20 @@ public class ProductConverter {
                 if (p.getImageId() != null && imageUrlMap != null) {
                     url = imageUrlMap.get(p.getImageId());
                 }
-                return toAbstractWithImageDTO(p, url);
+                ShopInfoDTO shop = null;
+                if (shopInfoMap != null && p.getShopId() != null) {
+                    shop = shopInfoMap.get(p.getShopId());
+                }
+                return toAbstractWithImageDTO(p, url, shop);
             })
             .collect(Collectors.toList());
     }
 
-    public List<com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
+    public List<ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
+        return toDetailWithImageDTOList(products, imageUrlMap, null);
+    }
+
+    public List<ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
         if (products == null) return List.of();
         return products.stream()
             .map(p -> {
@@ -105,7 +130,11 @@ public class ProductConverter {
                 if (p.getImageId() != null && imageUrlMap != null) {
                     url = imageUrlMap.get(p.getImageId());
                 }
-                return toDetailWithImageDTO(p, url);
+                ShopInfoDTO shop = null;
+                if (shopInfoMap != null && p.getShopId() != null) {
+                    shop = shopInfoMap.get(p.getShopId());
+                }
+                return toDetailWithImageDTO(p, url, shop);
             })
             .collect(Collectors.toList());
     }

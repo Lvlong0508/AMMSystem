@@ -4,14 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductShop {
+public class ShopInfo {
     private Long id;
-    private Long productId;
-    private Long shopId;
-    private LocalDateTime createdAt;
+    private String name;
+    private String description;
+    private String logoUrl;
+    private String address;
+    private String phone;
 }

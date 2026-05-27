@@ -2,8 +2,10 @@ package com.gzasc.aishopping.product.controller.internal;
 
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
+import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +70,26 @@ public class InternalProductController {
         } catch (Exception e) {
             return Map.of("success", false, "message", e.getMessage());
         }
+    }
+
+    // 内部接口：创建商品
+    @PostMapping("/create")
+    public ApiResponse<Map<String, Object>> createProduct(@RequestBody Product product) {
+        int result = productService.createProduct(product);
+        if (result > 0) {
+            return ApiResponse.success("创建商品成功", Map.of("id", product.getId()));
+        }
+        return ApiResponse.error("创建商品失败");
+    }
+
+    // 内部接口：根据店铺ID分页查询商品
+    @GetMapping("/by-shop/{shopId}")
+    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByShopId(
+            @PathVariable("shopId") Long shopId,
+            @RequestParam("page") int page,
+            @RequestParam("size") int size) {
+        List<ProductWithImageAbstractDTO> products = productService.getProductsByShopId(shopId, page, size);
+        return ApiResponse.success(products);
     }
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）

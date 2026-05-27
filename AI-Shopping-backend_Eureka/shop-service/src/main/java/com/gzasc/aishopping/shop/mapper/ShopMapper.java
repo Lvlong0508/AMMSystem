@@ -22,11 +22,11 @@ public interface ShopMapper {
             "WHERE mr.merchant_id = #{userId} AND s.status = 1")
     List<Shop> selectShopsByUserId(@Param("userId") Long userId);
 
-    @Insert("INSERT INTO shops (id, merchant_id, name, description, logo_id, status, created_at, updated_at) " +
-            "VALUES (#{id}, #{merchantId}, #{name}, #{description}, #{logoId}, #{status}, NOW(), NOW())")
+    @Insert("INSERT INTO shops (id, merchant_id, shop_info_id, status, created_at, updated_at) " +
+            "VALUES (#{id}, #{merchantId}, #{shopInfoId}, #{status}, NOW(), NOW())")
     int insertShop(Shop shop);
 
-    @Update("UPDATE shops SET name = #{name}, description = #{description}, logo_id = #{logoId}, " +
+    @Update("UPDATE shops SET shop_info_id = #{shopInfoId}, " +
             "status = #{status}, updated_at = NOW() WHERE id = #{id}")
     int updateShop(Shop shop);
 

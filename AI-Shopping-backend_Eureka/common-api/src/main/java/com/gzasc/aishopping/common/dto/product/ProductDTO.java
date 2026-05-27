@@ -7,20 +7,17 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.Date;
 
-/**
- * 商品 DTO
- * 用于服务间数据传输
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductDTO implements Serializable {
-    private String id;
+    private Long id;
     private String name;
     private Double price;
     private String tags;
     private String description;
     private Integer stock;
+    private Long shopId;
     private Date createdAt;
     private Date updatedAt;
 }
