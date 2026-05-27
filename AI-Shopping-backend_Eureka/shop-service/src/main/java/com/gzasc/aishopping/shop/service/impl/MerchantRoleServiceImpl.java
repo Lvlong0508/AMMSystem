@@ -15,11 +15,6 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     private final MerchantRoleMapper merchantRoleMapper;
 
     @Override
-    public MerchantRole selectById(Long id) {
-        return merchantRoleMapper.selectById(id);
-    }
-
-    @Override
     public List<MerchantRole> selectByMerchantId(Long merchantId) {
         return merchantRoleMapper.selectByMerchantId(merchantId);
     }
@@ -35,13 +30,13 @@ public class MerchantRoleServiceImpl implements MerchantRoleService {
     }
 
     @Override
-    public int updateRole(MerchantRole merchantRole) {
-        return merchantRoleMapper.updateRole(merchantRole);
+    public int deleteById(Long id) {
+        return merchantRoleMapper.deleteById(id);
     }
 
     @Override
-    public int deleteById(Long id) {
-        return merchantRoleMapper.deleteById(id);
+    public int deleteByMerchantAndShop(Long merchantId, Long shopId) {
+        return merchantRoleMapper.deleteByMerchantAndShop(merchantId, shopId);
     }
 
     @Override

@@ -7,7 +7,6 @@ import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
-import com.gzasc.aishopping.shop.mapper.MerchantRoleMapper;
 import com.gzasc.aishopping.shop.mapper.ShopMapper;
 import com.gzasc.aishopping.shop.model.MerchantRole;
 import com.gzasc.aishopping.shop.model.Shop;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
 public class ShopServiceImpl implements ShopService {
 
     private final ShopMapper shopMapper;
-    private final MerchantRoleMapper merchantRoleMapper;
     private final AuthFeignClient authFeignClient;
     private final MerchantRoleService merchantRoleService;
     private final ShopInfoService shopInfoService;
@@ -62,7 +60,7 @@ public class ShopServiceImpl implements ShopService {
             merchantRole.setShopId(shop.getId());
             merchantRole.setRole(1);
             merchantRole.setAssignedBy(userId);
-            merchantRoleMapper.insert(merchantRole);
+            merchantRoleService.insert(merchantRole);
         }
         if (result <= 0) {
             throw new ShopException("创建店铺失败");
@@ -142,10 +140,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     public void removeEmployee(Long shopId, Long merchantId, Long userId) {
         checkShopOwner(shopId, userId);
-        MerchantRole mr = merchantRoleService.selectByMerchantAndShop(merchantId, shopId);
-        if (mr != null) {
-            merchantRoleService.deleteById(mr.getId());
-        }
+        merchantRoleService.deleteByMerchantAndShop(merchantId, shopId);
     }
 
     @Override
