@@ -228,7 +228,7 @@ public class OrderServiceImpl implements OrderService {
 
         int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURNED, Order.RETURNING);
         if (updated <= 0) {
-            throw new OrderException("退货确认失败");
+             throw new OrderException("退货确认失败");
         }
 
         log.info("退货确认成功, orderId={}, productId={}, quantity={}",
