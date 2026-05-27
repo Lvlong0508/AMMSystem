@@ -35,4 +35,18 @@ public interface OrderMapper {
 
     @Select("SELECT * FROM t_order WHERE order_status = 'PENDING' AND order_date < NOW() - INTERVAL #{minutes} MINUTE")
     List<Order> selectExpiredPendingOrders(@Param("minutes") int minutes);
+
+    @Update("UPDATE t_order SET order_status = #{newStatus} WHERE order_id = #{orderId} AND order_status = #{oldStatus}")
+    int updateOrderStatusCas(@Param("orderId") String orderId,
+                             @Param("newStatus") String newStatus,
+                             @Param("oldStatus") String oldStatus);
+
+    @Update({"<script>",
+             "UPDATE t_order SET order_status = #{newStatus}",
+             "WHERE order_id = #{orderId} AND order_status IN",
+             "<foreach collection='expectedStatuses' item='s' open='(' separator=',' close=')'>#{s}</foreach>",
+             "</script>"})
+    int updateOrderStatusCasMulti(@Param("orderId") String orderId,
+                                  @Param("newStatus") String newStatus,
+                                  @Param("expectedStatuses") List<String> expectedStatuses);
 }
