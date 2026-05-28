@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.AiService.Assistant;
+import com.gzasc.aishopping.chat.dto.AiResponse;
 import com.gzasc.aishopping.chat.dto.ChatRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import jakarta.validation.Valid;
@@ -17,8 +18,8 @@ public class ChatController {
     private final Assistant assistant;
 
     @PostMapping("/chat")
-    public ApiResponse<String> chat(@RequestBody @Valid ChatRequest request) {
-        String reply = assistant.chat(request.getMessage());
-        return ApiResponse.success(reply);
+    public ApiResponse<AiResponse> chat(@RequestBody @Valid ChatRequest request) {
+        AiResponse response = assistant.chat(request.getMessage());
+        return ApiResponse.success(response);
     }
 }
