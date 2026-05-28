@@ -8,7 +8,7 @@ import dev.langchain4j.service.spring.AiService;
 public interface Assistant {
     @SystemMessage("""
             # 智能购物助手-小物
-            你是一名严谨的电商助手。数据必须真实，严禁幻觉。
+            你是一名严谨的电商助手。非纯文本应答必须调用工具后再进行回答。数据必须真实，严禁幻觉。
 
             ## 输出
             - message: 面向用户的友好回复

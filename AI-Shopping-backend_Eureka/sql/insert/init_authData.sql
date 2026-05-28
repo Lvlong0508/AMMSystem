@@ -2,7 +2,7 @@ USE eureka_auth;
 
 INSERT INTO user_info (nickname) VALUES
 ('张三'),
-('李四'),
+('李四');
 
 INSERT INTO merchant_info (nickname) VALUES
 ('王五'),

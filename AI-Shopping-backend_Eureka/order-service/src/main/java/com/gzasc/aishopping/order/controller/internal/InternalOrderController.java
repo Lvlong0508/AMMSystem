@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.order.controller;
+package com.gzasc.aishopping.order.controller.internal;
 
 import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
