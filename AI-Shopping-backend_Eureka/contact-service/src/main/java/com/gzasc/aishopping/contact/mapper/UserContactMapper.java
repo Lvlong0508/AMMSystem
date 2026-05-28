@@ -83,4 +83,13 @@ public interface UserContactMapper {
      */
     @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
     List<Long> selectUserIdsByContactId(int contactId);
+
+    /**
+     * 清除该用户除指定contactId外所有联系人的默认标记
+     */
+    @Update("UPDATE t_contact c " +
+            "INNER JOIN user_contact uc ON c.id = uc.contact_id " +
+            "SET c.is_default = 0 " +
+            "WHERE uc.user_id = #{userId} AND c.id != #{contactId}")
+    int clearDefaultByUserId(@Param("userId") Long userId, @Param("contactId") int contactId);
 }

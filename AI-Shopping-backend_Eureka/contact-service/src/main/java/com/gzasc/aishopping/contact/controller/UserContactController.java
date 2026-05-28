@@ -130,8 +130,11 @@ public class UserContactController {
     }
 
     private Contact toContact(UpdateContactRequest request) {
-        Contact contact = toContact(request);
+        Contact contact = new Contact();
         contact.setId(request.getId());
+        contact.setName(request.getName());
+        contact.setPhone(request.getPhone());
+        contact.setAddress(request.getAddress());
         return contact;
     }
 }

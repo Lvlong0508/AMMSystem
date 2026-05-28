@@ -40,6 +40,12 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- Caffeine 本地缓存 (店铺信息缓存) -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.gzasc</groupId>
             <artifactId>common-api</artifactId>

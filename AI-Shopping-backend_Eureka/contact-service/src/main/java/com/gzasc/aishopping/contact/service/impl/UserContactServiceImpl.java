@@ -64,6 +64,7 @@ public class UserContactServiceImpl implements UserContactService {
         if (userIds.isEmpty() || !userIds.contains(userId)) {
             return 0;
         }
+        userContactMapper.clearDefaultByUserId(userId, id);
         return userContactMapper.setDefaultById(id);
     }
 

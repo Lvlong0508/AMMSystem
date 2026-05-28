@@ -20,6 +20,7 @@ import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,8 +31,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.HashMap;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
@@ -45,30 +50,38 @@ public class ProductServiceImpl implements ProductService {
     private final ProductCache productCache;
     private final ShopFeignClient shopFeignClient;
 
-    private final Map<Long, ShopInfoDTO> shopInfoCache = new ConcurrentHashMap<>();
+    private final Cache<Long, ShopInfoDTO> shopInfoCache = Caffeine.newBuilder()
+            .expireAfterWrite(10, TimeUnit.MINUTES)
+            .maximumSize(1000)
+            .build();
 
     private ShopInfoDTO getCachedShopInfo(Long shopId) {
         if (shopId == null) return null;
-        return shopInfoCache.computeIfAbsent(shopId, id -> {
-            ApiResponse<ShopInfoDTO> response = shopFeignClient.getShopInfo(id);
-            return response != null ? response.getData() : null;
-        });
+        try {
+            return shopInfoCache.get(shopId, id -> {
+                ApiResponse<ShopInfoDTO> response = shopFeignClient.getShopInfo(id);
+                return response != null ? response.getData() : null;
+            });
+        } catch (Exception e) {
+            log.warn("获取店铺信息失败, shopId={}", shopId, e);
+            return null;
+        }
     }
 
     private Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds) {
         if (shopIds == null || shopIds.isEmpty()) return Map.of();
         Set<Long> uncached = shopIds.stream()
-            .filter(id -> !shopInfoCache.containsKey(id))
+            .filter(id -> shopInfoCache.getIfPresent(id) == null)
             .collect(Collectors.toSet());
         if (!uncached.isEmpty()) {
             ApiResponse<Map<Long, ShopInfoDTO>> response = shopFeignClient.batchGetShopInfo(uncached);
             if (response != null && response.getData() != null) {
-                shopInfoCache.putAll(response.getData());
+                response.getData().forEach(shopInfoCache::put);
             }
         }
         return shopIds.stream()
-            .filter(shopInfoCache::containsKey)
-            .collect(Collectors.toMap(id -> id, shopInfoCache::get));
+            .filter(id -> shopInfoCache.getIfPresent(id) != null)
+            .collect(Collectors.toMap(id -> id, shopInfoCache::getIfPresent));
     }
 
     private String getImageUrl(Integer imageId) {
