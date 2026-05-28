@@ -162,8 +162,10 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
-        order.transitionTo(Order.DELIVERED);
-        orderMapper.updateOrderStatus(orderId, Order.DELIVERED);
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.DELIVERED, Order.SHIPPED);
+        if (updated <= 0) {
+            throw new OrderException("订单确认收货失败");
+        }
     }
 
     @Override
@@ -173,8 +175,13 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
-        order.transitionTo(Order.RETURN_PENDING);
-        orderMapper.updateOrderStatus(orderId, Order.RETURN_PENDING);
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURN_PENDING, Order.SHIPPED);
+        if (updated <= 0) {
+            updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURN_PENDING, Order.DELIVERED);
+        }
+        if (updated <= 0) {
+            throw new OrderException("申请退货失败，订单状态不允许退货");
+        }
     }
 
     @Override
@@ -214,8 +221,10 @@ public class OrderServiceImpl implements OrderService {
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
-        order.transitionTo(Order.RETURNING);
-        orderMapper.updateOrderStatus(orderId, Order.RETURNING);
+        int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURNING, Order.RETURN_PENDING);
+        if (updated <= 0) {
+            throw new OrderException("退货审核失败");
+        }
     }
 
     @Override

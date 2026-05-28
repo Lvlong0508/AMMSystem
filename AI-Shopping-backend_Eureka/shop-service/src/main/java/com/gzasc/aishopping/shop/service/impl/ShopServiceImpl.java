@@ -109,7 +109,7 @@ public class ShopServiceImpl implements ShopService {
     @Override
     @Transactional
     public void addEmployee(Long shopId, AddEmployeeRequest request, Long userId) {
-        checkShopOwner(shopId, userId);
+        checkShopOwner(userId, shopId);
         try {
             Map<String, Object> registerRequest = new HashMap<>();
             registerRequest.put("username", request.getUsername());
@@ -139,7 +139,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public void removeEmployee(Long shopId, Long merchantId, Long userId) {
-        checkShopOwner(shopId, userId);
+        checkShopOwner(userId, shopId);
         merchantRoleService.deleteByMerchantAndShop(merchantId, shopId);
     }
 
