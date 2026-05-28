@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.tools;
+package com.gzasc.aishopping.chat.exception;
 
 public class AiToolException extends RuntimeException {
     public AiToolException(String message) {
