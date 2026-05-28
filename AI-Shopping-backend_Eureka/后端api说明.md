@@ -118,23 +118,97 @@
 
 ### AI 聊天 API (`/chat/chat`)
 
+**Header**: 无（用户标识由 Gateway 注入 `X-User-Id`）
+
 | 方法 | 路径 | 作用 |
 |------|------|------|
-| POST | `/chat/chat` | AI 对话 |
+| POST | `/chat/chat` | AI 对话（返回结构化 multi-turn 回复） |
 
 #### 请求体:
+
 ```json
 {
-  "message": "你好，请推荐一些商品"
+  "message": "推荐一些商品"
 }
 ```
 
-#### 响应:
+- `message` 必填，不能为空
+
+#### 响应（纯文本）:
+
 ```json
 {
-  "reply": "您好！根据您的需求，我为您推荐以下商品..."
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "message": "您好！有什么可以帮您的吗？",
+    "reason": "用户主动打招呼，无具体业务请求，返回友好问候",
+    "data": null
+  }
 }
 ```
+
+- `data.data == null` 表示纯文本回复，无结构数据
+
+#### 响应示例（商品）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "message": "为您找到以下商品：",
+    "reason": "用户请求推荐商品，调用 getAllProducts 获取列表后返回",
+    "data": {
+      "type": "product",
+      "products": [
+        {
+          "id": 1,
+          "name": "商品名称",
+          "price": 99.99,
+          "tags": "标签1,标签2",
+          "description": "商品描述",
+          "stock": 100,
+          "imageUrl": "http://example.com/image.jpg",
+          "shopName": "店铺名称"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### 响应示例（订单）:
+
+```json
+{
+  "code": 200,
+  "message": "成功",
+  "data": {
+    "message": "已为您查询到订单信息：",
+    "reason": "用户查询订单，调用 getOrderById 获取详情后返回",
+    "data": {
+      "type": "order",
+      "orders": [
+        {
+          "orderId": "2026052200001ABCDE",
+          "productId": "1",
+          "quantity": 1,
+          "totalPrice": 99.99,
+          "orderStatus": "PENDING",
+          "orderDate": "2026-05-22T12:00:00",
+          "contactName": "张三",
+          "contactPhone": "13800138000",
+          "contactAddress": "广东省深圳市南山区xxx"
+        }
+      ]
+    }
+  }
+}
+```
+
+- `data.data.type` 判别器：`"product"` 表示商品数据，`"order"` 表示订单数据
+- `data.reason` 为 AI 的推理依据，适合调试/日志场景
 
 ---
 
