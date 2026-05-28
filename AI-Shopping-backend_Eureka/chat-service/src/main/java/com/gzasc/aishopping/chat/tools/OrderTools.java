@@ -44,7 +44,7 @@ public class OrderTools {
     @Tool("根据订单状态查询订单列表，可选值：PENDING PAID SHIPPED DELIVERED CANCELLED RETURNED")
     public List<Map<String, Object>> getOrdersByStatus(@P("订单状态，可选值：PENDING PAID SHIPPED DELIVERED CANCELLED RETURNED") String status) {
         return getAllOrders().stream()
-                .filter(order -> status.equals(order.get("orderStatus")))
+                .filter(order -> java.util.Objects.equals(status, order.get("orderStatus")))
                 .collect(Collectors.toList());
     }
 }
