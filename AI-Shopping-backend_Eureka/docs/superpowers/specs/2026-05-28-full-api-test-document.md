@@ -1,6 +1,6 @@
 # AI-Shopping 微服务全量接口测试文档
 
-> 版本：v1.1
+> 版本：v1.2
 > 日期：2026-05-28
 > 覆盖范围：Gateway / Auth / Product / Order / Contact / Logistics / Shop（共 7 个微服务）
 
@@ -554,16 +554,7 @@ PENDING → PAID → SHIPPED → DELIVERED → DELETED
 
 | 优先级 | 服务 | 问题描述 | 影响 |
 |--------|------|---------|------|
-| ~~P0~~ | Contact | ~~`UserContactController.toContact(UpdateContactRequest)` 无限递归~~ | **已修复** commit `af1a8c0` |
-| ~~P1~~ | Contact | ~~`setDefaultContact` 未清除其他默认标记~~ | **已修复** commit `af1a8c0` |
-| ~~P2~~ | Gateway | ~~`user-chat` 路由 `RewritePath` 缺少捕获组~~ | **已修复** commit `af1a8c0` |
-| ~~P2~~ | Product | ~~`shopInfoCache` 使用 `ConcurrentHashMap` 无过期策略~~ | **已修复** commit `af1a8c0` |
 | P3 | Product | `ProductCache` 代码已存在但被注释，暂不生效 | 无影响 |
-
-### 已排除的误报 / 非问题
-
-| ~~P1~~ | Order | ~~并发取消时双倍恢复库存~~ | **误报**。CAS 乐观锁机制已正确防止：先尝试 PAID→CANCELLED 再尝试 PENDING→CANCELLED，两轮 CAS 不可能对同一状态同时成功 |
-| ~~P1~~ | Order | ~~confirmReturn 未恢复库存~~ | **设计如此**。库存恢复通过 `afterCommit` → `STOCK_RESTORE` 事件异步处理（最终一致），非同步缺失 |
 
 ## 附录 B：变更记录
 
@@ -571,6 +562,7 @@ PENDING → PAID → SHIPPED → DELIVERED → DELETED
 |------|------|---------|
 | v1.0 | 2026-05-28 | 初始版本 |
 | v1.1 | 2026-05-28 | 附录 A 更新：P0/P1/P2 四个问题已修复（commit `af1a8c0`）；Section 6 移除 P0/P1 警告；Gateway chat 路由增加子路径验证测试 |
+| v1.2 | 2026-05-28 | 附录 A 删除非活跃条目（已修复的 P0/P1/P2 及已排除的误报），仅保留 P3 |
 
 ## 附录 C：环境准备清单
 
