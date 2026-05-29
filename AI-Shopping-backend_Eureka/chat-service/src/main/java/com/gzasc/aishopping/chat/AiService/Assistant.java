@@ -1,10 +1,11 @@
 package com.gzasc.aishopping.chat.AiService;
 
 import com.gzasc.aishopping.chat.dto.AiResponse;
+import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.spring.AiService;
 
-@AiService(chatModel = "dashScopeChatModel")
+@AiService(chatModel = "dashScopeChatModel", chatMemoryProvider = "chatMemoryProvider")
 public interface Assistant {
     @SystemMessage("""
             # 智能购物助手-小物
@@ -17,5 +18,5 @@ public interface Assistant {
 
             必须严格按照结构化数据输出。
             """)
-    AiResponse chat(String userMessage);
+    AiResponse chat(@MemoryId Long memoryId, String userMessage);
 }

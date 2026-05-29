@@ -1,16 +1,20 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.AiService.Assistant;
+import com.gzasc.aishopping.chat.context.UserContext;
 import com.gzasc.aishopping.chat.dto.AiResponse;
 import com.gzasc.aishopping.chat.dto.OrderData;
 import com.gzasc.aishopping.chat.dto.OrderItem;
 import com.gzasc.aishopping.chat.dto.ProductData;
 import com.gzasc.aishopping.chat.dto.ProductItem;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,12 +32,16 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 class ChatControllerTest {
 
     private MockMvc mockMvc;
+    private MockedStatic<UserContext> userContextMock;
 
     @Mock
     private Assistant assistant;
 
     @BeforeEach
     void setUp() {
+        userContextMock = Mockito.mockStatic(UserContext.class);
+        userContextMock.when(UserContext::getUserId).thenReturn(1L);
+
         var controller = new ChatController(assistant);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -43,10 +51,15 @@ class ChatControllerTest {
                 .build();
     }
 
+    @AfterEach
+    void tearDown() {
+        userContextMock.close();
+    }
+
     @Test
     @DisplayName("CH-001 正常聊天 - 纯文本回复（无工具调用）")
     void chat_textReply() throws Exception {
-        when(assistant.chat("你好")).thenReturn(new AiResponse("你好！我是小物", "greeting", null));
+        when(assistant.chat(1L, "你好")).thenReturn(new AiResponse("你好！我是小物", "greeting", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -66,7 +79,7 @@ class ChatControllerTest {
                 new ProductItem(2L, "耳机", 199.0, "配件", "无线", 200, "url2", "shopB")
         );
         var response = new AiResponse("为您找到以下商品", "called getAllProducts", new ProductData(products));
-        when(assistant.chat("有哪些商品")).thenReturn(response);
+        when(assistant.chat(1L, "有哪些商品")).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -91,7 +104,7 @@ class ChatControllerTest {
                 new OrderItem("ORD002", "P002", 1, 199.0, "SHIPPED", "2026-05-27", "李四", "139xxx", "地址2")
         );
         var response = new AiResponse("您的订单", "called getOrderById", new OrderData(orders));
-        when(assistant.chat("查一下我的订单")).thenReturn(response);
+        when(assistant.chat(1L, "查一下我的订单")).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -153,7 +166,7 @@ class ChatControllerTest {
     @DisplayName("CH-008 超长消息（10001字符）")
     void chat_longMessage() throws Exception {
         String longMsg = "a".repeat(10001);
-        when(assistant.chat(longMsg)).thenReturn(new AiResponse("收到长消息", "long_input", null));
+        when(assistant.chat(1L, longMsg)).thenReturn(new AiResponse("收到长消息", "long_input", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -167,7 +180,7 @@ class ChatControllerTest {
     @DisplayName("CH-009 特殊字符消息 - HTML/JS 注入")
     void chat_specialChars() throws Exception {
         String msg = "<script>alert(1)</script>";
-        when(assistant.chat(msg)).thenReturn(new AiResponse("收到特殊字符", "special_chars", null));
+        when(assistant.chat(1L, msg)).thenReturn(new AiResponse("收到特殊字符", "special_chars", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
