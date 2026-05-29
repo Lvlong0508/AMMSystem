@@ -10,14 +10,6 @@ spring:
       port: 6379
       timeout: 2000ms
 
-langchain4j:
-  dashscope:
-    chat-model:
-      api-key: ${DASHSCOPE_API_KEY}
-      model-name: glm-5.1
-      enable-search: false
-      temperature: 0.7
-
 eureka:
   client:
     service-url:

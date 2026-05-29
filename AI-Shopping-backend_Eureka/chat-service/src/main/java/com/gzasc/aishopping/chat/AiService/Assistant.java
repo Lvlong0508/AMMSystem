@@ -4,7 +4,7 @@ import com.gzasc.aishopping.chat.dto.AiResponse;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.spring.AiService;
 
-@AiService
+@AiService(chatModel = "dashScopeChatModel")
 public interface Assistant {
     @SystemMessage("""
             # 智能购物助手-小物
