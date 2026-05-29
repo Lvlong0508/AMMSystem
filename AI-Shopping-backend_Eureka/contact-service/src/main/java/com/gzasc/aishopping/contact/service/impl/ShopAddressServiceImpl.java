@@ -31,7 +31,7 @@ public class ShopAddressServiceImpl implements ShopAddressService {
         if (rows > 0) {
             shopAddressMapper.insertRel(shopId, address.getId());
         }
-        return rows;
+        return rows > 0 ? address.getId() : 0;
     }
 
     @Override

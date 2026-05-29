@@ -2,7 +2,8 @@ package com.gzasc.aishopping.gateway.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.gzasc.aishopping.gateway.config.IpRateLimitProperties;
+import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,19 @@ import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest(properties = {
@@ -39,6 +45,19 @@ class IpRateLimitFilterTest {
 
     @Autowired
     private WebTestClient webTestClient;
+
+    @MockBean
+    private RedisRateLimitService redisRateLimitService;
+
+    @BeforeEach
+    void setUp() {
+        Map<String, AtomicInteger> counters = new ConcurrentHashMap<>();
+        when(redisRateLimitService.isAllowed(anyString())).thenAnswer(invocation -> {
+            String ip = invocation.getArgument(0);
+            AtomicInteger count = counters.computeIfAbsent(ip, k -> new AtomicInteger(0));
+            return count.incrementAndGet() <= 5;
+        });
+    }
 
     @Test
     @DisplayName("GW-IP-001/GW-IP-002: 正常请求与超限拦截")
@@ -126,10 +145,10 @@ class IpRateLimitFilterTest {
     @Test
     @DisplayName("GW-IP-007: 无代理Header时使用RemoteAddress")
     void testGetClientIp_noProxyHeader_usesRemoteAddress() {
-        IpRateLimitProperties properties = new IpRateLimitProperties();
-        properties.setMaxRequests(5);
-        properties.setTimeWindowSeconds(60);
-        IpRateLimitFilter filter = new IpRateLimitFilter(properties, new ObjectMapper());
+        RedisRateLimitService mockService = mock(RedisRateLimitService.class);
+        when(mockService.isAllowed(anyString())).thenReturn(true);
+        IpRateLimitFilter filter = new IpRateLimitFilter(new ObjectMapper());
+        ReflectionTestUtils.setField(filter, "redisRateLimitService", mockService);
 
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/test")
@@ -146,10 +165,10 @@ class IpRateLimitFilterTest {
     @Test
     @DisplayName("GW-IP-009: 自定义maxRequests=1生效")
     void testRateLimitCustomMaxRequests() {
-        IpRateLimitProperties properties = new IpRateLimitProperties();
-        properties.setMaxRequests(1);
-        properties.setTimeWindowSeconds(60);
-        IpRateLimitFilter filter = new IpRateLimitFilter(properties, new ObjectMapper());
+        RedisRateLimitService mockService = mock(RedisRateLimitService.class);
+        when(mockService.isAllowed(anyString())).thenReturn(true, false);
+        IpRateLimitFilter filter = new IpRateLimitFilter(new ObjectMapper());
+        ReflectionTestUtils.setField(filter, "redisRateLimitService", mockService);
 
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/test")
@@ -182,10 +201,10 @@ class IpRateLimitFilterTest {
         when(mockMapper.writeValueAsString(any()))
                 .thenThrow(new JsonProcessingException("mock error") {});
 
-        IpRateLimitProperties properties = new IpRateLimitProperties();
-        properties.setMaxRequests(0);
-        properties.setTimeWindowSeconds(60);
-        IpRateLimitFilter filter = new IpRateLimitFilter(properties, mockMapper);
+        RedisRateLimitService mockService = mock(RedisRateLimitService.class);
+        when(mockService.isAllowed(anyString())).thenReturn(false);
+        IpRateLimitFilter filter = new IpRateLimitFilter(mockMapper);
+        ReflectionTestUtils.setField(filter, "redisRateLimitService", mockService);
 
         MockServerHttpRequest request = MockServerHttpRequest
                 .get("/api/test")

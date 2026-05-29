@@ -21,6 +21,9 @@ public class UserContactServiceImpl implements UserContactService {
     @Transactional
     public int createContact(Contact contact, Long userId) {
         log.info("createContact, userId={}", userId);
+        if (contact.getIsDefault() == null) {
+            contact.setIsDefault(0);
+        }
         int result = userContactMapper.insertContact(contact);
         if (result > 0) {
             userContactMapper.insertUserRelContact(userId, contact.getId());
@@ -44,6 +47,9 @@ public class UserContactServiceImpl implements UserContactService {
     @Transactional
     public int updateContact(Contact contact, Long userId) {
         log.info("updateContact, id={}, userId={}", contact.getId(), userId);
+        if (contact.getIsDefault() == null) {
+            contact.setIsDefault(0);
+        }
         List<Long> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
         if (userIds.isEmpty() || !userIds.contains(userId)) {
             return 0;

@@ -12,18 +12,6 @@ import java.util.List;
 @Mapper
 public interface UserContactMapper {
 
-    /* ========== 公共结果映射 ========== */
-
-    @Results(id = "CONTACT_RESULT_MAPPING", value = {
-            @Result(property = "id", column = "id"),
-            @Result(property = "name", column = "name"),
-            @Result(property = "phone", column = "phone"),
-            @Result(property = "address", column = "address"),
-            @Result(property = "isDefault", column = "is_default"),
-            @Result(property = "createdAt", column = "created_at"),
-            @Result(property = "updatedAt", column = "updated_at")
-    })
-
     /* ========== 查询操作 ========== */
 
     /**
@@ -38,6 +26,15 @@ public interface UserContactMapper {
 
     // 内部微服务专属
     @Select("SELECT * FROM t_contact WHERE id = #{id}")
+    @Results(id = "CONTACT_RESULT_MAPPING", value = {
+            @Result(property = "id", column = "id"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "phone", column = "phone"),
+            @Result(property = "address", column = "address"),
+            @Result(property = "isDefault", column = "is_default"),
+            @Result(property = "createdAt", column = "created_at"),
+            @Result(property = "updatedAt", column = "updated_at")
+    })
     Contact selectContactById(int id);
 
     /* ========== 用户-联系人关联操作 ========== */

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.InOrder;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -43,9 +44,11 @@ class ShopAddressServiceImplTest {
 
         int result = shopAddressService.createAddress(address, "5001");
 
-        assertEquals(1, result);
+        assertEquals(10, result);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).insertAddress(address);
+        inOrder.verify(shopAddressMapper).insertRel("5001", address.getId());
         verify(shopAddressMapper, never()).clearDefaultByType(anyString(), anyInt());
-        verify(shopAddressMapper).insertRel("5001", address.getId());
     }
 
     @Test
@@ -60,9 +63,11 @@ class ShopAddressServiceImplTest {
 
         int result = shopAddressService.createAddress(address, "5001");
 
-        assertEquals(1, result);
-        verify(shopAddressMapper).clearDefaultByType("5001", 1);
-        verify(shopAddressMapper).insertRel("5001", address.getId());
+        assertEquals(20, result);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).clearDefaultByType("5001", 1);
+        inOrder.verify(shopAddressMapper).insertAddress(address);
+        inOrder.verify(shopAddressMapper).insertRel("5001", address.getId());
     }
 
     @Test
@@ -89,8 +94,10 @@ class ShopAddressServiceImplTest {
         int result = shopAddressService.deleteAddress(1, "5001");
 
         assertEquals(1, result);
-        verify(shopAddressMapper).deleteRelByAddressId(1);
-        verify(shopAddressMapper).deleteAddressById(1);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).selectShopIdByAddressId(1);
+        inOrder.verify(shopAddressMapper).deleteRelByAddressId(1);
+        inOrder.verify(shopAddressMapper).deleteAddressById(1);
     }
 
     @Test
@@ -117,8 +124,10 @@ class ShopAddressServiceImplTest {
         int result = shopAddressService.updateAddress(address, "5001");
 
         assertEquals(1, result);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).selectShopIdByAddressId(1);
+        inOrder.verify(shopAddressMapper).updateAddress(address);
         verify(shopAddressMapper, never()).clearDefaultByType(anyString(), anyInt());
-        verify(shopAddressMapper).updateAddress(address);
     }
 
     @Test
@@ -131,8 +140,10 @@ class ShopAddressServiceImplTest {
         int result = shopAddressService.updateAddress(address, "5001");
 
         assertEquals(1, result);
-        verify(shopAddressMapper).clearDefaultByType("5001", 1);
-        verify(shopAddressMapper).updateAddress(address);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).selectShopIdByAddressId(1);
+        inOrder.verify(shopAddressMapper).clearDefaultByType("5001", 1);
+        inOrder.verify(shopAddressMapper).updateAddress(address);
     }
 
     @Test
@@ -211,8 +222,11 @@ class ShopAddressServiceImplTest {
         int result = shopAddressService.setDefaultAddress(1, "5001");
 
         assertEquals(1, result);
-        verify(shopAddressMapper).clearDefaultByType("5001", 1);
-        verify(shopAddressMapper).setDefaultById(1);
+        InOrder inOrder = inOrder(shopAddressMapper);
+        inOrder.verify(shopAddressMapper).selectShopIdByAddressId(1);
+        inOrder.verify(shopAddressMapper).selectAddressById(1);
+        inOrder.verify(shopAddressMapper).clearDefaultByType("5001", 1);
+        inOrder.verify(shopAddressMapper).setDefaultById(1);
     }
 
     @Test
@@ -237,5 +251,147 @@ class ShopAddressServiceImplTest {
         assertEquals(0, result);
         verify(shopAddressMapper, never()).clearDefaultByType(anyString(), anyInt());
         verify(shopAddressMapper, never()).setDefaultById(anyInt());
+    }
+
+    // ==================== 补充测试用例-CT-SRV-042~052 ====================
+
+    @Test
+    @DisplayName("CT-SRV-042 删除地址-地址ID不存在返回null")
+    void deleteAddress_NullShopId() {
+        when(shopAddressMapper.selectShopIdByAddressId(99999)).thenReturn(null);
+
+        int result = shopAddressService.deleteAddress(99999, "5001");
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-043 更新地址-地址ID不存在返回null")
+    void updateAddress_NullShopId() {
+        ShopAddress address = new ShopAddress(99999, "测试", "0210000000", "地址", 1, 0, null, null);
+        when(shopAddressMapper.selectShopIdByAddressId(99999)).thenReturn(null);
+
+        int result = shopAddressService.updateAddress(address, "5001");
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-044 删除地址-关联已不存在，deleteRel返回0，deleteAddressById仍执行")
+    void deleteAddress_RelAlreadyDeleted() {
+        when(shopAddressMapper.selectShopIdByAddressId(1)).thenReturn("5001");
+        when(shopAddressMapper.deleteRelByAddressId(1)).thenReturn(0);
+        when(shopAddressMapper.deleteAddressById(1)).thenReturn(1);
+
+        int result = shopAddressService.deleteAddress(1, "5001");
+
+        assertEquals(1, result);
+        verify(shopAddressMapper).deleteRelByAddressId(1);
+        verify(shopAddressMapper).deleteAddressById(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-045 删除地址-地址记录不存在返回0")
+    void deleteAddress_NotFound() {
+        when(shopAddressMapper.selectShopIdByAddressId(99999)).thenReturn("5001");
+        when(shopAddressMapper.deleteRelByAddressId(99999)).thenReturn(0);
+        when(shopAddressMapper.deleteAddressById(99999)).thenReturn(0);
+
+        int result = shopAddressService.deleteAddress(99999, "5001");
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-046 更新地址并设为默认-无其他默认需清除，clearDefault返回0")
+    void updateAddress_DefaultNoOther() {
+        ShopAddress address = new ShopAddress(1, "默认仓库", "0215555555", "上海市嘉定区", 1, 1, null, null);
+        when(shopAddressMapper.selectShopIdByAddressId(1)).thenReturn("5001");
+        when(shopAddressMapper.updateAddress(address)).thenReturn(1);
+
+        int result = shopAddressService.updateAddress(address, "5001");
+
+        assertEquals(1, result);
+        verify(shopAddressMapper).clearDefaultByType("5001", 1);
+        verify(shopAddressMapper).updateAddress(address);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-047 更新地址-更新无变化返回0")
+    void updateAddress_NoChange() {
+        ShopAddress address = new ShopAddress(1, "新仓库", "0214444444", "上海市松江区", 1, 0, null, null);
+        when(shopAddressMapper.selectShopIdByAddressId(1)).thenReturn("5001");
+        when(shopAddressMapper.updateAddress(address)).thenReturn(0);
+
+        int result = shopAddressService.updateAddress(address, "5001");
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-048 设置默认地址-无其他默认需清除")
+    void setDefaultAddress_ClearDefaultReturnsZero() {
+        ShopAddress address = new ShopAddress(1, "仓库A", "0211111111", "上海市", 1, 0, null, null);
+        when(shopAddressMapper.selectShopIdByAddressId(1)).thenReturn("5001");
+        when(shopAddressMapper.selectAddressById(1)).thenReturn(address);
+        when(shopAddressMapper.clearDefaultByType("5001", 1)).thenReturn(0);
+        when(shopAddressMapper.setDefaultById(1)).thenReturn(1);
+
+        int result = shopAddressService.setDefaultAddress(1, "5001");
+
+        assertEquals(1, result);
+        verify(shopAddressMapper).clearDefaultByType("5001", 1);
+        verify(shopAddressMapper).setDefaultById(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-049 设置默认地址-setDefaultById返回0")
+    void setDefaultAddress_SetDefaultFails() {
+        ShopAddress address = new ShopAddress(1, "仓库A", "0211111111", "上海市", 1, 0, null, null);
+        when(shopAddressMapper.selectShopIdByAddressId(1)).thenReturn("5001");
+        when(shopAddressMapper.selectAddressById(1)).thenReturn(address);
+        when(shopAddressMapper.clearDefaultByType("5001", 1)).thenReturn(1);
+        when(shopAddressMapper.setDefaultById(1)).thenReturn(0);
+
+        int result = shopAddressService.setDefaultAddress(1, "5001");
+
+        assertEquals(0, result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-050 创建地址-关联插入失败返回0")
+    void createAddress_InsertRelFails() {
+        ShopAddress address = new ShopAddress(null, "仓库A", "0211111111", "上海市嘉定区", 1, 0, null, null);
+        when(shopAddressMapper.insertAddress(address)).thenAnswer(invocation -> {
+            ShopAddress a = invocation.getArgument(0);
+            a.setId(10);
+            return 1;
+        });
+        when(shopAddressMapper.insertRel("5001", 10)).thenReturn(0);
+
+        int result = shopAddressService.createAddress(address, "5001");
+
+        assertEquals(10, result);
+        verify(shopAddressMapper).insertRel("5001", 10);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-051 查询地址列表-shopId为空字符串")
+    void getAddressesByShopId_EmptyShopId() {
+        when(shopAddressMapper.selectAddressesByShopId("")).thenReturn(List.of());
+
+        List<ShopAddress> result = shopAddressService.getAddressesByShopId("");
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-052 查询默认发货地址-shopId为null")
+    void getDefaultShipAddressByShopId_NullShopId() {
+        when(shopAddressMapper.selectDefaultShipAddressByShopId(null)).thenReturn(null);
+
+        ShopAddress result = shopAddressService.getDefaultShipAddressByShopId(null);
+
+        assertNull(result);
     }
 }

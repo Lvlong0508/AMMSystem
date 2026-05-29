@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -345,5 +346,139 @@ class UserContactControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("设置成功"));
+    }
+
+    // ==================== Service Exception Tests ====================
+
+    @Test
+    @DisplayName("CT-006 创建联系人时 Service 抛异常")
+    void createContact_serviceException() throws Exception {
+        when(userContactService.createContact(any(Contact.class), eq(1001L)))
+                .thenThrow(new RuntimeException("数据库异常"));
+        mockMvc.perform(post("/api/user/contact/create")
+                        .header("X-User-Id", "1001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"张三","phone":"13800138000","address":"北京市"}
+                                """))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("CT-007 删除联系人时 Service 抛异常")
+    void deleteContact_serviceException() throws Exception {
+        when(userContactService.deleteContact(anyInt(), eq(1001L)))
+                .thenThrow(new RuntimeException("数据库异常"));
+        mockMvc.perform(delete("/api/user/contact/delete/1")
+                        .header("X-User-Id", "1001"))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("CT-016A 更新联系人时缺少 X-User-Id")
+    void updateContact_missingUserId() throws Exception {
+        mockMvc.perform(put("/api/user/contact/update")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"李四","phone":"13700137000","address":"上海市"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未登录"));
+    }
+
+    @Test
+    @DisplayName("CT-016B 更新联系人时 name 为空")
+    void updateContact_nameBlank() throws Exception {
+        mockMvc.perform(put("/api/user/contact/update")
+                        .header("X-User-Id", "1001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"","phone":"13700137000","address":"上海市"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：姓名为空"));
+    }
+
+    @Test
+    @DisplayName("CT-016C 更新联系人时 phone 为空")
+    void updateContact_phoneBlank() throws Exception {
+        mockMvc.perform(put("/api/user/contact/update")
+                        .header("X-User-Id", "1001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"李四","phone":"","address":"上海市"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：电话为空"));
+    }
+
+    @Test
+    @DisplayName("CT-016D 更新联系人时 address 为空")
+    void updateContact_addressBlank() throws Exception {
+        mockMvc.perform(put("/api/user/contact/update")
+                        .header("X-User-Id", "1001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"李四","phone":"13700137000","address":""}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：地址为空"));
+    }
+
+    @Test
+    @DisplayName("CT-016E 更新联系人时 Service 抛异常")
+    void updateContact_serviceException() throws Exception {
+        when(userContactService.updateContact(any(Contact.class), eq(1001L)))
+                .thenThrow(new RuntimeException("数据库异常"));
+        mockMvc.perform(put("/api/user/contact/update")
+                        .header("X-User-Id", "1001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"李四","phone":"13700137000","address":"上海市"}
+                                """))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("CT-021A 查询列表时 Service 抛异常")
+    void listContact_serviceException() throws Exception {
+        when(userContactService.getContactsByUserId(anyLong()))
+                .thenThrow(new RuntimeException("数据库异常"));
+        mockMvc.perform(get("/api/user/contact/list")
+                        .header("X-User-Id", "1001"))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("CT-025A 设置默认联系人时 Service 抛异常")
+    void setDefault_serviceException() throws Exception {
+        when(userContactService.setDefaultContact(anyInt(), eq(1001L)))
+                .thenThrow(new RuntimeException("数据库异常"));
+        mockMvc.perform(put("/api/user/contact/set-default/1")
+                        .header("X-User-Id", "1001"))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("CT-025B 设置默认联系人时缺少 X-User-Id")
+    void setDefault_missingUserId() throws Exception {
+        mockMvc.perform(put("/api/user/contact/set-default/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未登录"));
     }
 }

@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.mockito.InOrder;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -46,6 +47,9 @@ class UserContactServiceImplTest {
         assertEquals(1, result);
         verify(userContactMapper).insertContact(contact);
         verify(userContactMapper).insertUserRelContact(1001L, contact.getId());
+        InOrder inOrder = inOrder(userContactMapper);
+        inOrder.verify(userContactMapper).insertContact(contact);
+        inOrder.verify(userContactMapper).insertUserRelContact(1001L, contact.getId());
     }
 
     @Test
@@ -229,5 +233,140 @@ class UserContactServiceImplTest {
         Contact result = userContactService.getContactById(99999);
 
         assertNull(result);
+    }
+
+    // ==================== selectUserIdsByContactId 返回 null（防御性）====================
+
+    @Test
+    @DisplayName("CT-SRV-031 删除联系人-关联用户列表返回null，触发NPE")
+    void deleteContact_UserIdsReturnNull() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+
+        assertThrows(NullPointerException.class, () -> userContactService.deleteContact(1, 1001L));
+    }
+
+    @Test
+    @DisplayName("CT-SRV-032 更新联系人-关联用户列表返回null，触发NPE")
+    void updateContact_UserIdsReturnNull() {
+        Contact contact = new Contact(1, "测试", "13800000000", "地址", 0, null, null);
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+
+        assertThrows(NullPointerException.class, () -> userContactService.updateContact(contact, 1001L));
+    }
+
+    @Test
+    @DisplayName("CT-SRV-033 设置默认联系人-关联用户列表返回null，触发NPE")
+    void setDefaultContact_UserIdsReturnNull() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+
+        assertThrows(NullPointerException.class, () -> userContactService.setDefaultContact(1, 1001L));
+    }
+
+    // ==================== userId 为 null ====================
+
+    @Test
+    @DisplayName("CT-SRV-034 创建联系人时userId为null")
+    void createContact_NullUserId() {
+        Contact contact = new Contact(null, "张三", "13800138000", "北京市朝阳区", 0, null, null);
+        when(userContactMapper.insertContact(contact)).thenAnswer(invocation -> {
+            Contact c = invocation.getArgument(0);
+            c.setId(100);
+            return 1;
+        });
+
+        int result = userContactService.createContact(contact, null);
+
+        assertEquals(1, result);
+        verify(userContactMapper).insertContact(contact);
+        verify(userContactMapper).insertUserRelContact(null, contact.getId());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-035 删除联系人时userId为null")
+    void deleteContact_NullUserId() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
+
+        int result = userContactService.deleteContact(1, null);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).deleteRelByContactId(anyInt());
+        verify(userContactMapper, never()).deleteContactById(anyInt());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-036 更新联系人时userId为null")
+    void updateContact_NullUserId() {
+        Contact contact = new Contact(1, "测试", "13800000000", "地址", 0, null, null);
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
+
+        int result = userContactService.updateContact(contact, null);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).updateContact(any());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-037 设置默认联系人时userId为null")
+    void setDefaultContact_NullUserId() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
+
+        int result = userContactService.setDefaultContact(1, null);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).clearDefaultByUserId(anyLong(), anyInt());
+        verify(userContactMapper, never()).setDefaultById(anyInt());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-038 查询联系人列表时userId为null")
+    void getContactsByUserId_NullUserId() {
+        when(userContactMapper.selectByUserId(null)).thenReturn(List.of());
+
+        List<Contact> result = userContactService.getContactsByUserId(null);
+
+        assertTrue(result.isEmpty());
+        verify(userContactMapper).selectByUserId(null);
+    }
+
+    // ==================== Mapper 幂等返回 0 ====================
+
+    @Test
+    @DisplayName("CT-SRV-039 删除联系人-有权限但deleteRel返回0，deleteContactById仍然执行")
+    void deleteContact_RelAlreadyDeleted() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.deleteRelByContactId(1)).thenReturn(0);
+        when(userContactMapper.deleteContactById(1)).thenReturn(1);
+
+        int result = userContactService.deleteContact(1, 1001L);
+
+        assertEquals(1, result);
+        verify(userContactMapper).deleteRelByContactId(1);
+        verify(userContactMapper).deleteContactById(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-040 设置默认联系人-无其他默认需清除，clearDefault返回0")
+    void setDefaultContact_NoOtherDefault() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.clearDefaultByUserId(1001L, 1)).thenReturn(0);
+        when(userContactMapper.setDefaultById(1)).thenReturn(1);
+
+        int result = userContactService.setDefaultContact(1, 1001L);
+
+        assertEquals(1, result);
+        verify(userContactMapper).clearDefaultByUserId(1001L, 1);
+        verify(userContactMapper).setDefaultById(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-041 设置默认联系人-setDefaultById返回0（地址已被删除）")
+    void setDefaultContact_SetDefaultFails() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.clearDefaultByUserId(1001L, 1)).thenReturn(1);
+        when(userContactMapper.setDefaultById(1)).thenReturn(0);
+
+        int result = userContactService.setDefaultContact(1, 1001L);
+
+        assertEquals(0, result);
     }
 }

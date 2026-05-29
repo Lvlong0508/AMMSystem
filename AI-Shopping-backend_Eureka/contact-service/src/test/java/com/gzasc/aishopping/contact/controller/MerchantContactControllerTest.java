@@ -291,4 +291,264 @@ class MerchantContactControllerTest {
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("设置失败：地址不存在或不属于该店铺"));
     }
+
+    // ==================== 参数校验 400 - CreateAddress ====================
+
+    @Test
+    @DisplayName("CT-046 创建地址时 name 为空")
+    void createAddress_emptyName() throws Exception {
+        mockMvc.perform(post("/api/merchant/address/create")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"","phone":"02112345678","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：收货人不能为空"));
+    }
+
+    @Test
+    @DisplayName("CT-047 创建地址时 phone 为空")
+    void createAddress_emptyPhone() throws Exception {
+        mockMvc.perform(post("/api/merchant/address/create")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"店铺","phone":"","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：电话不能为空"));
+    }
+
+    @Test
+    @DisplayName("CT-048 创建地址时 address 为空")
+    void createAddress_emptyAddress() throws Exception {
+        mockMvc.perform(post("/api/merchant/address/create")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"店铺","phone":"02112345678","address":"","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：地址不能为空"));
+    }
+
+    // ==================== Service异常 500 - CreateAddress ====================
+
+    @Test
+    @DisplayName("CT-049 创建地址 Service 异常")
+    void createAddress_serviceError() throws Exception {
+        when(shopAddressService.createAddress(any(ShopAddress.class), eq("5001"))).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(post("/api/merchant/address/create")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"店铺","phone":"02112345678","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    // ==================== 参数校验 400 - UpdateAddress ====================
+
+    @Test
+    @DisplayName("CT-050 更新地址时 name 为空")
+    void updateAddress_emptyName() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"","phone":"02112345678","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：收货人不能为空"));
+    }
+
+    @Test
+    @DisplayName("CT-051 更新地址时 phone 为空")
+    void updateAddress_emptyPhone() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"店铺","phone":"","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：电话不能为空"));
+    }
+
+    @Test
+    @DisplayName("CT-052 更新地址时 address 为空")
+    void updateAddress_emptyAddress() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"店铺","phone":"02112345678","address":"","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：地址不能为空"));
+    }
+
+    @Test
+    @DisplayName("CT-053 更新地址时 addressType 为空")
+    void updateAddress_emptyAddressType() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"店铺","phone":"02112345678","address":"上海市","isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("参数错误：地址类型不能为空"));
+    }
+
+    // ==================== 缺少 Header 401 - UpdateAddress ====================
+
+    @Test
+    @DisplayName("CT-054 更新地址时缺少 X-Shop-Id")
+    void updateAddress_missingShopId() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"店铺","phone":"02112345678","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未获取到店铺ID"));
+    }
+
+    // ==================== Service异常 500 - UpdateAddress ====================
+
+    @Test
+    @DisplayName("CT-055 更新地址 Service 异常")
+    void updateAddress_serviceError() throws Exception {
+        when(shopAddressService.updateAddress(any(ShopAddress.class), eq("5001"))).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(put("/api/merchant/address/update/1")
+                        .header("X-Shop-Id", "5001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"id":1,"name":"店铺","phone":"02112345678","address":"上海市","addressType":1,"isDefault":0}
+                                """))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    // ==================== 缺少 Header 401 - DeleteAddress ====================
+
+    @Test
+    @DisplayName("CT-056 删除地址时缺少 X-Shop-Id")
+    void deleteAddress_missingShopId() throws Exception {
+        mockMvc.perform(delete("/api/merchant/address/delete/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未获取到店铺ID"));
+    }
+
+    // ==================== Service异常 500 - DeleteAddress ====================
+
+    @Test
+    @DisplayName("CT-057 删除地址 Service 异常")
+    void deleteAddress_serviceError() throws Exception {
+        when(shopAddressService.deleteAddress(1, "5001")).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(delete("/api/merchant/address/delete/1")
+                        .header("X-Shop-Id", "5001"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    // ==================== 缺少 Header 401 - GetAddressList ====================
+
+    @Test
+    @DisplayName("CT-058 查询地址列表时缺少 X-Shop-Id")
+    void listAddress_missingShopId() throws Exception {
+        mockMvc.perform(get("/api/merchant/address/list"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未获取到店铺ID"));
+    }
+
+    // ==================== Service异常 500 - GetAddressList ====================
+
+    @Test
+    @DisplayName("CT-059 查询地址列表 Service 异常")
+    void listAddress_serviceError() throws Exception {
+        when(shopAddressService.getAddressesByShopId("5001")).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(get("/api/merchant/address/list")
+                        .header("X-Shop-Id", "5001"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    // ==================== 缺少 Header 401 - GetDefaultShipAddress ====================
+
+    @Test
+    @DisplayName("CT-060 查询默认发货地址时缺少 X-Shop-Id")
+    void getDefaultShipAddress_missingShopId() throws Exception {
+        mockMvc.perform(get("/api/merchant/address/ship-default"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未获取到店铺ID"));
+    }
+
+    // ==================== Service异常 500 - GetDefaultShipAddress ====================
+
+    @Test
+    @DisplayName("CT-061 查询默认发货地址 Service 异常")
+    void getDefaultShipAddress_serviceError() throws Exception {
+        when(shopAddressService.getDefaultShipAddressByShopId("5001")).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(get("/api/merchant/address/ship-default")
+                        .header("X-Shop-Id", "5001"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    // ==================== 业务异常 400 - SetDefaultAddress ====================
+
+    @Test
+    @DisplayName("CT-062 设置不属于当前店铺的地址为默认")
+    void setDefaultAddress_noPermission() throws Exception {
+        when(shopAddressService.setDefaultAddress(20, "5001")).thenReturn(0);
+        mockMvc.perform(put("/api/merchant/address/set-default/20")
+                        .header("X-Shop-Id", "5001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("设置失败：地址不存在或不属于该店铺"));
+    }
+
+    // ==================== 缺少 Header 401 - SetDefaultAddress ====================
+
+    @Test
+    @DisplayName("CT-063 设置默认地址时缺少 X-Shop-Id")
+    void setDefaultAddress_missingShopId() throws Exception {
+        mockMvc.perform(put("/api/merchant/address/set-default/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401))
+                .andExpect(jsonPath("$.message").value("未获取到店铺ID"));
+    }
+
+    // ==================== Service异常 500 - SetDefaultAddress ====================
+
+    @Test
+    @DisplayName("CT-064 设置默认地址 Service 异常")
+    void setDefaultAddress_serviceError() throws Exception {
+        when(shopAddressService.setDefaultAddress(1, "5001")).thenThrow(new RuntimeException("db error"));
+        mockMvc.perform(put("/api/merchant/address/set-default/1")
+                        .header("X-Shop-Id", "5001"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
 }

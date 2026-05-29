@@ -11,7 +11,7 @@ public interface ProductMapper {
 
     // 先获取抽象信息
     @Select("<script>" +
-            "SELECT id,name,price,tags,imageId,shop_id AS shopId FROM products WHERE id IN " +
+            "SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +
@@ -46,19 +46,19 @@ public interface ProductMapper {
             "WHERE id = #{id}")
     int updateProduct(Product product);
 
-    @Select("SELECT id,name,price,tags,imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
+    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
     List<Product> selectByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
 
     // 提供给商家端的分页抽象查询接口
     @Select("<script>" +
-            "SELECT id,name,price,tags,isSale,imageId,shop_id AS shopId FROM products WHERE id IN " +
+            "SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +
             "</script>")
     List<Product> selectAbstractProductsByIdsJustMerchant(@Param("ids") List<String> ids);
 
-    @Select("SELECT id,name,price,tags,imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
+    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
     List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);
 
     @Update("UPDATE products SET image_id = #{imageId}, updated_at = NOW() WHERE id = #{id}")

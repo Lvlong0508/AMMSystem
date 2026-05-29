@@ -75,4 +75,15 @@ class InternalContactControllerTest {
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("联系人不存在"));
     }
+
+    @Test
+    @DisplayName("CT-049 查询联系人时 Service 抛异常")
+    void getContactById_serviceException() throws Exception {
+        when(userContactService.getContactById(1)).thenThrow(new RuntimeException("数据库异常"));
+
+        mockMvc.perform(get("/internal/contact/1"))
+                .andExpect(status().is5xxServerError())
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
 }

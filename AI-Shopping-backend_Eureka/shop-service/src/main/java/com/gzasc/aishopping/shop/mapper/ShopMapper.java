@@ -47,8 +47,10 @@ public interface ShopMapper {
     int countActiveShops();
 
     @Select({"<script>",
-             "SELECT * FROM shops WHERE id IN",
+             "SELECT * FROM shops",
+             "<if test='ids != null and ids.size() > 0'> WHERE id IN",
              "<foreach item='id' collection='ids' open='(' separator=',' close=')'>#{id}</foreach>",
+             "</if><if test='ids == null or ids.size() == 0'> WHERE 1=0</if>",
              "</script>"})
     List<Shop> selectShopsByIds(@Param("ids") Collection<Long> ids);
 }

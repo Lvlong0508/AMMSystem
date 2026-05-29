@@ -12,8 +12,10 @@ import java.util.List;
 @Mapper
 public interface ShopAddressMapper {
 
-    /* ========== 公共结果映射 ========== */
+    /* ========== 查询操作 ========== */
 
+    @Select("SELECT id, name, phone, address, address_type, is_default, created_at, updated_at " +
+            "FROM shop_address WHERE id = #{id}")
     @Results(id = "SHOP_ADDRESS_MAPPING", value = {
             @Result(property = "id", column = "id"),
             @Result(property = "name", column = "name"),
@@ -24,12 +26,6 @@ public interface ShopAddressMapper {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at")
     })
-
-    /* ========== 查询操作 ========== */
-
-    @Select("SELECT id, name, phone, address, address_type, is_default, created_at, updated_at " +
-            "FROM shop_address WHERE id = #{id}")
-    @ResultMap("SHOP_ADDRESS_MAPPING")
     ShopAddress selectAddressById(int id);
 
     @Select("SELECT id, name, phone, address, address_type, is_default, created_at, updated_at " +
