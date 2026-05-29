@@ -47,6 +47,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         user.setUsername(request.getUsername());
         user.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         user.setPhone(request.getPhone());
+        user.setEmail(request.getEmail());
         user.setInfoId(infoId);
         user.setStatus(1);
 

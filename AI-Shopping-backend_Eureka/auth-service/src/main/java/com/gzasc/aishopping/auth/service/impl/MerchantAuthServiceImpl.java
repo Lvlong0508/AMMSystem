@@ -54,6 +54,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
         merchant.setUsername(request.getUsername());
         merchant.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         merchant.setPhone(request.getPhone());
+        merchant.setEmail(request.getEmail());
         merchant.setInfoId(infoId);
         merchant.setStatus(1);
 
