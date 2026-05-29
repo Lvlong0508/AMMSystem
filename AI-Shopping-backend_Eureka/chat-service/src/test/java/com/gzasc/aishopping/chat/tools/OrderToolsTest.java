@@ -3,6 +3,7 @@ package com.gzasc.aishopping.chat.tools;
 import com.gzasc.aishopping.chat.context.UserContext;
 import com.gzasc.aishopping.chat.exception.AiToolException;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +40,7 @@ class OrderToolsTest {
             order.put("orderStatus", "PAID");
             order.put("totalPrice", 5998.0);
 
-            when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(order);
+            when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(ApiResponse.success(order));
 
             Map<String, Object> result = orderTools.getOrderById("ORD001");
             assertEquals("ORD001", result.get("orderId"));
@@ -63,15 +64,16 @@ class OrderToolsTest {
     }
 
     @Test
-    @DisplayName("CH-028 getOrderById - Feign 返回非 Map")
-    void getOrderById_notMap() throws Exception {
+    @DisplayName("CH-028 getOrderById - Feign 返回错误状态码")
+    void getOrderById_errorCode() throws Exception {
         try (MockedStatic<UserContext> uc = Mockito.mockStatic(UserContext.class)) {
             uc.when(UserContext::getUserId).thenReturn(100L);
 
-            when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(List.of("a", "b"));
+            when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(ApiResponse.error(500, "服务异常"));
 
-            Map<String, Object> result = orderTools.getOrderById("ORD001");
-            assertTrue(result.isEmpty());
+            AiToolException ex = assertThrows(AiToolException.class,
+                    () -> orderTools.getOrderById("ORD001"));
+            assertEquals("订单不存在", ex.getMessage());
         }
     }
 
@@ -112,7 +114,7 @@ class OrderToolsTest {
             order2.put("orderId", "ORD002");
             order2.put("orderStatus", "SHIPPED");
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(List.of(order1, order2));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order1, order2)));
 
             List<Map<String, Object>> result = orderTools.getAllOrders();
             assertEquals(2, result.size());
@@ -122,12 +124,12 @@ class OrderToolsTest {
     }
 
     @Test
-    @DisplayName("CH-032 getAllOrders - Feign 返回非 List")
-    void getAllOrders_notList() throws Exception {
+    @DisplayName("CH-032 getAllOrders - Feign 返回错误状态码")
+    void getAllOrders_errorCode() throws Exception {
         try (MockedStatic<UserContext> uc = Mockito.mockStatic(UserContext.class)) {
             uc.when(UserContext::getUserId).thenReturn(100L);
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(Map.of("error", "msg"));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.error(500, "服务异常"));
 
             List<Map<String, Object>> result = orderTools.getAllOrders();
             assertTrue(result.isEmpty());
@@ -150,7 +152,7 @@ class OrderToolsTest {
             order3.put("orderId", "ORD003");
             order3.put("orderStatus", "SHIPPED");
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(List.of(order1, order2, order3));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order1, order2, order3)));
 
             List<Map<String, Object>> result = orderTools.getOrdersByStatus("PAID");
             assertEquals(2, result.size());
@@ -169,7 +171,7 @@ class OrderToolsTest {
             order.put("orderId", "ORD001");
             order.put("orderStatus", "PAID");
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(List.of(order));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
             List<Map<String, Object>> result = orderTools.getOrdersByStatus("CANCELLED");
             assertTrue(result.isEmpty());
@@ -186,7 +188,7 @@ class OrderToolsTest {
             order.put("orderId", "ORD001");
             order.put("orderStatus", "PAID");
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(List.of(order));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
             List<Map<String, Object>> result = orderTools.getOrdersByStatus("INVALID_STATUS");
             assertTrue(result.isEmpty());
@@ -203,7 +205,7 @@ class OrderToolsTest {
             order.put("orderId", "ORD001");
             order.put("orderStatus", "PAID");
 
-            when(orderFeignClient.getAllOrders(100L)).thenReturn(List.of(order));
+            when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
             List<Map<String, Object>> result = orderTools.getOrdersByStatus(null);
             assertTrue(result.isEmpty());
