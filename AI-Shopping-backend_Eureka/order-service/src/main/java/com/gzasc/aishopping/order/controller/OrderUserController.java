@@ -37,15 +37,6 @@ public class OrderUserController {
     public ApiResponse<String> placeOrder(
             @RequestBody @Valid PlaceOrderRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        if (request.getProductId() == null) {
-            return ApiResponse.error(400, "商品信息为空（错误代码：O-001）");
-        }
-        if (request.getContactId() == null) {
-            return ApiResponse.error(400, "收货人信息为空（错误代码：O-002）");
-        }
-        if (request.getQuantity() <= 0) {
-            return ApiResponse.error(400, "购买数量必须大于0（错误代码：O-004）");
-        }
         String orderId = orderService.createOrder(request, userId);
         return ApiResponse.success("创建订单成功", orderId);
     }

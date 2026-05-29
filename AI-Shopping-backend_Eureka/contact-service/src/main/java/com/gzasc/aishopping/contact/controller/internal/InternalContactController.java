@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.contact.controller.internal;
 
+import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.contact.model.Contact;
 import com.gzasc.aishopping.contact.service.UserContactService;
@@ -14,10 +15,17 @@ public class InternalContactController {
     private final UserContactService userContactService;
 
     @GetMapping("/{id}")
-    public ApiResponse<Contact> getContactById(@PathVariable("id") int id) {
-        Contact contact = userContactService.g(id);
+    public ApiResponse<ContactDTO> getContactById(@PathVariable("id") int id) {
+        Contact contact = userContactService.getContactById(id);
         if (contact != null) {
-            return ApiResponse.success(contact);
+            ContactDTO dto = new ContactDTO();
+            dto.setId(contact.getId());
+            dto.setName(contact.getName());
+            dto.setPhone(contact.getPhone());
+            dto.setAddress(contact.getAddress());
+            dto.setCreatedAt(contact.getCreatedAt());
+            dto.setUpdatedAt(contact.getUpdatedAt());
+            return ApiResponse.success(dto);
         } else {
             return ApiResponse.error(400, "联系人不存在");
         }

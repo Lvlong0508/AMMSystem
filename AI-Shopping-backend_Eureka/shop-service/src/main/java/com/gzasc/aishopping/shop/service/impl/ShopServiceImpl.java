@@ -2,6 +2,7 @@ package com.gzasc.aishopping.shop.service.impl;
 
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
@@ -117,9 +118,10 @@ public class ShopServiceImpl implements ShopService {
             if (request.getPhone() != null) registerRequest.put("phone", request.getPhone());
             if (request.getName() != null) registerRequest.put("nickname", request.getName());
 
-            Map<String, Object> registerResult = authFeignClient.registerEmployee(registerRequest);
+            ApiResponse<Map<String, Object>> registerResponse = authFeignClient.registerEmployee(registerRequest);
+            Map<String, Object> registerResult = registerResponse != null ? registerResponse.getData() : null;
             if (registerResult == null || !registerResult.containsKey("merchantId")) {
-                String errorMsg = registerResult != null ? (String) registerResult.get("message") : "注册失败";
+                String errorMsg = registerResponse != null ? registerResponse.getMessage() : "注册失败";
                 throw new ShopException("添加店员失败: " + errorMsg);
             }
 

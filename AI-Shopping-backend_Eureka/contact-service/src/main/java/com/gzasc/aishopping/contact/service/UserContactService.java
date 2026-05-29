@@ -11,5 +11,5 @@ public interface UserContactService {
     List<Contact> getContactsByUserId(Long userId);
     int setDefaultContact(int id, Long userId);
     // 内部微服务专属
-    Contact g(int id);
+    Contact getContactById(int id);
 }

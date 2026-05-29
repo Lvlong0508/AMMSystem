@@ -3,11 +3,9 @@ package com.gzasc.aishopping.gateway.filter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.gateway.config.IpRateLimitProperties;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -21,37 +19,27 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.concurrent.atomic.AtomicInteger;
 
+@Slf4j
 @Component
 public class IpRateLimitFilter implements GlobalFilter, Ordered {
 
-    private static final Logger log = LoggerFactory.getLogger(IpRateLimitFilter.class);
 
-    private final int maxRequests;
-    private final int timeWindowSeconds;
+
+    @Autowired
+    private RedisRateLimitService redisRateLimitService;
+
     private final ObjectMapper objectMapper;
-    private final Cache<String, AtomicInteger> ipRequestCache;
 
-    public IpRateLimitFilter(IpRateLimitProperties properties, ObjectMapper objectMapper) {
-        this.maxRequests = properties.getMaxRequests();
-        this.timeWindowSeconds = properties.getTimeWindowSeconds();
+    public IpRateLimitFilter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        this.ipRequestCache = Caffeine.newBuilder()
-                .expireAfterWrite(Duration.ofSeconds(timeWindowSeconds))
-                .build();
     }
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String ip = getClientIp(exchange.getRequest());
-        AtomicInteger count = ipRequestCache.get(ip, k -> new AtomicInteger(0));
-        int currentCount = count.incrementAndGet();
 
-        log.debug("IP: {}, 当前请求次数: {}/{} (窗口: {}秒)", ip, currentCount, maxRequests, timeWindowSeconds);
-
-        if (currentCount > maxRequests) {
+        if (!redisRateLimitService.isAllowed(ip)) {
             log.warn("IP: {} 请求过于频繁，已拦截", ip);
             return writeErrorResponse(exchange.getResponse(), HttpStatus.TOO_MANY_REQUESTS,
                     new ApiResponse<>(429, "请求过于频繁，请稍后再试", null));

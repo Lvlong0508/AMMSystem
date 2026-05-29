@@ -3,6 +3,7 @@ package com.gzasc.aishopping.chat.tools;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.chat.exception.AiToolException;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +20,12 @@ public class ProductTools {
 
     @Tool("获取商品列表（分页，每页20条）。返回商品信息，包含 shopName")
     public List<Map<String, Object>> getAllProducts(@P("页码，从0开始，每页20条") int page) {
-        Map<String, Object> response = productFeignClient.getAllProducts(page);
-        if (response == null || !"查询成功".equals(response.get("message"))) {
+        ApiResponse<Map<String, Object>> response = productFeignClient.getAllProducts(page);
+        if (response == null || response.getCode() != 200 || response.getData() == null) {
             return Collections.emptyList();
         }
-        Object rawData = response.get("data");
+        Map<String, Object> data = response.getData();
+        Object rawData = data.get("products");
         if (!(rawData instanceof List)) {
             return Collections.emptyList();
         }
@@ -47,15 +49,11 @@ public class ProductTools {
         } catch (NumberFormatException e) {
             throw new AiToolException("商品ID格式不正确");
         }
-        Map<String, Object> response = productFeignClient.getProductByIdExternal(id);
-        if (response == null || !"查询成功".equals(response.get("message"))) {
+        ApiResponse<Map<String, Object>> response = productFeignClient.getProductByIdExternal(id);
+        if (response == null || response.getCode() != 200 || response.getData() == null) {
             throw new AiToolException("id不存在或商品已下架");
         }
-        Object rawData = response.get("data");
-        if (!(rawData instanceof Map)) {
-            throw new AiToolException("id不存在或商品已下架");
-        }
-        Map<String, Object> result = new HashMap<>((Map<String, Object>) rawData);
+        Map<String, Object> result = new HashMap<>(response.getData());
         if (result.get("shop") instanceof Map) {
             Map<String, Object> shop = (Map<String, Object>) result.get("shop");
             result.put("shopName", shop.get("name"));

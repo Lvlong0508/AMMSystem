@@ -2,16 +2,16 @@ package com.gzasc.aishopping.product.task;
 
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ReservationCleanupTask {
 
-    private static final Logger log = LoggerFactory.getLogger(ReservationCleanupTask.class);
+
 
     private final ProductReservationService reservationService;
 

@@ -1,21 +1,21 @@
 package com.gzasc.aishopping.chat.context;
 
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
+public class UserContext {
+    private static final ThreadLocal<Long> userIdHolder = new InheritableThreadLocal<>();
 
-public final class UserContext {
-
-    private UserContext() {}
+    public static void setUserId(Long userId) {
+        userIdHolder.set(userId);
+    }
 
     public static Long getUserId() {
-        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (attrs == null) {
-            throw new RuntimeException("No request context available");
+        Long userId = userIdHolder.get();
+        if (userId == null) {
+            throw new IllegalStateException("No user context available");
         }
-        String userId = attrs.getRequest().getHeader("X-User-Id");
-        if (userId == null || userId.isEmpty()) {
-            throw new RuntimeException("X-User-Id header is missing");
-        }
-        return Long.parseLong(userId);
+        return userId;
+    }
+
+    public static void clear() {
+        userIdHolder.remove();
     }
 }

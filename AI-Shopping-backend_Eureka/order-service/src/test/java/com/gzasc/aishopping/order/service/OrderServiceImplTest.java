@@ -1,5 +1,7 @@
 package com.gzasc.aishopping.order.service;
 
+import com.gzasc.aishopping.common.dto.contact.ContactDTO;
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -99,12 +101,11 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(orderIdSelector.generate()).thenReturn("2026052800001ABCDE");
-        when(productFeignClient.getProductById(1L)).thenReturn(Map.of(
-                "price", 50.0, "stock", 10, "shopId", "SHOP001"
-        ));
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
-                .thenReturn(Map.of("success", true));
+                .thenReturn(ApiResponse.success(null));
 
         String orderId = orderService.createOrder(request, 100L);
 
@@ -113,7 +114,7 @@ class OrderServiceImplTest {
         Order saved = orderCaptor.getValue();
         assertEquals("PENDING", saved.getOrderStatus());
         assertEquals(100L, saved.getUserId());
-        assertEquals("SHOP001", saved.getShopId());
+        assertEquals("100", saved.getShopId());
         verify(productFeignClient).reserveStock(stockReserveCaptor.capture());
         assertEquals("2026052800001ABCDE", stockReserveCaptor.getValue().getOrderId());
         assertEquals("1", stockReserveCaptor.getValue().getProductId());
@@ -128,7 +129,7 @@ class OrderServiceImplTest {
         request.setQuantity(1);
         request.setContactId(1);
 
-        when(productFeignClient.getProductById(999L)).thenReturn(null);
+        when(productFeignClient.getProductById(999L)).thenReturn(ApiResponse.success(null));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -144,9 +145,8 @@ class OrderServiceImplTest {
         request.setQuantity(5);
         request.setContactId(1);
 
-        when(productFeignClient.getProductById(1L)).thenReturn(Map.of(
-                "price", 50.0, "stock", 3, "shopId", "SHOP001"
-        ));
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 3, 100L, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -163,12 +163,11 @@ class OrderServiceImplTest {
         request.setContactId(999);
 
         when(orderIdSelector.generate()).thenReturn("2026052800002ABCDE");
-        when(productFeignClient.getProductById(1L)).thenReturn(Map.of(
-                "price", 50.0, "stock", 10, "shopId", "SHOP001"
-        ));
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
-                .thenReturn(Map.of("success", true));
+                .thenReturn(ApiResponse.success(null));
 
         String orderId = orderService.createOrder(request, 100L);
         assertNotNull(orderId);
@@ -185,9 +184,8 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(orderIdSelector.generate()).thenReturn("2026052800003ABCDE");
-        when(productFeignClient.getProductById(1L)).thenReturn(Map.of(
-                "price", 50.0, "stock", 10, "shopId", "SHOP001"
-        ));
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenThrow(new RuntimeException("Feign调用失败"));
@@ -205,9 +203,8 @@ class OrderServiceImplTest {
         request.setQuantity(1);
         request.setContactId(1);
 
-        when(productFeignClient.getProductById(1L)).thenReturn(Map.of(
-                "price", 50.0, "stock", 10
-        ));
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -571,13 +568,18 @@ class OrderServiceImplTest {
         dto.setOrderId("ORDER001");
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
 
+        ContactDTO contactDTO = new ContactDTO();
+        contactDTO.setId(1);
+        contactDTO.setName("张三");
+        contactDTO.setPhone("13800138001");
+        contactDTO.setAddress("北京市");
         when(contactFeignClient.getContactById(1)).thenReturn(
-                Map.of("name", "张三", "phone", "13800138001", "address", "北京市")
+                ApiResponse.success(contactDTO)
         );
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF1234567890")));
 
-        when(orderConverter.enrichDetailDTO(any(), any(), any())).thenReturn(dto);
+        when(orderConverter.enrichDetailDTO(any(), any(ContactDTO.class), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);

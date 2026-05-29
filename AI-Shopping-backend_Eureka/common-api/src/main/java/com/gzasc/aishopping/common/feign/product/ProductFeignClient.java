@@ -20,37 +20,37 @@ import java.util.Map;
 public interface ProductFeignClient {
 
     @GetMapping("/api/user/product/all")
-    Map<String, Object> getAllProducts(@RequestParam("page") int page);
+    ApiResponse<Map<String, Object>> getAllProducts(@RequestParam("page") int page);
 
     @GetMapping("/api/user/product/{productId}")
-    Map<String, Object> getProductByIdExternal(@PathVariable("productId") Long productId);
+    ApiResponse<Map<String, Object>> getProductByIdExternal(@PathVariable("productId") Long productId);
 
     @GetMapping("/internal/product/{productId}")
-    Map<String, Object> getProductById(@PathVariable("productId") Long productId);
+    ApiResponse<ProductDTO> getProductById(@PathVariable("productId") Long productId);
 
     @PostMapping("/internal/product/deduct-stock")
-    Map<String, Object> deductStock(@RequestBody StockDeductRequest request);
+    ApiResponse<Void> deductStock(@RequestBody StockDeductRequest request);
 
     @PostMapping("/internal/product/restore-stock")
-    Map<String, Object> restoreStock(@RequestBody StockDeductRequest request);
+    ApiResponse<Void> restoreStock(@RequestBody StockDeductRequest request);
 
     @PostMapping("/internal/product/create")
     ApiResponse<Map<String, Object>> createProduct(@RequestBody ProductDTO request);
 
     @PutMapping("/internal/product/{productId}")
-    Map<String, Object> updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDTO request);
+    ApiResponse<Map<String, Object>> updateProduct(@PathVariable("productId") Long productId, @RequestBody ProductDTO request);
 
     @DeleteMapping("/internal/product/{productId}")
-    Map<String, Object> deleteProduct(@PathVariable("productId") Long productId);
+    ApiResponse<Void> deleteProduct(@PathVariable("productId") Long productId);
 
     @PostMapping("/internal/product/reserve-stock")
-    Map<String, Object> reserveStock(@RequestBody StockReserveRequest request);
+    ApiResponse<Void> reserveStock(@RequestBody StockReserveRequest request);
 
     @PostMapping("/internal/product/confirm-reservation")
-    Map<String, Object> confirmReservation(@RequestParam("orderId") String orderId);
+    ApiResponse<Void> confirmReservation(@RequestParam("orderId") String orderId);
 
     @PostMapping("/internal/product/release-reservation")
-    Map<String, Object> releaseReservation(@RequestParam("orderId") String orderId);
+    ApiResponse<Void> releaseReservation(@RequestParam("orderId") String orderId);
 
     @GetMapping("/internal/product/by-shop/{shopId}")
     ApiResponse<List<Map<String, Object>>> getProductsByShopId(@PathVariable("shopId") Long shopId,

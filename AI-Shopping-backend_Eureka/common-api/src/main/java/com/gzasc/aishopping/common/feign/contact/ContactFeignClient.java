@@ -1,10 +1,10 @@
 package com.gzasc.aishopping.common.feign.contact;
 
+import com.gzasc.aishopping.common.dto.contact.ContactDTO;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.Map;
 
 /**
  * 联系人服务 Feign 客户端
@@ -17,5 +17,5 @@ public interface ContactFeignClient {
      * 根据ID查询联系人
      */
     @GetMapping("/internal/contact/{id}")
-    Map<String, Object> getContactById(@PathVariable("id") Integer id);
+    ApiResponse<ContactDTO> getContactById(@PathVariable("id") Integer id);
 }

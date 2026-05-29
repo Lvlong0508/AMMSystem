@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.shop.controller.Internal;
+package com.gzasc.aishopping.shop.controller.internal;
 
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.shop.controller.GlobalExceptionHandler;

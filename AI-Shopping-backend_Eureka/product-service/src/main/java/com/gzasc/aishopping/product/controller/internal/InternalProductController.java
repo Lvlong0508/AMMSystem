@@ -1,10 +1,11 @@
 package com.gzasc.aishopping.product.controller.internal;
 
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
-import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
+import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -21,12 +22,27 @@ import java.util.Map;
 public class InternalProductController {
 
     private final ProductService productService;
+    private final ProductMapper productMapper;
     private final ProductReservationService reservationService;
 
     // 内部接口：根据ID查询商品详情（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/{productId}")
-    public ProductWithImageDetailDTO getProductById(@PathVariable("productId") String productId) {
-        return productService.getProductById(productId);
+    public ApiResponse<ProductDTO> getProductById(@PathVariable("productId") String productId) {
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            return ApiResponse.error(404, "商品不存在");
+        }
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setPrice(product.getPrice() != null ? product.getPrice().doubleValue() : null);
+        dto.setTags(product.getTags());
+        dto.setDescription(product.getDescription());
+        dto.setStock(product.getStock());
+        dto.setShopId(product.getShopId());
+        dto.setCreatedAt(product.getCreatedAt());
+        dto.setUpdatedAt(product.getUpdatedAt());
+        return ApiResponse.success(dto);
     }
 
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
@@ -38,37 +54,43 @@ public class InternalProductController {
 
     // 内部接口：扣减库存（订单服务下单成功就执行）
     @PostMapping("/deduct-stock")
-    public Map<String, Object> deductStock(@RequestBody StockDeductRequest request) {
+    public ApiResponse<Void> deductStock(@RequestBody StockDeductRequest request) {
         boolean success = productService.deductStock(request.getProductId(), request.getQuantity());
-        return Map.of("success", success, "message", success ? "扣减成功" : "扣减失败：库存不足");
+        if (success) {
+            return ApiResponse.success(null);
+        }
+        return ApiResponse.error("扣减失败：库存不足");
     }
 
     // 内部接口：恢复库存（订单服务取消订单时执行）
     @PostMapping("/restore-stock")
-    public Map<String, Object> restoreStock(@RequestBody StockDeductRequest request) {
+    public ApiResponse<Void> restoreStock(@RequestBody StockDeductRequest request) {
         boolean success = productService.restoreStock(request.getProductId(), request.getQuantity());
-        return Map.of("success", success, "message", success ? "恢复成功" : "恢复失败");
+        if (success) {
+            return ApiResponse.success(null);
+        }
+        return ApiResponse.error("恢复失败");
     }
 
     // 内部接口：预占库存（订单服务下单成功后执行）
     @PostMapping("/reserve-stock")
-    public Map<String, Object> reserveStock(@RequestBody StockReserveRequest req) {
+    public ApiResponse<Void> reserveStock(@RequestBody StockReserveRequest req) {
         try {
             reservationService.reserve(req.getOrderId(), req.getProductId(), req.getQuantity());
-            return Map.of("success", true, "message", "预占成功");
+            return ApiResponse.success(null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
+            return ApiResponse.error(e.getMessage());
         }
     }
 
     // 内部接口：确认预占并扣减库存（订单服务支付时执行）
     @PostMapping("/confirm-reservation")
-    public Map<String, Object> confirmReservation(@RequestParam String orderId) {
+    public ApiResponse<Void> confirmReservation(@RequestParam String orderId) {
         try {
             reservationService.confirm(orderId);
-            return Map.of("success", true, "message", "确认成功");
+            return ApiResponse.success(null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
+            return ApiResponse.error(e.getMessage());
         }
     }
 
@@ -94,12 +116,12 @@ public class InternalProductController {
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
     @PostMapping("/release-reservation")
-    public Map<String, Object> releaseReservation(@RequestParam String orderId) {
+    public ApiResponse<Void> releaseReservation(@RequestParam String orderId) {
         try {
             reservationService.release(orderId);
-            return Map.of("success", true, "message", "释放成功");
+            return ApiResponse.success(null);
         } catch (Exception e) {
-            return Map.of("success", false, "message", e.getMessage());
+            return ApiResponse.error(e.getMessage());
         }
     }
 }

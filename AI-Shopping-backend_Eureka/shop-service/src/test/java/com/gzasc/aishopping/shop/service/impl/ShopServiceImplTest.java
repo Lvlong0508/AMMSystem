@@ -2,6 +2,7 @@ package com.gzasc.aishopping.shop.service.impl;
 
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
@@ -286,8 +287,7 @@ class ShopServiceImplTest {
         request.setName("店员小王");
 
         when(merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1)).thenReturn(new MerchantRole());
-        Map<String, Object> feignResult = new HashMap<>();
-        feignResult.put("merchantId", 2001L);
+        ApiResponse<Map<String, Object>> feignResult = ApiResponse.success(Map.of("merchantId", 2001L));
         when(authFeignClient.registerEmployee(any())).thenReturn(feignResult);
 
         shopService.addEmployee(shopId, request, userId);
@@ -313,8 +313,7 @@ class ShopServiceImplTest {
         request.setPassword("Abc123");
 
         when(merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1)).thenReturn(new MerchantRole());
-        Map<String, Object> feignResult = new HashMap<>();
-        feignResult.put("message", "用户名已存在");
+        ApiResponse<Map<String, Object>> feignResult = ApiResponse.error("用户名已存在");
         when(authFeignClient.registerEmployee(any())).thenReturn(feignResult);
 
         ShopException ex = assertThrows(ShopException.class,

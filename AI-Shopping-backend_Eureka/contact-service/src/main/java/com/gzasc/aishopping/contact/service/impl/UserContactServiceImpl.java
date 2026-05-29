@@ -69,7 +69,7 @@ public class UserContactServiceImpl implements UserContactService {
     }
 
     @Override
-    public Contact g(int id) {
+    public Contact getContactById(int id) {
         log.info("getContactById, id={}", id);
         return userContactMapper.selectContactById(id);
     }

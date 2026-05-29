@@ -10,19 +10,19 @@ import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/seller/product")
 @RequiredArgsConstructor
 public class ProductSellerController {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductSellerController.class);
+
     private final ProductService productService;
 
     @GetMapping("/{productId}")

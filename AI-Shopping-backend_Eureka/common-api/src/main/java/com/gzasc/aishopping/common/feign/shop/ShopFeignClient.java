@@ -22,5 +22,5 @@ public interface ShopFeignClient {
     ApiResponse<Map<Long, ShopInfoDTO>> batchGetShopInfo(@RequestBody Set<Long> shopIds);
 
     @GetMapping("/internal/shop/employees/roles/{merchantId}")
-    Map<String, Object> getMerchantRoles(@PathVariable("merchantId") Long merchantId);
+    ApiResponse<Map<String, Object>> getMerchantRoles(@PathVariable("merchantId") Long merchantId);
 }

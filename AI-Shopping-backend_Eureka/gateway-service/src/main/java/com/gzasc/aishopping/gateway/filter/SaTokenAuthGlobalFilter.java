@@ -2,8 +2,7 @@ package com.gzasc.aishopping.gateway.filter;
 
 import com.gzasc.aishopping.gateway.exception.GatewayAuthException;
 import com.gzasc.aishopping.gateway.service.AuthService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -12,10 +11,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Component
 public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
 
-    private static final Logger log = LoggerFactory.getLogger(SaTokenAuthGlobalFilter.class);
+
 
     private final AuthService authService;
 

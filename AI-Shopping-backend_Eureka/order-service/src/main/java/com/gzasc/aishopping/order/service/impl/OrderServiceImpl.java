@@ -1,5 +1,7 @@
 package com.gzasc.aishopping.order.service.impl;
 
+import com.gzasc.aishopping.common.dto.contact.ContactDTO;
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -43,21 +45,20 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public String createOrder(PlaceOrderRequest request, Long userId) {
-        Map<String, Object> productMap = productFeignClient.getProductById(Long.valueOf(request.getProductId()));
-        if (productMap == null) {
+        ApiResponse<ProductDTO> productResp = productFeignClient.getProductById(Long.valueOf(request.getProductId()));
+        if (productResp == null || productResp.getData() == null) {
             throw new OrderException("商品不存在（错误代码：O-003）");
         }
+        ProductDTO product = productResp.getData();
 
-        double price = productMap.get("price") != null
-                ? ((Number) productMap.get("price")).doubleValue() : 0.0;
-        int stock = productMap.get("stock") != null
-                ? ((Number) productMap.get("stock")).intValue() : 0;
+        double price = product.getPrice() != null ? product.getPrice() : 0.0;
+        int stock = product.getStock() != null ? product.getStock() : 0;
 
         if (stock < request.getQuantity()) {
             throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
         }
 
-        Object shopIdObj = productMap.get("shopId");
+        Long shopIdObj = product.getShopId();
         if (shopIdObj == null) {
             throw new OrderException("获取店铺信息失败");
         }
@@ -287,10 +288,13 @@ public class OrderServiceImpl implements OrderService {
     private OrderDetailDTO buildDetailDTO(Order order) {
         OrderDetailDTO dto = orderConverter.toDetailDTO(order);
 
-        Map<String, Object> contactInfo = null;
+        ContactDTO contactInfo = null;
         try {
             if (order.getContactId() != null) {
-                contactInfo = contactFeignClient.getContactById(order.getContactId());
+                ApiResponse<ContactDTO> contactResp = contactFeignClient.getContactById(order.getContactId());
+                if (contactResp != null) {
+                    contactInfo = contactResp.getData();
+                }
             }
         } catch (Exception e) {
             log.warn("获取联系人信息失败", e);

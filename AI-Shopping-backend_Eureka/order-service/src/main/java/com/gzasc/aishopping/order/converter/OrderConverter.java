@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.converter;
 
+import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.order.dto.OrderAbstractSellerDTO;
 import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
@@ -57,12 +58,12 @@ public class OrderConverter {
         return dto;
     }
 
-    public OrderDetailDTO enrichDetailDTO(OrderDetailDTO dto, Map<String, Object> contactInfo,
+    public OrderDetailDTO enrichDetailDTO(OrderDetailDTO dto, ContactDTO contactInfo,
                                           Map<String, Object> logisticsInfo) {
         if (contactInfo != null) {
-            dto.setContactName((String) contactInfo.get("name"));
-            dto.setContactPhone((String) contactInfo.get("phone"));
-            dto.setContactAddress((String) contactInfo.get("address"));
+            dto.setContactName(contactInfo.getName());
+            dto.setContactPhone(contactInfo.getPhone());
+            dto.setContactAddress(contactInfo.getAddress());
         }
         if (logisticsInfo != null && logisticsInfo.get("data") instanceof Map) {
             Map<String, Object> data = (Map<String, Object>) logisticsInfo.get("data");

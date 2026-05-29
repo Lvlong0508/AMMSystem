@@ -1,15 +1,14 @@
 package com.gzasc.aishopping.order.model;
 
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Set;
 
+@Slf4j
 @Data
 public class Order {
-    private static final Logger log = LoggerFactory.getLogger(Order.class);
     /** 待支付 */
     public static final String PENDING = "PENDING";
     /** 待发货 */

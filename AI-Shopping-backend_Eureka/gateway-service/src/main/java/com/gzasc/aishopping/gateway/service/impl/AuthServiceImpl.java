@@ -3,18 +3,18 @@ package com.gzasc.aishopping.gateway.service.impl;
 import com.gzasc.aishopping.gateway.config.AuthWhitelistProperties;
 import com.gzasc.aishopping.gateway.exception.GatewayAuthException;
 import com.gzasc.aishopping.gateway.service.AuthService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.AntPathMatcher;
 
+@Slf4j
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
     private final StringRedisTemplate stringRedisTemplate;

@@ -5,8 +5,7 @@ import com.gzasc.aishopping.product.mapper.ProductReservationMapper;
 import com.gzasc.aishopping.product.model.ProductReservation;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +14,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProductReservationServiceImpl implements ProductReservationService {
 
-    private static final Logger log = LoggerFactory.getLogger(ProductReservationServiceImpl.class);
+
 
     private final ProductReservationMapper mapper;
 

@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.common.feign.auth;
 
+import com.gzasc.aishopping.common.response.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -17,5 +18,5 @@ public interface AuthFeignClient {
      * 注册店员
      */
     @PostMapping("/internal/auth/register-employee")
-    Map<String, Object> registerEmployee(@RequestBody Map<String, Object> request);
+    ApiResponse<Map<String, Object>> registerEmployee(@RequestBody Map<String, Object> request);
 }

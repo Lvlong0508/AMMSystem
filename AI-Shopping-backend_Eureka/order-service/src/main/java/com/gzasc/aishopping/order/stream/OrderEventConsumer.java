@@ -51,7 +51,6 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void handleStockConfirm(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         Order o = orderMapper.selectOrderById(orderId);
@@ -60,11 +59,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
             return;
         }
         if ("PAID".equals(o.getOrderStatus())) {
-            Map<String, Object> result = productFeignClient.confirmReservation(orderId);
-            Boolean success = (Boolean) result.get("success");
-            if (!Boolean.TRUE.equals(success)) {
-                log.warn("confirmReservation失败, orderId={}, msg={}", orderId, result.get("message"));
-                throw new RuntimeException("confirmReservation failed: " + result.get("message"));
+            ApiResponse<Void> result = productFeignClient.confirmReservation(orderId);
+            if (result == null || result.getCode() != 200) {
+                log.warn("confirmReservation失败, orderId={}, msg={}", orderId, result != null ? result.getMessage() : "null");
+                throw new RuntimeException("confirmReservation failed: " + (result != null ? result.getMessage() : "null"));
             }
             log.info("库存确认成功, orderId={}", orderId);
         } else {
@@ -73,7 +71,6 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         }
     }
 
-    @SuppressWarnings("unchecked")
     private void handleStockRestore(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         String idempotentKey = "restore:done:" + orderId;

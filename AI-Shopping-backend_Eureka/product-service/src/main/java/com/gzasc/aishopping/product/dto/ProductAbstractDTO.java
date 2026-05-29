@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 
+@Deprecated
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

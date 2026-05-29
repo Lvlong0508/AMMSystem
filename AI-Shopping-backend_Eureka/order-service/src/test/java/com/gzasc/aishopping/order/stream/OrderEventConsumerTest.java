@@ -87,7 +87,7 @@ class OrderEventConsumerTest {
         Order order = createOrder("ORDER001", "PAID");
         when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
         when(productFeignClient.confirmReservation("ORDER001"))
-                .thenReturn(Map.of("success", true));
+                .thenReturn(ApiResponse.success(null));
 
         MapRecord<String, String, String> record = createRecord(Map.of(
                 "eventType", "STOCK_CONFIRM",
@@ -107,7 +107,7 @@ class OrderEventConsumerTest {
         Order order = createOrder("ORDER001", "CANCELLED");
         when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
         when(productFeignClient.releaseReservation("ORDER001"))
-                .thenReturn(Map.of("success", true));
+                .thenReturn(ApiResponse.success(null));
 
         MapRecord<String, String, String> record = createRecord(Map.of(
                 "eventType", "STOCK_CONFIRM",
@@ -143,7 +143,7 @@ class OrderEventConsumerTest {
         Order order = createOrder("ORDER001", "PAID");
         when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
         when(productFeignClient.confirmReservation("ORDER001"))
-                .thenReturn(Map.of("success", false, "message", "库存不足"));
+                .thenReturn(ApiResponse.error("库存不足"));
 
         MapRecord<String, String, String> record = createRecord(Map.of(
                 "eventType", "STOCK_CONFIRM",
@@ -166,7 +166,7 @@ class OrderEventConsumerTest {
         Order order = createOrder("ORDER001", "RETURNED");
         when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
         when(productFeignClient.restoreStock(any(StockDeductRequest.class)))
-                .thenReturn(Map.of("success", true));
+                .thenReturn(ApiResponse.success(null));
 
         MapRecord<String, String, String> record = createRecord(Map.of(
                 "eventType", "STOCK_RESTORE",
