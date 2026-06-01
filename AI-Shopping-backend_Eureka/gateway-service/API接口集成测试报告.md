@@ -136,13 +136,13 @@ Client
 - **影响**: 修改 `application.yml` 中 `ip-rate-limit.max-requests` 或 `ip-rate-limit.time-window-seconds` 不会生效，实际限流参数始终为 300/60
 - **修复**: 改用 `@Value("${ip-rate-limit.max-requests:300}")` 和 `@Value("${ip-rate-limit.time-window-seconds:60}")` 从 yml 读取配置；删除无用的 `IpRateLimitProperties.java`
 
-### Bug #3（新增）：SaTokenAuthGlobalFilter 响应式异常处理错误
+### ~~Bug #3~~（非 Bug）：SaTokenAuthGlobalFilter 同步 throw
 
-- **严重程度**: 中
+- **严重程度**: 无（false positive）
 - **涉及文件**: `SaTokenAuthGlobalFilter.java:46`
-- **现象**: 过滤器中使用同步 `throw new GatewayAuthException(403, ...)` 而非 `Mono.error()`，在 WebFlux/Spring Cloud Gateway 的响应式上下文中，同步 `throw` 可能绕过 Reactor 异常处理链，导致异常丢失或响应无法正确返回
-- **根因**: Gateway 基于 Spring WebFlux（Reactor），`GlobalFilter.filter()` 返回 `Mono<Void>`，异常应通过 `Mono.error()` 传播而非同步抛出
-- **影响**: 在极端情况下，403 权限拒绝可能不会正确返回给客户端
+- **现象**: 过滤器中使用同步 `throw new GatewayAuthException(403, ...)` 而非 `Mono.error()`
+- **分析**: Spring Cloud Gateway 的 `DefaultGatewayFilterChain.filter()` 内部已用 `Mono.defer(() -> ...)` 包裹，过滤器中任何同步 `throw` 都会被 `Mono.defer` 自动捕获并转为 `Mono.error` 信号，因此异常可正确到达 `GlobalErrorWebExceptionHandler`
+- **结论**: 同步 `throw` 写法正确，与其他服务（auth-service 等）的异常抛出方式一致，无需修改
 
 ### Bug #4（已修复）：validateToken() 绕过 Sa-Token 活跃度续期
 
@@ -184,7 +184,7 @@ Client
 | 过滤器 | Order | 状态 | 说明 |
 |---------|:-----:|:----:|------|
 | **IpRateLimitFilter** | -200 | ✅ | 所有请求先经过 IP 限流，正常工作；配置已改为 `@Value` 注入 |
-| **SaTokenAuthGlobalFilter** | -100 | ✅/❌ | Token 认证 + 角色鉴权正确；❌ 内部路由未放行；❌ 使用同步 `throw` 而非 `Mono.error()` |
+| **SaTokenAuthGlobalFilter** | -100 | ✅/❌ | Token 认证 + 角色鉴权正确；❌ 内部路由未放行；同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确 |
 | **GlobalErrorWebExceptionHandler** | -1 | ✅/⚠️ | 统一 JSON 错误响应正常；⚠️ `ResponseStatusException` 捕获路径存在类型转换风险 |
 
 ### 6.2 认证鉴权
@@ -250,7 +250,7 @@ Client
 
 | 文件 | 行数 | 关键方法 | 潜在问题 |
 |------|:----:|----------|----------|
-| `SaTokenAuthGlobalFilter.java` | 61 | `filter()`, `getOrder()` | 同步 `throw` 在响应式上下文中；`/internal/**` 未放行 |
+| `SaTokenAuthGlobalFilter.java` | 61 | `filter()`, `getOrder()` | `/internal/**` 未放行；同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确 |
 | `IpRateLimitFilter.java` | 83 | `filter()`, `getClientIp()`, `writeErrorResponse()` | `getAddress()` 可能 NPE |
 | `RedisRateLimitService.java` | 27 | `isAllowed()` | 非原子 INCR+EXPIRE |
 | `AuthServiceImpl.java` | 124 | `validateToken()`, `hasPermission()`, `checkShopOwnerPermission()` | 非 `/api/` 路径无保护 |
@@ -296,19 +296,19 @@ Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路
 | 评估维度 | 评分 | 说明 |
 |----------|:----:|------|
 | 功能完整性 | ⭐⭐⭐⭐ | 核心路由/认证/鉴权/错误处理均正常工作 |
-| 代码质量 | ⭐⭐⭐⭐ | 架构清晰；配置硬编码、响应式异常、活跃续期等问题已修复 |
+| 代码质量 | ⭐⭐⭐⭐ | 架构清晰；配置硬编码、活跃续期、权限伪造等问题已修复；异常处理与其他服务架构一致 |
 | 安全防护 | ⭐⭐⭐⭐ | 基础认证鉴权完善；Header 伪造高危风险已修复 |
 | 测试覆盖 | ⭐⭐⭐⭐ | 72 个单测覆盖面广，但某些核心路径依赖 Mock 而非真实集成 |
 
-**本次修复总结（3 个 Bug 已修复，3 个 Bug 待修复）：**
+**本次修复总结（3 个 Bug 已修复，1 个非 Bug，2 个待修复）：**
 
 | # | 问题 | 严重度 | 状态 |
 |---|------|--------|:----:|
 | 1 | 内部路由完全缺失（路由被注释 + 白名单遗漏） | 高 | ❌ 待修复 |
 | 2 | RedisRateLimitService 硬编码未使用配置类 | 中 | ✅ 已修复 |
-| 3 | 响应式过滤器中同步 `throw` | 中 | ❌ 待修复 |
+| ~~3~~ | ~~响应式过滤器中同步 `throw`~~ | ~~中~~ | ~~非 Bug（框架内部 `Mono.defer` 自动兜底）~~ |
 | 4 | validateToken 绕过 Sa-Token 活跃度续期 | 中 | ✅ 已修复 |
 | 5 | X-Merchant-Role Header 可伪造导致权限提升 | 高 | ✅ 已修复 |
 | 6 | GlobalErrorWebExceptionHandler 类型转换风险 | 低 | ❌ 待修复 |
 
-**建议修复优先级：** Bug #1（内部路由）> Bug #3（响应式异常）> Bug #6（类型转换）
+**建议修复优先级：** Bug #1（内部路由）> Bug #6（类型转换）
