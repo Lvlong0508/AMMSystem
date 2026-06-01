@@ -57,7 +57,7 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("GW-RL-001: USER角色访问用户端API成功")
     void hasPermission_userAccessUserApi_returnsTrue() {
-        assertTrue(authService.hasPermission("USER:u001", "/api/user/product/all", request));
+        assertTrue(authService.hasPermission("USER", "/api/user/product/all", request));
     }
 
     @Test
@@ -69,7 +69,7 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("GW-RL-003: MERCHANT角色访问商家端API成功")
     void hasPermission_merchantAccessSellerApi_returnsTrue() {
-        assertTrue(authService.hasPermission("MERCHANT:m001", "/api/seller/product/list", request));
+        assertTrue(authService.hasPermission("MERCHANT", "/api/seller/product/list", request));
     }
 
     @Test
@@ -86,7 +86,7 @@ class AuthServiceImplTest {
         headers.add("X-Shop-Id", "100");
         when(request.getHeaders()).thenReturn(HttpHeaders.readOnlyHttpHeaders(headers));
 
-        assertTrue(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/manage/update", request));
+        assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/manage/update", request));
     }
 
     @Test
@@ -118,13 +118,13 @@ class AuthServiceImplTest {
     @Test
     @DisplayName("GW-RL-009: 店员访问店铺查询API成功")
     void hasPermission_staffAccessQueryApi_returnsTrue() {
-        assertTrue(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/query/list", request));
+        assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/query/list", request));
     }
 
     @Test
     @DisplayName("GW-RL-010: 店员访问店铺发货API成功（/manage/**/ship 排除在店长API之外）")
     void hasPermission_staffAccessShipApi_returnsTrue() {
-        assertTrue(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/manage/100/ship", request));
+        assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/manage/100/ship", request));
     }
 
     @Test
@@ -135,7 +135,7 @@ class AuthServiceImplTest {
         headers.add("X-Shop-Id", "100");
         when(request.getHeaders()).thenReturn(HttpHeaders.readOnlyHttpHeaders(headers));
 
-        assertTrue(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/100/products/200", request));
+        assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/100/products/200", request));
     }
 
     @Test

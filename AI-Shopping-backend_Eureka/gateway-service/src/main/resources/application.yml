@@ -139,38 +139,35 @@ spring:
           predicates:
             - Path=/api/user/shop/**
 
-        # ========== 内部路由 ==========
-        # 内部店铺服务 - 绕过Sa-Token校验
-        - id: internal-shop
-          uri: lb://shop-service
-          predicates:
-            - Path=/internal/shop/**
-          filters:
-            - StripPrefix=1
-
-        # 内部认证服务
-        - id: internal-auth
-          uri: lb://auth-service
-          predicates:
-            - Path=/internal/auth/**
-          filters:
-            - StripPrefix=1
-
-        # 内部商品服务
-        - id: internal-product
-          uri: lb://product-service
-          predicates:
-            - Path=/internal/product/**
-          filters:
-            - StripPrefix=1
-
-        # 内部订单服务
-        - id: internal-order
-          uri: lb://order-service
-          predicates:
-            - Path=/internal/order/**
-          filters:
-            - StripPrefix=1
+        # ========== 内部路由（已注释）==========
+        # 内部服务间通过 Eureka 直连调用，不需要经过网关，注释掉以消除外部暴露面
+        # - id: internal-shop
+        #   uri: lb://shop-service
+        #   predicates:
+        #     - Path=/internal/shop/**
+        #   filters:
+        #     - StripPrefix=1
+        #
+        # - id: internal-auth
+        #   uri: lb://auth-service
+        #   predicates:
+        #     - Path=/internal/auth/**
+        #   filters:
+        #     - StripPrefix=1
+        #
+        # - id: internal-product
+        #   uri: lb://product-service
+        #   predicates:
+        #     - Path=/internal/product/**
+        #   filters:
+        #     - StripPrefix=1
+        #
+        # - id: internal-order
+        #   uri: lb://order-service
+        #   predicates:
+        #     - Path=/internal/order/**
+        #   filters:
+        #     - StripPrefix=1
 
 # Sa-Token配置 (与auth-service保持一致)
 sa-token:

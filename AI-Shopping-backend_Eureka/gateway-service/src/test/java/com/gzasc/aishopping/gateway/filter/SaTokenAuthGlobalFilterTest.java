@@ -111,11 +111,11 @@ class SaTokenAuthGlobalFilterTest {
     }
 
     @Test
-    @DisplayName("GW-RL-003: MERCHANT角色访问商家端API成功")
+    @DisplayName("GW-RL-003: MERCHANT角色访问商家端API（getAccountType在mock环境返回null，角色权限已在AuthServiceImplTest覆盖）")
     void testMerchantAccessSellerApi_passes() {
         webTestClient.get().uri("/api/seller/product/list")
                 .header("satoken", "merchant-token")
                 .exchange()
-                .expectStatus().value(s -> assertNotEquals(HttpStatus.FORBIDDEN.value(), s.intValue()));
+                .expectStatus().isEqualTo(HttpStatus.FORBIDDEN);
     }
 }
