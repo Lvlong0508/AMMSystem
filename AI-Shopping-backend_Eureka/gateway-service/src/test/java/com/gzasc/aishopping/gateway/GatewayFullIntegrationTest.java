@@ -1,5 +1,9 @@
 package com.gzasc.aishopping.gateway;
 
+import cn.dev33.satoken.SaManager;
+import cn.dev33.satoken.dao.SaTokenDao;
+import cn.dev33.satoken.stp.StpUtil;
+import com.gzasc.aishopping.gateway.config.SaTokenTestConfig;
 import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -8,19 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
 
 @SpringBootTest
 @AutoConfigureWebTestClient
-@MockBean({RedisConnectionFactory.class, StringRedisTemplate.class, RedisRateLimitService.class})
+@MockBean({RedisConnectionFactory.class, ReactiveRedisConnectionFactory.class, StringRedisTemplate.class, RedisRateLimitService.class})
+@Import(SaTokenTestConfig.class)
 @DisplayName("GW-INT: Gateway 完整集成测试")
 class GatewayFullIntegrationTest {
 
@@ -28,23 +33,16 @@ class GatewayFullIntegrationTest {
     private WebTestClient webTestClient;
 
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
-
-    @Autowired
     private RedisRateLimitService redisRateLimitService;
 
     @BeforeEach
     void setUp() {
-        ValueOperations<String, String> ops = mock(ValueOperations.class);
-        given(stringRedisTemplate.opsForValue()).willReturn(ops);
         given(redisRateLimitService.isAllowed(anyString())).willReturn(true);
-    }
-
-    void mockToken(String token, String loginId) {
-        StringRedisTemplate redis = stringRedisTemplate;
-        ValueOperations<String, String> ops = mock(ValueOperations.class);
-        given(redis.opsForValue()).willReturn(ops);
-        given(ops.get("satoken:login:token:" + token)).willReturn(loginId);
+        SaTokenDao dao = SaManager.getSaTokenDao();
+        String pfx = StpUtil.getStpLogic().splicingKeyTokenValue("");
+        dao.set(pfx + "valid-user-token", "USER:u001", -1);
+        dao.set(pfx + "user-token-rl", "USER:u001", -1);
+        dao.set(pfx + "user-token-403", "USER:u001", -1);
     }
 
     // ==================== 1. 白名单路径测试 ====================
@@ -175,11 +173,6 @@ class GatewayFullIntegrationTest {
     @Test
     @DisplayName("GW-INT-AUTH-004: 有效 Token 通过认证（validateToken 层）")
     void validTokenPassesAuth() {
-        mockToken("valid-user-token", "USER:u001");
-
-        // validateToken 成功 → loginId="USER:u001"
-        // getAccountType 因 Sa-Token 依赖 Redis（被 mock）返回 null → hasPermission 可能返回 403
-        // 此处仅验证 validateToken 阶段未抛出 401
         webTestClient.get().uri("/api/user/product/all")
                 .header("satoken", "valid-user-token")
                 .exchange()
@@ -196,8 +189,6 @@ class GatewayFullIntegrationTest {
     @Test
     @DisplayName("GW-INT-RL-001: USER Token + 访问商家 API（validateToken 层通过）")
     void userAccessSellerApi_validationPasses() {
-        mockToken("user-token-rl", "USER:u001");
-
         webTestClient.get().uri("/api/seller/product/list")
                 .header("satoken", "user-token-rl")
                 .exchange()
@@ -233,8 +224,6 @@ class GatewayFullIntegrationTest {
     @Test
     @DisplayName("GW-INT-ERR-002: 跨角色 403 返回统一 JSON")
     void forbiddenReturnsJson() {
-        mockToken("user-token-403", "USER:u001");
-
         webTestClient.get().uri("/api/seller/shop/manage/update")
                 .header("satoken", "user-token-403")
                 .exchange()

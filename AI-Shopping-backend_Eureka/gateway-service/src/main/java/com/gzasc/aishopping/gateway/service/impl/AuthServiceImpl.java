@@ -4,9 +4,9 @@ import com.gzasc.aishopping.gateway.config.AuthWhitelistProperties;
 import com.gzasc.aishopping.gateway.exception.GatewayAuthException;
 import com.gzasc.aishopping.gateway.service.AuthService;
 import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.exception.SaTokenException;
 import cn.dev33.satoken.stp.StpUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
@@ -19,12 +19,9 @@ public class AuthServiceImpl implements AuthService {
 
 
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
-    private final StringRedisTemplate stringRedisTemplate;
     private final AuthWhitelistProperties whitelistProperties;
 
-    public AuthServiceImpl(StringRedisTemplate stringRedisTemplate,
-                           AuthWhitelistProperties whitelistProperties) {
-        this.stringRedisTemplate = stringRedisTemplate;
+    public AuthServiceImpl(AuthWhitelistProperties whitelistProperties) {
         this.whitelistProperties = whitelistProperties;
     }
 
@@ -44,14 +41,18 @@ public class AuthServiceImpl implements AuthService {
         if (token == null || token.isEmpty()) {
             throw new GatewayAuthException(401, "未登录");
         }
-        String tokenKey = "satoken:login:token:" + token;
-        String loginId = stringRedisTemplate.opsForValue().get(tokenKey);
-        if (loginId == null || loginId.isEmpty()) {
+        try {
+            String loginId = (String) StpUtil.getLoginIdByToken(token);
+            if (loginId == null || loginId.isEmpty()) {
+                log.warn("Token无效或已过期: {}", token);
+                throw new GatewayAuthException(401, "登录已过期，请重新登录");
+            }
+            log.debug("用户 {} 认证通过", loginId);
+            return loginId;
+        } catch (SaTokenException e) {
             log.warn("Token无效或已过期: {}", token);
             throw new GatewayAuthException(401, "登录已过期，请重新登录");
         }
-        log.debug("用户 {} 认证通过", loginId);
-        return loginId;
     }
 
     @Override

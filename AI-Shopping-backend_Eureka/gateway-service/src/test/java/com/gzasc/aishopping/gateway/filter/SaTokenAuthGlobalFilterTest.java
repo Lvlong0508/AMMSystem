@@ -1,5 +1,10 @@
 package com.gzasc.aishopping.gateway.filter;
 
+import cn.dev33.satoken.SaManager;
+import cn.dev33.satoken.dao.SaTokenDao;
+import cn.dev33.satoken.stp.StpUtil;
+import com.gzasc.aishopping.gateway.config.SaTokenTestConfig;
+import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -7,34 +12,36 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.redis.connection.ReactiveRedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mock;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @SpringBootTest
 @AutoConfigureWebTestClient
-@MockBean({RedisConnectionFactory.class, StringRedisTemplate.class})
+@MockBean({RedisConnectionFactory.class, ReactiveRedisConnectionFactory.class, StringRedisTemplate.class, RedisRateLimitService.class})
+@Import(SaTokenTestConfig.class)
 class SaTokenAuthGlobalFilterTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
     @Autowired
-    private StringRedisTemplate stringRedisTemplate;
+    private RedisRateLimitService redisRateLimitService;
 
     @BeforeEach
     void setUp() {
-        ValueOperations<String, String> ops = mock(ValueOperations.class);
-        given(stringRedisTemplate.opsForValue()).willReturn(ops);
-        given(ops.get("satoken:login:token:valid-token")).willReturn("USER:u001");
-        given(ops.get("satoken:login:token:merchant-token")).willReturn("MERCHANT:m001");
-        given(ops.get("satoken:login:token:invalid-token")).willReturn(null);
+        given(redisRateLimitService.isAllowed(anyString())).willReturn(true);
+        SaTokenDao dao = SaManager.getSaTokenDao();
+        String pfx = StpUtil.getStpLogic().splicingKeyTokenValue("");
+        dao.set(pfx + "valid-token", "USER:u001", -1);
+        dao.set(pfx + "merchant-token", "MERCHANT:m001", -1);
     }
 
     @Test
@@ -85,10 +92,6 @@ class SaTokenAuthGlobalFilterTest {
     @Test
     @DisplayName("GW-SA-005: Token对应value为空字符串")
     void testTokenValueEmptyReturns401() {
-        ValueOperations<String, String> ops = mock(ValueOperations.class);
-        given(stringRedisTemplate.opsForValue()).willReturn(ops);
-        given(ops.get("satoken:login:token:empty-value-token")).willReturn("");
-
         webTestClient.get().uri("/api/user/order/list")
                 .header("satoken", "empty-value-token")
                 .exchange()

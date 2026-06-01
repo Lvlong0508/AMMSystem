@@ -13,7 +13,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -23,9 +22,6 @@ import java.util.List;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class AuthServiceImplTest {
-
-    @Mock
-    private StringRedisTemplate stringRedisTemplate;
 
     @Mock
     private AuthWhitelistProperties whitelistProperties;
@@ -51,7 +47,7 @@ class AuthServiceImplTest {
     void setUp() {
         when(whitelistProperties.getPaths()).thenReturn(whitelistPaths);
         when(request.getHeaders()).thenReturn(new HttpHeaders());
-        authService = new AuthServiceImpl(stringRedisTemplate, whitelistProperties);
+        authService = new AuthServiceImpl(whitelistProperties);
     }
 
     @Test
