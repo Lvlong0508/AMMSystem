@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.gateway.service;
 
-import com.gzasc.aishopping.gateway.config.IpRateLimitProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,20 +12,23 @@ public class RedisRateLimitService {
     private static final String KEY_PREFIX = "rate_limit:ip:";
 
     private final StringRedisTemplate redisTemplate;
-    private final IpRateLimitProperties ipRateLimitProperties;
 
-    public RedisRateLimitService(StringRedisTemplate redisTemplate,
-                                 IpRateLimitProperties ipRateLimitProperties) {
+    @Value("${ip-rate-limit.max-requests:300}")
+    private int maxRequests;
+
+    @Value("${ip-rate-limit.time-window-seconds:60}")
+    private int timeWindowSeconds;
+
+    public RedisRateLimitService(StringRedisTemplate redisTemplate) {
         this.redisTemplate = redisTemplate;
-        this.ipRateLimitProperties = ipRateLimitProperties;
     }
 
     public boolean isAllowed(String ip) {
         String key = KEY_PREFIX + ip;
         Long count = redisTemplate.opsForValue().increment(key);
         if (count != null && count == 1) {
-            redisTemplate.expire(key, ipRateLimitProperties.getTimeWindowSeconds(), TimeUnit.SECONDS);
+            redisTemplate.expire(key, timeWindowSeconds, TimeUnit.SECONDS);
         }
-        return count != null && count <= ipRateLimitProperties.getMaxRequests();
+        return count != null && count <= maxRequests;
     }
 }
