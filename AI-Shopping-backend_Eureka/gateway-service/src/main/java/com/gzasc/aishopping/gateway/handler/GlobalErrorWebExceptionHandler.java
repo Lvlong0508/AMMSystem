@@ -45,7 +45,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         }
 
         if (ex instanceof ResponseStatusException e) {
-            return writeResponse(response, (HttpStatus) e.getStatusCode(),
+            return writeResponse(response, HttpStatus.valueOf(e.getStatusCode().value()),
                     new ApiResponse<>(e.getStatusCode().value(), e.getReason(), null));
         }
 
