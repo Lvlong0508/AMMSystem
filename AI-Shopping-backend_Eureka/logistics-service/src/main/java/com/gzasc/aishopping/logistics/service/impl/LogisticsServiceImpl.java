@@ -25,12 +25,16 @@ public class LogisticsServiceImpl implements LogisticsService {
     @Transactional
     public LogisticsResponse createLogistics(CreateLogisticsRequest request) {
         Logistics logistics = logisticsConverter.toModel(request);
-        return createLogistics(logistics);
+        return doCreateLogistics(logistics);
     }
 
     @Override
     @Transactional
     public LogisticsResponse createLogistics(Logistics logistics) {
+        return doCreateLogistics(logistics);
+    }
+
+    private LogisticsResponse doCreateLogistics(Logistics logistics) {
         int result = logisticsMapper.insertLogistics(logistics);
         if (result <= 0) {
             throw new LogisticsException("创建物流信息失败");

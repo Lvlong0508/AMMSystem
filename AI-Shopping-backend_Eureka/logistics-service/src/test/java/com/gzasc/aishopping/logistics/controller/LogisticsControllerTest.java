@@ -331,6 +331,24 @@ class LogisticsControllerTest {
     }
 
     @Test
+    @DisplayName("LG-005a type为空字符串 - 应兜底为DELIVERY")
+    void createLogistics_emptyType_defaultsToDelivery() throws Exception {
+        LogisticsResponse response = LogisticsResponse.builder()
+                .id(6).orderId("ORD-EMPTY-TYPE").type("DELIVERY").trackingNumber("SF-EMPTY").build();
+
+        when(logisticsService.createLogistics(any(CreateLogisticsRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/logistics/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"orderId":"ORD-EMPTY-TYPE","type":"","contactId":1,"trackingNumber":"SF-EMPTY"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.type").value("DELIVERY"));
+    }
+
+    @Test
     @DisplayName("LG-005 无效type - type为纯字符串无校验, 可正常调用service")
     void createLogistics_invalidType_passesToService() throws Exception {
         LogisticsResponse response = LogisticsResponse.builder()

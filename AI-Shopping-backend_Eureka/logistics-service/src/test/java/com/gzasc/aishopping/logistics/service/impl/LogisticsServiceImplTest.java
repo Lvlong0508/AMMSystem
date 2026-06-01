@@ -339,6 +339,34 @@ class LogisticsServiceImplTest {
     }
 
     @Test
+    @DisplayName("LG-005a type为空字符串 - 转换器兜底为DELIVERY")
+    void createLogistics_withEmptyType_defaultsToDelivery() {
+        CreateLogisticsRequest request = new CreateLogisticsRequest();
+        request.setOrderId("ORD-EMPTY-TYPE");
+        request.setType("");
+        request.setContactId(1);
+        request.setTrackingNumber("SF-EMPTY");
+
+        Logistics logistics = new Logistics();
+        logistics.setOrderId("ORD-EMPTY-TYPE");
+        logistics.setType("DELIVERY");
+        logistics.setContactId(1);
+        logistics.setTrackingNumber("SF-EMPTY");
+
+        LogisticsResponse response = LogisticsResponse.builder()
+                .id(6).orderId("ORD-EMPTY-TYPE").type("DELIVERY")
+                .trackingNumber("SF-EMPTY").build();
+
+        when(logisticsConverter.toModel(request)).thenReturn(logistics);
+        when(logisticsMapper.insertLogistics(logistics)).thenReturn(1);
+        when(logisticsConverter.toResponse(logistics)).thenReturn(response);
+
+        LogisticsResponse result = logisticsService.createLogistics(request);
+
+        assertEquals("DELIVERY", result.getType());
+    }
+
+    @Test
     @DisplayName("LG-005 type为无效值 - 直接写入不校验")
     void createLogistics_withInvalidType_success() {
         CreateLogisticsRequest request = new CreateLogisticsRequest();

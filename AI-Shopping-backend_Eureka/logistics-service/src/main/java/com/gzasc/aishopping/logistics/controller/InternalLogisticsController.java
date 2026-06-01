@@ -6,6 +6,7 @@ import com.gzasc.aishopping.logistics.converter.LogisticsConverter;
 import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
 import com.gzasc.aishopping.logistics.model.Logistics;
 import com.gzasc.aishopping.logistics.service.LogisticsService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +21,7 @@ public class InternalLogisticsController {
     private final LogisticsConverter logisticsConverter;
 
     @PostMapping("/create")
-    public ApiResponse<LogisticsResponse> createLogistics(@RequestBody LogisticsRequest request) {
+    public ApiResponse<LogisticsResponse> createLogistics(@RequestBody @Valid LogisticsRequest request) {
         Logistics logistics = logisticsConverter.toModel(request);
         LogisticsResponse result = logisticsService.createLogistics(logistics);
         return ApiResponse.success("创建物流信息成功", result);
