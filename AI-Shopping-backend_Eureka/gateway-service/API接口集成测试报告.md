@@ -144,13 +144,14 @@ Client
 - **影响**: 恶意商户可以伪造 Header 获得店长权限，执行员工注册、商品管理等受限操作
 - **修复**: 改为从 Sa-Token Session 中读取 `role` 字段 (`StpUtil.getSession().get("role")`)，杜绝客户端伪造
 
-### Bug #5（新增）：GlobalErrorWebExceptionHandler 强制类型转换风险
+### Bug #5（已修复）：GlobalErrorWebExceptionHandler 强制类型转换风险
 
 - **严重程度**: 低
 - **涉及文件**: `GlobalErrorWebExceptionHandler.java:48`
 - **现象**: `(HttpStatus) e.getStatusCode()` — 在 Spring Boot 3.x 中 `getStatusCode()` 返回 `HttpStatusCode` 接口，不能保证一定能强制转为 `HttpStatus` 枚举
 - **根因**: Spring 6+ 的 `ResponseStatusException.getStatusCode()` 返回 `HttpStatusCode`（接口），而非 `HttpStatus`（枚举实现）
 - **影响**: 在特定异常场景下可能触发 `ClassCastException`
+- **修复**: 改用 `HttpStatus.valueOf(e.getStatusCode().value())`，通过枚举查找而非强制转型
 
 ### Bug #6（外部依赖）：auth-service 预置测试数据 BCrypt 哈希损坏
 
@@ -281,7 +282,7 @@ Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路
 | 安全防护 | ⭐⭐⭐⭐ | 基础认证鉴权完善；Header 伪造高危风险已修复 |
 | 测试覆盖 | ⭐⭐⭐⭐ | 72 个单测覆盖面广，但某些核心路径依赖 Mock 而非真实集成 |
 
-**本次修复总结（3 个 Bug 已修复，1 个非 Bug，2 个待修复）：**
+**本次修复总结（4 个 Bug 已修复，1 个非 Bug）：**
 
 | # | 问题 | 严重度 | 状态 |
 |---|------|--------|:----:|
@@ -289,6 +290,6 @@ Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路
 | ~~2~~ | ~~响应式过滤器中同步 `throw`~~ | ~~中~~ | ~~非 Bug（框架内部 `Mono.defer` 自动兜底）~~ |
 | 3 | validateToken 绕过 Sa-Token 活跃度续期 | 中 | ✅ 已修复 |
 | 4 | X-Merchant-Role Header 可伪造导致权限提升 | 高 | ✅ 已修复 |
-| 5 | GlobalErrorWebExceptionHandler 类型转换风险 | 低 | ❌ 待修复 |
+| 5 | GlobalErrorWebExceptionHandler 类型转换风险 | 低 | ✅ 已修复 |
 
-**建议修复优先级：** Bug #5（类型转换）
+**所有可修复 Bug 均已修复，无待办项。**
