@@ -3,6 +3,8 @@ package com.gzasc.aishopping.gateway.service.impl;
 import com.gzasc.aishopping.gateway.config.AuthWhitelistProperties;
 import com.gzasc.aishopping.gateway.exception.GatewayAuthException;
 import com.gzasc.aishopping.gateway.service.AuthService;
+import cn.dev33.satoken.session.SaSession;
+import cn.dev33.satoken.stp.StpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.HttpMethod;
@@ -63,12 +65,27 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public boolean hasPermission(String loginId, String path, ServerHttpRequest request) {
+    public String getAccountType(String token) {
+        try {
+            SaSession session = StpUtil.getStpLogic().getTokenSessionByToken(token, false);
+            if (session == null) {
+                log.warn("Token session不存在: {}", token);
+                return null;
+            }
+            return (String) session.get("accountType");
+        } catch (Exception e) {
+            log.error("读取token session失败", e);
+            return null;
+        }
+    }
+
+    @Override
+    public boolean hasPermission(String accountType, String path, ServerHttpRequest request) {
         if (path.startsWith("/api/user/")) {
-            return loginId.startsWith("USER:");
+            return "USER".equals(accountType);
         }
         if (path.startsWith("/api/seller/")) {
-            if (!loginId.startsWith("MERCHANT:")) {
+            if (!"MERCHANT".equals(accountType)) {
                 return false;
             }
             if (isShopOwnerOnlyApi(path)) {

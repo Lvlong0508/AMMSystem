@@ -40,8 +40,9 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
         String token = request.getHeaders().getFirst("satoken");
         String loginId = authService.validateToken(token);
 
-        if (!authService.hasPermission(loginId, path, request)) {
-            log.warn("用户 {} 无权限访问路径 {}", loginId, path);
+        String accountType = authService.getAccountType(token);
+        if (!authService.hasPermission(accountType, path, request)) {
+            log.warn("{} 无权限访问路径 {}", loginId, path);
             throw new GatewayAuthException(403, "无权限访问该资源");
         }
 

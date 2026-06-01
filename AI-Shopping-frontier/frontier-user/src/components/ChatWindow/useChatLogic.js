@@ -62,7 +62,7 @@ export function useChatLogic() {
       try {
         currentPage++
         const response = await getAllProducts(currentPage, 50)
-        const newProducts = response?.data || []
+        const newProducts = response?.products || []
         
         if (newProducts.length > 0) {
           // 追加新商品到列表并去重
@@ -108,7 +108,7 @@ export function useChatLogic() {
       currentPage = 0
       refreshCount = 0
       const response = await getAllProducts()
-      allProducts.value = response?.data || []
+      allProducts.value = response?.products || []
       productMap = buildProductMap(allProducts.value)
       // 初始化推荐商品
       loadRecommendations()
@@ -170,13 +170,16 @@ export function useChatLogic() {
 
     try {
       const response = await sendMessage(userMsg)
-      const aiReply = response.reply
+      const aiReply = response.message
 
       const { pureText, jsonProducts } = parseAIResponse(aiReply)
 
       let finalProducts = []
 
-      if (jsonProducts.length > 0) {
+      // 优先取后端结构化商品数据（AiResponse.data → ProductData）
+      if (response.data && response.data.type === 'product' && response.data.products) {
+        finalProducts = response.data.products
+      } else if (jsonProducts.length > 0) {
         finalProducts = jsonProducts
       } else {
         console.log('没有找到相关商品')
