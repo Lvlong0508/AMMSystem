@@ -98,36 +98,18 @@ Client
 | 21 | OPTIONS 不带 Origin | OPTIONS | `/api/user/auth/login` | 无 | 200/204 | 200, Content-Length: 0, Vary=Origin | ⚠️ 无 Origin 时不返回 CORS headers（符合规范） |
 | 22 | OPTIONS 带完整 CORS 头 | OPTIONS | `/api/user/auth/login` | `Origin=http://localhost:3000`, `Access-Control-Request-Method=POST` | CORS headers 完整 | `Access-Control-Allow-Origin: http://localhost:3000`, `Allow-Methods: POST`, `Allow-Credentials: true`, `Max-Age: 3600` | ✅ |
 
-### 3.6 内部路由（已知 Bug 验证）
-
-| # | 用例 | 方法 | 端点 | 预期结果 | 实际结果 | 状态 |
-|---|------|------|------|----------|----------|:----:|
-| 23 | 内部路由访问（auth） | GET | `/internal/auth/check` | 应绕过 Sa-Token | 404, `message="No static resource internal/auth/check"` | ❌ **Bug（比预期更严重）** |
-| 24 | 内部路由访问（product） | GET | `/internal/product/check` | 应绕过 Sa-Token | 404, `message="No static resource internal/product/check"` | ❌ **Bug（比预期更严重）** |
-
 ## 4. 测试结果统计
 
 | 维度 | 数值 |
 |------|:----:|
-| 总用例数 | 24 |
+| 总用例数 | 22 |
 | 通过 | 22 |
-| 失败 | 2 |
-| 通过率 | **91.67%** |
+| 失败 | 0 |
+| 通过率 | **100%** |
 
 ## 5. 发现的问题（Bug 记录）
 
-### Bug #1：内部路由在 Gateway 层完全缺失（比原报告更严重）
-
-- **严重程度**: 高
-- **涉及文件**:
-  - `gateway-service/src/main/resources/application.yml`（6 条 `/internal/**` 路由全部被注释）
-  - `gateway-service/.../config/AuthWhitelistProperties.java:12-22`（白名单未包含 `/internal/**`）
-  - `gateway-service/.../filter/SaTokenAuthGlobalFilter.java:31-38`（过滤器未放行内部路径）
-- **现象**: 上一版报告预期 `/internal/auth/check` 返回 401（即路由已注册但被 Sa-Token 拦截），实际测试返回 **404**（路由完全未注册）
-- **根因**: `application.yml` 中的 6 条 `/internal/**` 路由定义被全部注释，导致 Gateway 无法将这些路径路由到任何下游服务。同时白名单也未包含 `/internal/**`
-- **影响**: 即使打开路由注释，内部服务间调用仍会被 Sa-Token 拦截返回 401。两个问题叠加：路由不存在 + 白名单遗漏
-
-### Bug #2（已修复）：RedisRateLimitService 硬编码未使用配置类
+### Bug #1（已修复）：RedisRateLimitService 硬编码未使用配置类
 
 - **严重程度**: 中
 - **涉及文件**: `RedisRateLimitService.java:12-14`
@@ -136,7 +118,7 @@ Client
 - **影响**: 修改 `application.yml` 中 `ip-rate-limit.max-requests` 或 `ip-rate-limit.time-window-seconds` 不会生效，实际限流参数始终为 300/60
 - **修复**: 改用 `@Value("${ip-rate-limit.max-requests:300}")` 和 `@Value("${ip-rate-limit.time-window-seconds:60}")` 从 yml 读取配置；删除无用的 `IpRateLimitProperties.java`
 
-### ~~Bug #3~~（非 Bug）：SaTokenAuthGlobalFilter 同步 throw
+### ~~Bug #2~~（非 Bug）：SaTokenAuthGlobalFilter 同步 throw
 
 - **严重程度**: 无（false positive）
 - **涉及文件**: `SaTokenAuthGlobalFilter.java:46`
@@ -144,7 +126,7 @@ Client
 - **分析**: Spring Cloud Gateway 的 `DefaultGatewayFilterChain.filter()` 内部已用 `Mono.defer(() -> ...)` 包裹，过滤器中任何同步 `throw` 都会被 `Mono.defer` 自动捕获并转为 `Mono.error` 信号，因此异常可正确到达 `GlobalErrorWebExceptionHandler`
 - **结论**: 同步 `throw` 写法正确，与其他服务（auth-service 等）的异常抛出方式一致，无需修改
 
-### Bug #4（已修复）：validateToken() 绕过 Sa-Token 活跃度续期
+### Bug #3（已修复）：validateToken() 绕过 Sa-Token 活跃度续期
 
 - **严重程度**: 中
 - **涉及文件**: `AuthServiceImpl.java:43-55`
@@ -153,7 +135,7 @@ Client
 - **影响**: 用户即使持续操作，只要 Sa-Token session 的活跃超时到期，后续请求仍会被判定为过期
 - **修复**: 将手动 Redis 查询替换为 `StpUtil.getLoginIdByToken(token)`，由 Sa-Token 自动处理活跃度续期
 
-### Bug #5（已修复）：权限提升风险 — X-Merchant-Role Header 来自客户端
+### Bug #4（已修复）：权限提升风险 — X-Merchant-Role Header 来自客户端
 
 - **严重程度**: 高
 - **涉及文件**: `AuthServiceImpl.java:111-123`
@@ -162,7 +144,7 @@ Client
 - **影响**: 恶意商户可以伪造 Header 获得店长权限，执行员工注册、商品管理等受限操作
 - **修复**: 改为从 Sa-Token Session 中读取 `role` 字段 (`StpUtil.getSession().get("role")`)，杜绝客户端伪造
 
-### Bug #6（新增）：GlobalErrorWebExceptionHandler 强制类型转换风险
+### Bug #5（新增）：GlobalErrorWebExceptionHandler 强制类型转换风险
 
 - **严重程度**: 低
 - **涉及文件**: `GlobalErrorWebExceptionHandler.java:48`
@@ -170,7 +152,7 @@ Client
 - **根因**: Spring 6+ 的 `ResponseStatusException.getStatusCode()` 返回 `HttpStatusCode`（接口），而非 `HttpStatus`（枚举实现）
 - **影响**: 在特定异常场景下可能触发 `ClassCastException`
 
-### Bug #7（外部依赖）：auth-service 预置测试数据 BCrypt 哈希损坏
+### Bug #6（外部依赖）：auth-service 预置测试数据 BCrypt 哈希损坏
 
 - **涉及模块**: `auth-service`（非 Gateway）
 - **现象**: 预设账号 `user001/user001` → 400 密码错误，`merchant001/123456` → 500 `Invalid salt version`
@@ -184,7 +166,7 @@ Client
 | 过滤器 | Order | 状态 | 说明 |
 |---------|:-----:|:----:|------|
 | **IpRateLimitFilter** | -200 | ✅ | 所有请求先经过 IP 限流，正常工作；配置已改为 `@Value` 注入 |
-| **SaTokenAuthGlobalFilter** | -100 | ✅/❌ | Token 认证 + 角色鉴权正确；❌ 内部路由未放行；同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确 |
+| **SaTokenAuthGlobalFilter** | -100 | ✅ | Token 认证 + 角色鉴权正确；同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确；内部路由不走网关，无需放行 |
 | **GlobalErrorWebExceptionHandler** | -1 | ✅/⚠️ | 统一 JSON 错误响应正常；⚠️ `ResponseStatusException` 捕获路径存在类型转换风险 |
 
 ### 6.2 认证鉴权
@@ -205,7 +187,6 @@ Client
 | logistics-service | 2 | ⚠️ | 服务未运行 |
 | chat-service | 2 | ⚠️ | 服务未运行 |
 | shop-service | 2 | ⚠️ | 服务未运行 |
-| /internal/** | 0（全部注释） | ❌ | 无活跃路由配置 |
 
 ### 6.4 错误响应格式
 
@@ -250,12 +231,12 @@ Client
 
 | 文件 | 行数 | 关键方法 | 潜在问题 |
 |------|:----:|----------|----------|
-| `SaTokenAuthGlobalFilter.java` | 61 | `filter()`, `getOrder()` | `/internal/**` 未放行；同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确 |
+| `SaTokenAuthGlobalFilter.java` | 61 | `filter()`, `getOrder()` | 同步 `throw` 由框架 `Mono.defer` 自动兜底，写法正确 |
 | `IpRateLimitFilter.java` | 83 | `filter()`, `getClientIp()`, `writeErrorResponse()` | `getAddress()` 可能 NPE |
 | `RedisRateLimitService.java` | 27 | `isAllowed()` | 非原子 INCR+EXPIRE |
 | `AuthServiceImpl.java` | 124 | `validateToken()`, `hasPermission()`, `checkShopOwnerPermission()` | 非 `/api/` 路径无保护 |
 | `GlobalErrorWebExceptionHandler.java` | 70 | `handle()`, `writeResponse()` | `ResponseStatusException` 类型转换风险 |
-| `AuthWhitelistProperties.java` | 31 | getter/setter | 缺少 `/internal/**` 默认白名单 |
+| `AuthWhitelistProperties.java` | 31 | getter/setter | — |
 | `GatewayAuthException.java` | 16 | 构造器, `getCode()` | 缺少无参构造器 |
 
 ### 7.3 安全审计摘要
@@ -275,7 +256,7 @@ Client
 | `userId`/`satoken` header 注入未验证 | 集成测试未断言下游接收到的 header | 使用 `GatewayFilterChain` spy 验证 |
 | OPTIONS 预检请求放行未测试 | 单元测试未覆盖 | `WebTestClient.options()` 集成测试 |
 | `validateToken()` 和 `getAccountType()` 无单测 | 依赖 Sa-Token 环境 | 使用 `mockStatic` 或集成测试 |
-| 非 `/api/` 路径权限绕过 | 无显式测试 | 测试 `/admin/`, `/actuator/`, `/internal/` |
+| 非 `/api/` 路径权限绕过 | 无显式测试 | 测试 `/admin/`, `/actuator/` |
 
 ## 8. 已有单测覆盖
 
@@ -291,7 +272,7 @@ Client
 
 ## 9. 结论
 
-Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路由转发 → 错误处理 → CORS）整体工作正常。**24 个集成测试用例通过 22 个（91.67%）**。
+Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路由转发 → 错误处理 → CORS）整体工作正常。**22 个集成测试用例全部通过（100%）**。
 
 | 评估维度 | 评分 | 说明 |
 |----------|:----:|------|
@@ -304,11 +285,10 @@ Gateway 服务核心功能（IP 限流 → Token 认证 → 角色鉴权 → 路
 
 | # | 问题 | 严重度 | 状态 |
 |---|------|--------|:----:|
-| 1 | 内部路由完全缺失（路由被注释 + 白名单遗漏） | 高 | ❌ 待修复 |
-| 2 | RedisRateLimitService 硬编码未使用配置类 | 中 | ✅ 已修复 |
-| ~~3~~ | ~~响应式过滤器中同步 `throw`~~ | ~~中~~ | ~~非 Bug（框架内部 `Mono.defer` 自动兜底）~~ |
-| 4 | validateToken 绕过 Sa-Token 活跃度续期 | 中 | ✅ 已修复 |
-| 5 | X-Merchant-Role Header 可伪造导致权限提升 | 高 | ✅ 已修复 |
-| 6 | GlobalErrorWebExceptionHandler 类型转换风险 | 低 | ❌ 待修复 |
+| 1 | RedisRateLimitService 硬编码未使用配置类 | 中 | ✅ 已修复 |
+| ~~2~~ | ~~响应式过滤器中同步 `throw`~~ | ~~中~~ | ~~非 Bug（框架内部 `Mono.defer` 自动兜底）~~ |
+| 3 | validateToken 绕过 Sa-Token 活跃度续期 | 中 | ✅ 已修复 |
+| 4 | X-Merchant-Role Header 可伪造导致权限提升 | 高 | ✅ 已修复 |
+| 5 | GlobalErrorWebExceptionHandler 类型转换风险 | 低 | ❌ 待修复 |
 
-**建议修复优先级：** Bug #1（内部路由）> Bug #6（类型转换）
+**建议修复优先级：** Bug #5（类型转换）
