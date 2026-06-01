@@ -28,15 +28,16 @@ class LogisticsMapperTest {
     @DisplayName("插入操作")
     class InsertTests {
 
-        @Test
-        @DisplayName("插入物流记录并返回自增ID")
-        void insertLogistics_shouldReturnGeneratedId() {
-            Logistics logistics = buildLogistics(generateOrderId(), "DELIVERY", generateTrackingNumber(), 1);
-            int affected = logisticsMapper.insertLogistics(logistics);
+    @Test
+    @DisplayName("插入物流记录并返回自增ID和创建时间")
+    void insertLogistics_shouldReturnGeneratedId() {
+        Logistics logistics = buildLogistics(generateOrderId(), "DELIVERY", generateTrackingNumber(), 1);
+        int affected = logisticsMapper.insertLogistics(logistics);
 
-            assertThat(affected).isEqualTo(1);
-            assertThat(logistics.getId()).isNotNull();
-        }
+        assertThat(affected).isEqualTo(1);
+        assertThat(logistics.getId()).isNotNull();
+        assertThat(logistics.getCreatedAt()).isNotNull();
+    }
 
         @Test
         @DisplayName("插入多种类型物流记录")

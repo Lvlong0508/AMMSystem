@@ -107,6 +107,18 @@ class LogisticsControllerTest {
     }
 
     @Test
+    @DisplayName("LG-003a 创建物流记录 - orderId超过20字符")
+    void createLogistics_orderIdTooLong_validationError() throws Exception {
+        mockMvc.perform(post("/logistics/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"orderId":"ABCDEFGHIJKLMNOPQRSTUVWXYZ","type":"DELIVERY","contactId":1,"trackingNumber":"SF123"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
+    @Test
     @DisplayName("LG-003 创建物流记录 - orderId为null")
     void createLogistics_orderIdNull_validationError() throws Exception {
         mockMvc.perform(post("/logistics/create")

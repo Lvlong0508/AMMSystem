@@ -10,7 +10,10 @@ public interface LogisticsMapper {
 
     @Insert("INSERT INTO logistics (order_id, type, contact_id, tracking_number) " +
             "VALUES (#{orderId}, #{type}, #{contactId}, #{trackingNumber})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    @SelectKey(statement = "SELECT LAST_INSERT_ID() AS id, created_at FROM logistics WHERE id = LAST_INSERT_ID()",
+               keyProperty = "id,createdAt",
+               before = false,
+               resultType = Logistics.class)
     int insertLogistics(Logistics logistics);
 
     @Delete("DELETE FROM logistics WHERE id = #{id}")
