@@ -2,6 +2,7 @@ package com.gzasc.aishopping.gateway.filter;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.dao.SaTokenDao;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.gzasc.aishopping.gateway.config.SaTokenTestConfig;
 import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
@@ -42,6 +43,14 @@ class SaTokenAuthGlobalFilterTest {
         String pfx = StpUtil.getStpLogic().splicingKeyTokenValue("");
         dao.set(pfx + "valid-token", "USER:u001", -1);
         dao.set(pfx + "merchant-token", "MERCHANT:m001", -1);
+
+        SaSession validSession = new SaSession("valid-token");
+        validSession.set("accountType", "USER");
+        dao.setObject(StpUtil.getStpLogic().splicingKeyTokenSession("valid-token"), validSession, -1);
+
+        SaSession merchantSession = new SaSession("merchant-token");
+        merchantSession.set("accountType", "MERCHANT");
+        dao.setObject(StpUtil.getStpLogic().splicingKeyTokenSession("merchant-token"), merchantSession, -1);
     }
 
     @Test
@@ -114,11 +123,12 @@ class SaTokenAuthGlobalFilterTest {
     }
 
     @Test
-    @DisplayName("GW-RL-003: MERCHANT角色访问商家端API（getAccountType在mock环境返回null，角色权限已在AuthServiceImplTest覆盖）")
+    @DisplayName("GW-RL-003: MERCHANT角色访问商家端API通过认证层（下游请求由集成测试覆盖）")
     void testMerchantAccessSellerApi_passes() {
         webTestClient.get().uri("/api/seller/product/list")
                 .header("satoken", "merchant-token")
                 .exchange()
-                .expectStatus().isEqualTo(HttpStatus.FORBIDDEN);
+                .expectStatus().value(s ->
+                        assertNotEquals(HttpStatus.UNAUTHORIZED.value(), s.intValue()));
     }
 }

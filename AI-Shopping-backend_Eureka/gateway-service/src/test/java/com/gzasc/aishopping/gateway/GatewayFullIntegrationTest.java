@@ -2,6 +2,7 @@ package com.gzasc.aishopping.gateway;
 
 import cn.dev33.satoken.SaManager;
 import cn.dev33.satoken.dao.SaTokenDao;
+import cn.dev33.satoken.session.SaSession;
 import cn.dev33.satoken.stp.StpUtil;
 import com.gzasc.aishopping.gateway.config.SaTokenTestConfig;
 import com.gzasc.aishopping.gateway.service.RedisRateLimitService;
@@ -43,6 +44,18 @@ class GatewayFullIntegrationTest {
         dao.set(pfx + "valid-user-token", "USER:u001", -1);
         dao.set(pfx + "user-token-rl", "USER:u001", -1);
         dao.set(pfx + "user-token-403", "USER:u001", -1);
+
+        SaSession session = new SaSession("valid-user-token");
+        session.set("accountType", "USER");
+        dao.setObject(StpUtil.getStpLogic().splicingKeyTokenSession("valid-user-token"), session, -1);
+
+        session = new SaSession("user-token-rl");
+        session.set("accountType", "USER");
+        dao.setObject(StpUtil.getStpLogic().splicingKeyTokenSession("user-token-rl"), session, -1);
+
+        session = new SaSession("user-token-403");
+        session.set("accountType", "USER");
+        dao.setObject(StpUtil.getStpLogic().splicingKeyTokenSession("user-token-403"), session, -1);
     }
 
     // ==================== 1. 白名单路径测试 ====================

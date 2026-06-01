@@ -41,6 +41,10 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
         String loginId = authService.validateToken(token);
 
         String accountType = authService.getAccountType(token);
+        if (accountType == null) {
+            log.warn("Token session 已过期: {}", loginId);
+            throw new GatewayAuthException(401, "登录已过期，请重新登录");
+        }
         if (!authService.hasPermission(accountType, path, request)) {
             log.warn("{} 无权限访问路径 {}", loginId, path);
             throw new GatewayAuthException(403, "无权限访问该资源");
