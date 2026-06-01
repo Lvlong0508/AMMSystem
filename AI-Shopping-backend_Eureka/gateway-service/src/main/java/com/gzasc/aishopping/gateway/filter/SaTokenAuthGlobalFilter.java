@@ -25,39 +25,37 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        return Mono.defer(() -> {
-            ServerHttpRequest request = exchange.getRequest();
-            String path = request.getURI().getPath();
+        ServerHttpRequest request = exchange.getRequest();
+        String path = request.getURI().getPath();
 
-            if (authService.isPreFlightRequest(request)) {
-                return chain.filter(exchange);
-            }
+        if (authService.isPreFlightRequest(request)) {
+            return chain.filter(exchange);
+        }
 
-            if (authService.isWhiteList(path)) {
-                log.debug("WhiteList path: {}, skip auth", path);
-                return chain.filter(exchange);
-            }
+        if (authService.isWhiteList(path)) {
+            log.debug("WhiteList path: {}, skip auth", path);
+            return chain.filter(exchange);
+        }
 
-            String token = request.getHeaders().getFirst("satoken");
-            String loginId = authService.validateToken(token);
+        String token = request.getHeaders().getFirst("satoken");
+        String loginId = authService.validateToken(token);
 
-            String accountType = authService.getAccountType(token);
-            if (accountType == null) {
-                log.warn("Token session 已过期: {}", loginId);
-                return GatewayAuthException.monoError(401, "登录已过期，请重新登录");
-            }
-            if (!authService.hasPermission(accountType, path, request)) {
-                log.warn("{} 无权限访问路径 {}", loginId, path);
-                return GatewayAuthException.monoError(403, "无权限访问该资源");
-            }
+        String accountType = authService.getAccountType(token);
+        if (accountType == null) {
+            log.warn("Token session 已过期: {}", loginId);
+            throw new GatewayAuthException(401, "登录已过期，请重新登录");
+        }
+        if (!authService.hasPermission(accountType, path, request)) {
+            log.warn("{} 无权限访问路径 {}", loginId, path);
+            throw new GatewayAuthException(403, "无权限访问该资源");
+        }
 
-            ServerHttpRequest newRequest = request.mutate()
-                    .header("userId", loginId)
-                    .header("satoken", token)
-                    .build();
+        ServerHttpRequest newRequest = request.mutate()
+                .header("userId", loginId)
+                .header("satoken", token)
+                .build();
 
-            return chain.filter(exchange.mutate().request(newRequest).build());
-        });
+        return chain.filter(exchange.mutate().request(newRequest).build());
     }
 
     @Override
