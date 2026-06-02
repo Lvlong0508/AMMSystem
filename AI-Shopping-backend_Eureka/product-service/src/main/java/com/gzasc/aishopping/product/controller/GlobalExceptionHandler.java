@@ -3,6 +3,7 @@ package com.gzasc.aishopping.product.controller;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.exception.ProductException;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,9 +17,10 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(ProductException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiResponse<Void> handleProductException(ProductException e) {
+    public ApiResponse<Void> handleProductException(ProductException e, HttpServletResponse response) {
         log.warn("业务异常: {}", e.getMessage());
+        int httpStatus = e.getCode() >= 500 ? 500 : (e.getCode() >= 400 ? e.getCode() : 400);
+        response.setStatus(httpStatus);
         return ApiResponse.error(e.getCode(), e.getMessage());
     }
 

@@ -68,7 +68,7 @@ class ProductUserControllerTest {
         ProductWithImageDetailDTO dto = new ProductWithImageDetailDTO();
         dto.setId(1001L);
         dto.setName("测试商品");
-        when(productService.getProductById("1001")).thenReturn(dto);
+        when(productService.getProductById(1001L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/user/product/1001"))
                 .andExpect(status().isOk())
@@ -79,10 +79,10 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-005 - GET /api/user/product/{productId} - 商品不存在")
     void testGetProductByIdNotFound() throws Exception {
-        when(productService.getProductById("99999")).thenReturn(null);
+        when(productService.getProductById(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/api/user/product/99999"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.message").value("商品不存在"));
     }
@@ -157,7 +157,7 @@ class ProductUserControllerTest {
         ProductWithImageDetailDTO dto = new ProductWithImageDetailDTO();
         dto.setId(1002L);
         dto.setSale(false);
-        when(productService.getProductById("1002")).thenReturn(dto);
+        when(productService.getProductById(1002L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/user/product/1002"))
                 .andExpect(status().isOk())
@@ -168,10 +168,10 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-074 - ProductException - 业务异常返回400")
     void testProductExceptionReturns400() throws Exception {
-        when(productService.getProductById("99999")).thenReturn(null);
+        when(productService.getProductById(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/api/user/product/99999"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
@@ -181,7 +181,7 @@ class ProductUserControllerTest {
         when(productService.getSalableProductsAbstract(0)).thenThrow(new RuntimeException("数据库连接失败"));
 
         mockMvc.perform(get("/api/user/product/all").param("page", "0"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500));
     }
 }

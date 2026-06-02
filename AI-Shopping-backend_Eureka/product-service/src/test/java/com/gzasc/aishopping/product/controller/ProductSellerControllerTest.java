@@ -59,6 +59,7 @@ class ProductSellerControllerTest {
         request.setPrice(BigDecimal.valueOf(99.99));
         request.setStock(100);
         request.setImageUrl("http://img.test/a.jpg");
+        request.setShopId(1L);
 
         mockMvc.perform(post("/api/seller/product/create")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -158,14 +159,14 @@ class ProductSellerControllerTest {
         mockMvc.perform(put("/api/seller/product/99999")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test
     @DisplayName("PR-025 - DELETE /api/seller/product/{productId} - 删除已下架商品")
     void testDeleteProductWhenUnlisted() throws Exception {
-        when(productService.deleteProduct("3001")).thenReturn(1);
+        when(productService.deleteProduct(3001L)).thenReturn(1);
 
         mockMvc.perform(delete("/api/seller/product/3001"))
                 .andExpect(status().isOk())
@@ -175,7 +176,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-026 - DELETE /api/seller/product/{productId} - 删除未下架商品")
     void testDeleteProductWhenListed() throws Exception {
-        when(productService.deleteProduct("3002"))
+        when(productService.deleteProduct(3002L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(400, "商品在上架中，请先下架: 3002"));
 
         mockMvc.perform(delete("/api/seller/product/3002"))
@@ -187,11 +188,11 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-027 - DELETE /api/seller/product/{productId} - 商品不存在")
     void testDeleteProductNotFound() throws Exception {
-        when(productService.deleteProduct("99999"))
+        when(productService.deleteProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(delete("/api/seller/product/99999"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
@@ -201,7 +202,7 @@ class ProductSellerControllerTest {
         ProductWithImageDetailDTO dto = new ProductWithImageDetailDTO();
         dto.setId(4001L);
         dto.setName("商家查看商品");
-        when(productService.getProductById("4001")).thenReturn(dto);
+        when(productService.getProductById(4001L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/seller/product/4001"))
                 .andExpect(status().isOk())
@@ -212,10 +213,10 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-029 - GET /api/seller/product/{productId} - 商家查询不存在的商品")
     void testGetProductDetailNotFound() throws Exception {
-        when(productService.getProductById("99999")).thenReturn(null);
+        when(productService.getProductById(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/api/seller/product/99999"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404))
                 .andExpect(jsonPath("$.message").value("商品不存在"));
     }
@@ -223,7 +224,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-030 - GET /api/seller/product/batch - 批量查询")
     void testBatchQuery() throws Exception {
-        when(productService.getAbstractProductsForMerchant(List.of("1001", "1002", "1003")))
+        when(productService.getAbstractProductsForMerchant(List.of(1001L, 1002L, 1003L)))
                 .thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
 
         mockMvc.perform(get("/api/seller/product/batch").param("ids", "1001,1002,1003"))
@@ -235,7 +236,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-060 - POST /api/seller/product/{productId}/list - 上架")
     void testListProduct() throws Exception {
-        when(productService.listProduct("7001")).thenReturn(true);
+        when(productService.listProduct(7001L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7001/list"))
                 .andExpect(status().isOk())
@@ -245,7 +246,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-063 - POST /api/seller/product/{productId}/unlist - 下架")
     void testUnlistProduct() throws Exception {
-        when(productService.unlistProduct("7002")).thenReturn(true);
+        when(productService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk())
@@ -255,34 +256,34 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-062 - POST /api/seller/product/{productId}/list - 上架不存在的商品")
     void testListProductNotFound() throws Exception {
-        when(productService.listProduct("99999"))
+        when(productService.listProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(post("/api/seller/product/99999/list"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test
     @DisplayName("PR-065 - POST /api/seller/product/{productId}/unlist - 下架不存在的商品")
     void testUnlistProductNotFound() throws Exception {
-        when(productService.unlistProduct("99999"))
+        when(productService.unlistProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(post("/api/seller/product/99999/unlist"))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test
     @DisplayName("PR-064 - POST /api/seller/product/{productId}/unlist - 重复下架（静默成功）")
     void testUnlistProductTwice() throws Exception {
-        when(productService.unlistProduct("7002")).thenReturn(true);
+        when(productService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk());
 
-        when(productService.unlistProduct("7002")).thenReturn(true);
+        when(productService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk())
