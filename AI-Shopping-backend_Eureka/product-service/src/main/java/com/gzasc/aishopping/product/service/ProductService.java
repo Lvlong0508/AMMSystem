@@ -23,7 +23,7 @@ public interface ProductService {
      * @param productId 商品ID
      * @return 商品信息，null表示不存在
      */
-    ProductWithImageDetailDTO getProductById(String productId);
+    ProductWithImageDetailDTO getProductById(Long productId);
 
     /**
      * 根据商品名称模糊搜索
@@ -36,7 +36,7 @@ public interface ProductService {
      * 用户端: 根据可售商品ID批量查询抽象信息
      * (id, name, price, tags, imageId)
      */
-    List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<String> ids);
+    List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<Long> ids);
 
     /**
      * 用户端: 分页查询可售商品抽象信息
@@ -55,7 +55,7 @@ public interface ProductService {
      * @param productId 商品ID
      * @return 影响的行数
      */
-    int deleteProduct(String productId);
+    int deleteProduct(Long productId);
 
     /**
      * 更新商品信息
@@ -68,7 +68,7 @@ public interface ProductService {
      * 商家端: 根据商品ID批量查询抽象信息（包含isSale字段）
      * (id, name, price, tags, isSale, imageId)
      */
-    List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<String> ids);
+    List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<Long> ids);
 
 
     // ==================== 库存管理 ====================
@@ -79,7 +79,7 @@ public interface ProductService {
      * @param quantity 扣减数量
      * @return 是否扣减成功（库存不足返回false）
      */
-    boolean deductStock(String productId, int quantity);
+    boolean deductStock(Long productId, int quantity);
 
     /**
      * 恢复商品库存（用于取消订单、退货）
@@ -87,7 +87,7 @@ public interface ProductService {
      * @param quantity 恢复数量
      * @return 是否恢复成功
      */
-    boolean restoreStock(String productId, int quantity);
+    boolean restoreStock(Long productId, int quantity);
 
 
     // ==================== 图片管理 ====================
@@ -128,21 +128,21 @@ public interface ProductService {
      * @param productId 商品ID
      * @return 是否上架成功
      */
-    boolean listProduct(String productId);
+    boolean listProduct(Long productId);
 
     /**
      * 下架商品
      * @param productId 商品ID
      * @return 是否下架成功
      */
-    boolean unlistProduct(String productId);
+    boolean unlistProduct(Long productId);
 
     /**
      * 检查商品是否可售
      * @param productId 商品ID
      * @return 是否可售
      */
-    boolean isProductSalable(String productId);
+    boolean isProductSalable(Long productId);
 
 
     // ==================== 高级查询 ====================
@@ -169,17 +169,17 @@ public interface ProductService {
     /**
      * 用户端: 根据ID批量查询抽象信息 DTO
      */
-    List<ProductAbstractDTO> getAbstractProductDTOs(List<String> ids);
+    List<ProductAbstractDTO> getAbstractProductDTOs(List<Long> ids);
 
     /**
      * 用户端: 根据ID查询商品详情 DTO
      */
-    ProductDetailDTO getProductDetailDTO(String productId);
+    ProductDetailDTO getProductDetailDTO(Long productId);
 
     /**
      * 商家端: 根据ID批量查询抽象信息 DTO（包含isSale）
      */
-    List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<String> ids);
+    List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<Long> ids);
 
     /**
      * 根据图片ID查询图片 DTO

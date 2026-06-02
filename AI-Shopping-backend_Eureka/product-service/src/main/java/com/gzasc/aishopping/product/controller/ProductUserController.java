@@ -39,7 +39,7 @@ public class ProductUserController {
     }
 
     @GetMapping("/{productId}")
-    public ApiResponse<ProductWithImageDetailDTO> getProductById(@PathVariable("productId") String productId) {
+    public ApiResponse<ProductWithImageDetailDTO> getProductById(@PathVariable("productId") Long productId) {
         try {
             ProductWithImageDetailDTO product = productService.getProductById(productId);
             if (product != null) {

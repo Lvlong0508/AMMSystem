@@ -25,4 +25,7 @@ public class CreateProductRequest {
 
     @NotBlank(message = "商品图片不能为空")
     private String imageUrl;
+
+    @NotNull(message = "店铺ID不能为空")
+    private Long shopId;
 }

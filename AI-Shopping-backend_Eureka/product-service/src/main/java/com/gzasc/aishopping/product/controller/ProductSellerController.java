@@ -26,7 +26,7 @@ public class ProductSellerController {
     private final ProductService productService;
 
     @GetMapping("/{productId}")
-    public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") String productId) {
+    public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") Long productId) {
         log.info("商家查询商品详情, productId={}", productId);
         ProductWithImageDetailDTO product = productService.getProductById(productId);
         if (product == null) {
@@ -38,20 +38,23 @@ public class ProductSellerController {
     @GetMapping("/batch")
     public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
         log.info("商家批量查询商品, ids={}", ids);
-        List<String> idList = Arrays.asList(ids.split(","));
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::valueOf)
+                .toList();
         List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForMerchant(idList);
         return ApiResponse.success(products);
     }
 
     @PostMapping("/create")
     public ApiResponse<String> createProduct(@RequestBody @Valid CreateProductRequest request) {
-        log.info("创建商品, name={}", request.getName());
+        log.info("创建商品, name={}, shopId={}", request.getName(), request.getShopId());
         Product product = new Product();
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
         product.setSale(false);
+        product.setShopId(request.getShopId());
 
         int result = productService.createProductWithImage(product, request.getImageUrl());
         if (result > 0) {
@@ -62,11 +65,11 @@ public class ProductSellerController {
 
     @PutMapping("/{productId}")
     public ApiResponse<Void> updateProduct(
-            @PathVariable("productId") String productId,
+            @PathVariable("productId") Long productId,
             @RequestBody @Valid UpdateProductRequest request) {
         log.info("更新商品, productId={}", productId);
         Product product = new Product();
-        product.setId(Long.parseLong(productId));
+        product.setId(productId);
         if (request.getName() != null) product.setName(request.getName());
         if (request.getDescription() != null) product.setDescription(request.getDescription());
         if (request.getPrice() != null) product.setPrice(request.getPrice());
@@ -80,7 +83,7 @@ public class ProductSellerController {
     }
 
     @DeleteMapping("/{productId}")
-    public ApiResponse<Void> deleteProduct(@PathVariable("productId") String productId) {
+    public ApiResponse<Void> deleteProduct(@PathVariable("productId") Long productId) {
         log.info("删除商品, productId={}", productId);
         int result = productService.deleteProduct(productId);
         if (result > 0) {
@@ -90,7 +93,7 @@ public class ProductSellerController {
     }
 
     @PostMapping("/{productId}/list")
-    public ApiResponse<Void> listProduct(@PathVariable("productId") String productId) {
+    public ApiResponse<Void> listProduct(@PathVariable("productId") Long productId) {
         log.info("上架商品, productId={}", productId);
         boolean result = productService.listProduct(productId);
         if (!result) {
@@ -100,7 +103,7 @@ public class ProductSellerController {
     }
 
     @PostMapping("/{productId}/unlist")
-    public ApiResponse<Void> unlistProduct(@PathVariable("productId") String productId) {
+    public ApiResponse<Void> unlistProduct(@PathVariable("productId") Long productId) {
         log.info("下架商品, productId={}", productId);
         boolean result = productService.unlistProduct(productId);
         if (!result) {
