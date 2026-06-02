@@ -229,7 +229,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getProductsByShopId(Long shopId, int page, int size) {
-        List<Product> products = productMapper.selectByShopId(shopId, (page - 1) * size, size);
+        int offset = page > 0 ? (page - 1) * size : 0;
+        List<Product> products = productMapper.selectByShopId(shopId, offset, size);
         if (products.isEmpty()) return List.of();
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
         ShopInfoDTO shopInfo = getCachedShopInfo(shopId);
