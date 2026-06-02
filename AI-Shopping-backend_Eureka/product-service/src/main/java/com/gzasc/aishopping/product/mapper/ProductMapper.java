@@ -16,11 +16,11 @@ public interface ProductMapper {
             "#{id}" +
             "</foreach>" +
             "</script>")
-    List<Product> selectAbstractProductsByIds(@Param("ids") List<String> ids);
+    List<Product> selectAbstractProductsByIds(@Param("ids") List<Long> ids);
 
     // 再按id获取详情
     @Select("SELECT * FROM products WHERE id = #{id}")
-    Product selectProductById(String id);
+    Product selectProductById(Long id);
 
     @Select("SELECT * FROM products WHERE name LIKE CONCAT('%', #{name}, '%')")
     List<Product> selectProductsByName(@Param("name") String name);
@@ -41,9 +41,17 @@ public interface ProductMapper {
     @Delete("DELETE FROM products WHERE id = #{productId}")
     int deleteProduct(@Param("productId") Long productId);
 
-    @Update("UPDATE products SET name = #{name}, price = #{price}, tags = #{tags}, " +
-            "description = #{description}, stock = #{stock}, is_sale = #{isSale}, image_id = #{imageId}, shop_id = #{shopId}, updated_at = NOW() " +
-            "WHERE id = #{id}")
+    @Update("<script>" +
+            "UPDATE products SET updated_at = NOW()" +
+            "<if test='name != null'>, name = #{name}</if>" +
+            "<if test='price != null'>, price = #{price}</if>" +
+            "<if test='tags != null'>, tags = #{tags}</if>" +
+            "<if test='description != null'>, description = #{description}</if>" +
+            "<if test='stock != null'>, stock = #{stock}</if>" +
+            "<if test='imageId != null'>, image_id = #{imageId}</if>" +
+            "<if test='shopId != null'>, shop_id = #{shopId}</if>" +
+            " WHERE id = #{id}" +
+            "</script>")
     int updateProduct(Product product);
 
     @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
@@ -56,7 +64,7 @@ public interface ProductMapper {
             "#{id}" +
             "</foreach>" +
             "</script>")
-    List<Product> selectAbstractProductsByIdsJustMerchant(@Param("ids") List<String> ids);
+    List<Product> selectAbstractProductsByIdsJustMerchant(@Param("ids") List<Long> ids);
 
     @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
     List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);

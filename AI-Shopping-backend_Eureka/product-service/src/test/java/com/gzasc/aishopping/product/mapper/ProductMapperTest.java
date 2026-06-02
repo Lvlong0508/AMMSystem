@@ -80,7 +80,7 @@ class ProductMapperTest {
         void selectById_shouldReturnProduct() {
             Long id = uniqueId();
             insertAndReturn(buildProduct(id, "select-by-id", BigDecimal.valueOf(50), 5));
-            Product found = productMapper.selectProductById(String.valueOf(id));
+            Product found = productMapper.selectProductById(id);
             assertThat(found).isNotNull();
             assertThat(found.getName()).isEqualTo("select-by-id");
             assertThat(found.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(50));
@@ -89,7 +89,7 @@ class ProductMapperTest {
         @Test
         @DisplayName("查询不存在的商品返回null")
         void selectById_notFound_shouldReturnNull() {
-            Product found = productMapper.selectProductById("999999999999");
+            Product found = productMapper.selectProductById(999999999999L);
             assertThat(found).isNull();
         }
 
@@ -142,7 +142,7 @@ class ProductMapperTest {
             Long id1 = uniqueId(), id2 = uniqueId();
             insertAndReturn(buildProduct(id1, "abstract-1", BigDecimal.valueOf(10), 2));
             insertAndReturn(buildProduct(id2, "abstract-2", BigDecimal.valueOf(20), 3));
-            List<Product> list = productMapper.selectAbstractProductsByIds(List.of(String.valueOf(id1), String.valueOf(id2)));
+            List<Product> list = productMapper.selectAbstractProductsByIds(List.of(id1, id2));
             assertThat(list).hasSize(2);
         }
 
@@ -152,7 +152,7 @@ class ProductMapperTest {
             Long id1 = uniqueId(), id2 = uniqueId();
             insertAndReturn(buildProduct(id1, "merchant-1", BigDecimal.valueOf(15), 4));
             insertAndReturn(buildProduct(id2, "merchant-2", BigDecimal.valueOf(25), 5));
-            List<Product> list = productMapper.selectAbstractProductsByIdsJustMerchant(List.of(String.valueOf(id1), String.valueOf(id2)));
+            List<Product> list = productMapper.selectAbstractProductsByIdsJustMerchant(List.of(id1, id2));
             assertThat(list).hasSize(2);
         }
 
@@ -187,7 +187,7 @@ class ProductMapperTest {
             insertAndReturn(buildProduct(id, "deduct-test", BigDecimal.valueOf(100), 10));
             int affected = productMapper.deductStock(id, 3);
             assertThat(affected).isEqualTo(1);
-            Product updated = productMapper.selectProductById(String.valueOf(id));
+            Product updated = productMapper.selectProductById(id);
             assertThat(updated.getStock()).isEqualTo(7);
         }
 
@@ -207,7 +207,7 @@ class ProductMapperTest {
             insertAndReturn(buildProduct(id, "restore-test", BigDecimal.valueOf(100), 5));
             int affected = productMapper.restoreStock(id, 3);
             assertThat(affected).isEqualTo(1);
-            Product updated = productMapper.selectProductById(String.valueOf(id));
+            Product updated = productMapper.selectProductById(id);
             assertThat(updated.getStock()).isEqualTo(8);
         }
 
@@ -218,7 +218,7 @@ class ProductMapperTest {
             insertAndReturn(buildProduct(id, "sale-status-test", BigDecimal.valueOf(100), 5));
             int affected = productMapper.updateSaleStatus(id, false);
             assertThat(affected).isEqualTo(1);
-            Product updated = productMapper.selectProductById(String.valueOf(id));
+            Product updated = productMapper.selectProductById(id);
             assertThat(updated.isSale()).isFalse();
         }
 
@@ -238,11 +238,32 @@ class ProductMapperTest {
             int affected = productMapper.updateProduct(p);
             assertThat(affected).isEqualTo(1);
 
-            Product updated = productMapper.selectProductById(String.valueOf(id));
+            Product updated = productMapper.selectProductById(id);
             assertThat(updated.getName()).isEqualTo("新名称");
             assertThat(updated.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(200));
             assertThat(updated.getStock()).isEqualTo(10);
             assertThat(updated.isSale()).isFalse();
+        }
+
+        @Test
+        @DisplayName("updateProduct_shouldUpdatePartialFields")
+        void updateProduct_shouldUpdatePartialFields() {
+            Long id = uniqueId();
+            insertAndReturn(buildProduct(id, "原名称", BigDecimal.valueOf(100), 5));
+
+            Product update = new Product();
+            update.setId(id);
+            update.setName("新名称");
+            update.setPrice(BigDecimal.valueOf(99));
+
+            int rows = productMapper.updateProduct(update);
+            assertThat(rows).isEqualTo(1);
+
+            Product reloaded = productMapper.selectProductById(id);
+            assertThat(reloaded.getName()).isEqualTo("新名称");
+            assertThat(reloaded.getPrice()).isEqualByComparingTo(BigDecimal.valueOf(99));
+            assertThat(reloaded.getStock()).isNotNull();
+            assertThat(reloaded.getDescription()).isNotNull();
         }
 
         @Test
@@ -270,7 +291,7 @@ class ProductMapperTest {
             insertAndReturn(buildProduct(id, "delete-test", BigDecimal.valueOf(50), 3));
             int affected = productMapper.deleteProduct(id);
             assertThat(affected).isEqualTo(1);
-            assertThat(productMapper.selectProductById(String.valueOf(id))).isNull();
+            assertThat(productMapper.selectProductById(id)).isNull();
         }
 
         @Test
