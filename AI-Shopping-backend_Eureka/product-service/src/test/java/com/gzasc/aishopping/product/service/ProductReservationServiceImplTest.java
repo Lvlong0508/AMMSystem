@@ -41,14 +41,14 @@ class ProductReservationServiceImplTest {
     @Test
     @DisplayName("PR-040 - 正常预占库存")
     void testReserveSuccess() {
-        when(mapper.selectProductStockForUpdate("6001")).thenReturn(100);
-        when(mapper.sumReservedQty("6001")).thenReturn(0);
+        when(mapper.selectProductStockForUpdate(6001L)).thenReturn(100);
+        when(mapper.sumReservedQty(6001L)).thenReturn(0);
         when(mapper.insertReservation(any(ProductReservation.class))).thenReturn(1);
 
         reservationService.reserve("ORDER001", "6001", 3);
 
-        verify(mapper).selectProductStockForUpdate("6001");
-        verify(mapper).sumReservedQty("6001");
+        verify(mapper).selectProductStockForUpdate(6001L);
+        verify(mapper).sumReservedQty(6001L);
         verify(mapper).insertReservation(reservationCaptor.capture());
         ProductReservation captured = reservationCaptor.getValue();
         assertEquals("ORDER001", captured.getOrderId());
@@ -60,8 +60,8 @@ class ProductReservationServiceImplTest {
     @Test
     @DisplayName("PR-041 - 库存足够但接近上限")
     void testReserveExactStock() {
-        when(mapper.selectProductStockForUpdate("6001")).thenReturn(5);
-        when(mapper.sumReservedQty("6001")).thenReturn(0);
+        when(mapper.selectProductStockForUpdate(6001L)).thenReturn(5);
+        when(mapper.sumReservedQty(6001L)).thenReturn(0);
         when(mapper.insertReservation(any(ProductReservation.class))).thenReturn(1);
 
         reservationService.reserve("ORDER002", "6001", 5);
@@ -72,8 +72,8 @@ class ProductReservationServiceImplTest {
     @Test
     @DisplayName("PR-042 - 预占数量大于库存")
     void testReserveInsufficientStock() {
-        when(mapper.selectProductStockForUpdate("6001")).thenReturn(3);
-        when(mapper.sumReservedQty("6001")).thenReturn(0);
+        when(mapper.selectProductStockForUpdate(6001L)).thenReturn(3);
+        when(mapper.sumReservedQty(6001L)).thenReturn(0);
 
         ProductException exception = assertThrows(ProductException.class,
                 () -> reservationService.reserve("ORDER003", "6001", 5));
@@ -84,8 +84,8 @@ class ProductReservationServiceImplTest {
     @Test
     @DisplayName("PR-043 - 预占数量大于可用量（已有预占占用）")
     void testReserveInsufficientAvailable() {
-        when(mapper.selectProductStockForUpdate("6001")).thenReturn(10);
-        when(mapper.sumReservedQty("6001")).thenReturn(8);
+        when(mapper.selectProductStockForUpdate(6001L)).thenReturn(10);
+        when(mapper.sumReservedQty(6001L)).thenReturn(8);
 
         ProductException exception = assertThrows(ProductException.class,
                 () -> reservationService.reserve("ORDER004", "6001", 5));
@@ -96,8 +96,8 @@ class ProductReservationServiceImplTest {
     @Test
     @DisplayName("PR-046 - 商品不存在时预占")
     void testReserveProductNotFound() {
-        when(mapper.selectProductStockForUpdate("99999")).thenReturn(0);
-        when(mapper.sumReservedQty("99999")).thenReturn(0);
+        when(mapper.selectProductStockForUpdate(99999L)).thenReturn(0);
+        when(mapper.sumReservedQty(99999L)).thenReturn(0);
 
         ProductException exception = assertThrows(ProductException.class,
                 () -> reservationService.reserve("ORDER005", "99999", 1));
@@ -114,12 +114,12 @@ class ProductReservationServiceImplTest {
         reservation.setOrderId("ORDER006");
         when(mapper.selectByOrderId("ORDER006")).thenReturn(reservation);
         when(mapper.confirmReservation("ORDER006")).thenReturn(1);
-        when(mapper.deductProductStock("6001", 3)).thenReturn(1);
+        when(mapper.deductProductStock(6001L, 3)).thenReturn(1);
 
         reservationService.confirm("ORDER006");
 
         verify(mapper).confirmReservation("ORDER006");
-        verify(mapper).deductProductStock("6001", 3);
+        verify(mapper).deductProductStock(6001L, 3);
     }
 
     @Test

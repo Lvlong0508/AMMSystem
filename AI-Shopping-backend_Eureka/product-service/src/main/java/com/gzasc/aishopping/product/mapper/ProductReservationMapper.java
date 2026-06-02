@@ -26,12 +26,12 @@ public interface ProductReservationMapper {
     List<ProductReservation> selectExpiredReservations(@Param("now") Date now);
 
     @Update("UPDATE products SET stock = stock - #{quantity} WHERE id = #{productId} AND stock >= #{quantity}")
-    int deductProductStock(@Param("productId") String productId, @Param("quantity") int quantity);
+    int deductProductStock(@Param("productId") Long productId, @Param("quantity") int quantity);
 
     @Select("SELECT stock FROM products WHERE id = #{productId} FOR UPDATE")
-    int selectProductStockForUpdate(@Param("productId") String productId);
+    int selectProductStockForUpdate(@Param("productId") Long productId);
 
     @Select("SELECT COALESCE(SUM(quantity), 0) FROM product_reservations " +
             "WHERE product_id = #{productId} AND status = 'RESERVED' FOR UPDATE")
-    int sumReservedQty(@Param("productId") String productId);
+    int sumReservedQty(@Param("productId") Long productId);
 }

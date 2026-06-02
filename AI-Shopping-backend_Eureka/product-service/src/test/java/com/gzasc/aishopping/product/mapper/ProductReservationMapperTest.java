@@ -138,7 +138,7 @@ class ProductReservationMapperTest {
         void selectProductStockForUpdate_shouldReturnStock() {
             String pid = uniqueProductId();
             insertProduct(pid, 15);
-            int stock = reservationMapper.selectProductStockForUpdate(pid);
+            int stock = reservationMapper.selectProductStockForUpdate(Long.valueOf(pid));
             assertThat(stock).isEqualTo(15);
         }
 
@@ -152,7 +152,7 @@ class ProductReservationMapperTest {
             insertAndReturn(pid, oid1, 3, ProductReservation.RESERVED, future);
             insertAndReturn(pid, oid2, 5, ProductReservation.RESERVED, future);
 
-            int sum = reservationMapper.sumReservedQty(pid);
+            int sum = reservationMapper.sumReservedQty(Long.valueOf(pid));
             assertThat(sum).isEqualTo(8);
         }
     }
@@ -219,10 +219,10 @@ class ProductReservationMapperTest {
         void deductProductStock_shouldDecrease() {
             String pid = uniqueProductId();
             insertProduct(pid, 10);
-            int affected = reservationMapper.deductProductStock(pid, 3);
+            int affected = reservationMapper.deductProductStock(Long.valueOf(pid), 3);
             assertThat(affected).isEqualTo(1);
 
-            int stock = reservationMapper.selectProductStockForUpdate(pid);
+            int stock = reservationMapper.selectProductStockForUpdate(Long.valueOf(pid));
             assertThat(stock).isEqualTo(7);
         }
 
@@ -231,7 +231,7 @@ class ProductReservationMapperTest {
         void deductProductStock_insufficient_shouldFail() {
             String pid = uniqueProductId();
             insertProduct(pid, 2);
-            int affected = reservationMapper.deductProductStock(pid, 10);
+            int affected = reservationMapper.deductProductStock(Long.valueOf(pid), 10);
             assertThat(affected).isEqualTo(0);
         }
     }

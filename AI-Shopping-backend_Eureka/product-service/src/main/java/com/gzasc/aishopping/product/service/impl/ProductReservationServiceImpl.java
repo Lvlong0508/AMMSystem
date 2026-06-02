@@ -29,10 +29,11 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     @Override
     @Transactional
     public void reserve(String orderId, String productId, int quantity) {
-        int stock = mapper.selectProductStockForUpdate(productId);
-        int alreadyReserved = mapper.sumReservedQty(productId);
+        Long pid = Long.valueOf(productId);
+        int stock = mapper.selectProductStockForUpdate(pid);
+        int alreadyReserved = mapper.sumReservedQty(pid);
         if (stock - alreadyReserved < quantity) {
-            throw new ProductException("商品库存不足");
+            throw new ProductException(409, "商品库存不足");
         }
 
         Calendar cal = Calendar.getInstance();
@@ -68,7 +69,7 @@ public class ProductReservationServiceImpl implements ProductReservationService 
             throw new ProductException("确认预占失败");
         }
 
-        rows = mapper.deductProductStock(reservation.getProductId(), reservation.getQuantity());
+        rows = mapper.deductProductStock(Long.valueOf(reservation.getProductId()), reservation.getQuantity());
         if (rows <= 0) {
             throw new ProductException("扣减库存失败");
         }
