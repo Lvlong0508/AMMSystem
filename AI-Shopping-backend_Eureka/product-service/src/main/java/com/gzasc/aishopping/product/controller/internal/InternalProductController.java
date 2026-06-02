@@ -99,8 +99,7 @@ public class InternalProductController {
 
     // 内部接口：确认预占并扣减库存（订单服务支付时执行）
     @PostMapping("/confirm-reservation")
-    public ApiResponse<Void> confirmReservation(@RequestBody Map<String, String> body) {
-        String orderId = body.get("orderId");
+    public ApiResponse<Void> confirmReservation(@RequestParam("orderId") String orderId) {
         try {
             reservationService.confirm(orderId);
             return ApiResponse.success(null);
@@ -138,8 +137,7 @@ public class InternalProductController {
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
     @PostMapping("/release-reservation")
-    public ApiResponse<Void> releaseReservation(@RequestBody Map<String, String> body) {
-        String orderId = body.get("orderId");
+    public ApiResponse<Void> releaseReservation(@RequestParam("orderId") String orderId) {
         try {
             reservationService.release(orderId);
             return ApiResponse.success(null);

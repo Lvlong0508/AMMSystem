@@ -56,16 +56,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String extractRole(String loginId) {
-        if (loginId.startsWith("USER:")) {
-            return "USER";
-        } else if (loginId.startsWith("MERCHANT:")) {
-            return "MERCHANT";
-        }
-        return "UNKNOWN";
-    }
-
-    @Override
     public String getAccountType(String token) {
         try {
             SaSession session = StpUtil.getStpLogic().getTokenSessionByToken(token, false);

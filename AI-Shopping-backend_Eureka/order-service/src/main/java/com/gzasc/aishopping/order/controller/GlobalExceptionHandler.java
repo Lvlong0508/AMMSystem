@@ -3,6 +3,7 @@ package com.gzasc.aishopping.order.controller;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.exception.OrderException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -15,6 +16,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleOrderException(OrderException e) {
         return ApiResponse.error(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMissingHeaderException(MissingRequestHeaderException e) {
+        return ApiResponse.error(400, "缺少必要请求头: " + e.getHeaderName());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

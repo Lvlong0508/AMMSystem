@@ -123,24 +123,6 @@ class AuthServiceImplTest {
     }
 
     @Test
-    @DisplayName("extractRole: USER前缀返回USER")
-    void extractRole_userPrefix_returnsUSER() {
-        assertEquals("USER", authService.extractRole("USER:u001"));
-    }
-
-    @Test
-    @DisplayName("extractRole: MERCHANT前缀返回MERCHANT")
-    void extractRole_merchantPrefix_returnsMERCHANT() {
-        assertEquals("MERCHANT", authService.extractRole("MERCHANT:m001"));
-    }
-
-    @Test
-    @DisplayName("extractRole: 未知前缀返回UNKNOWN")
-    void extractRole_unknownPrefix_returnsUNKNOWN() {
-        assertEquals("UNKNOWN", authService.extractRole("ADMIN:admin"));
-    }
-
-    @Test
     @DisplayName("GW-WL-001: 用户登录白名单放行")
     void isWhiteList_userLogin_returnsTrue() {
         assertTrue(authService.isWhiteList("/api/user/auth/login"));

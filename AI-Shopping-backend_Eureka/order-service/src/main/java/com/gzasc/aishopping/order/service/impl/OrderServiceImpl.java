@@ -59,6 +59,11 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
         }
 
+        ApiResponse<ContactDTO> contactResp = contactFeignClient.getContactById(request.getContactId());
+        if (contactResp == null || contactResp.getData() == null) {
+            throw new OrderException("联系人不存在，请重新选择联系人（错误代码：O-006）");
+        }
+
         Long shopIdObj = product.getShopId();
         if (shopIdObj == null) {
             throw new OrderException("获取店铺信息失败");

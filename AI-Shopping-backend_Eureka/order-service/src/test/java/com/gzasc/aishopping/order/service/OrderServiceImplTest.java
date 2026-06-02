@@ -70,6 +70,15 @@ class OrderServiceImplTest {
     @Captor
     private ArgumentCaptor<DeletedOrder> deletedOrderCaptor;
 
+    private void mockContact(Integer contactId) {
+        ContactDTO dto = new ContactDTO();
+        dto.setId(contactId);
+        dto.setName("测试");
+        dto.setPhone("13800138001");
+        dto.setAddress("测试地址");
+        when(contactFeignClient.getContactById(contactId)).thenReturn(ApiResponse.success(dto));
+    }
+
     private Order createOrder(String orderId, Long userId, String shopId, String status) {
         Order o = new Order();
         o.setOrderId(orderId);
@@ -104,6 +113,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800001ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -156,7 +166,7 @@ class OrderServiceImplTest {
     }
 
     @Test
-    @DisplayName("OR-004 下单 - 联系地址ID任意（当前代码不验证）")
+    @DisplayName("OR-004 下单 - 合法联系人ID允许创建")
     void createOrder_arbitraryContactId() {
         PlaceOrderRequest request = new PlaceOrderRequest();
         request.setProductId("1");
@@ -166,6 +176,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800002ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(999);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -187,6 +198,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800003ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenThrow(new RuntimeException("Feign调用失败"));
@@ -206,6 +218,7 @@ class OrderServiceImplTest {
 
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, null, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -807,6 +820,7 @@ class OrderServiceImplTest {
         ProductDTO mockProduct = new ProductDTO(1L, "Test",
                 BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -828,6 +842,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("ORDER101");
         ProductDTO mockProduct = new ProductDTO(1L, "Free", null, null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));

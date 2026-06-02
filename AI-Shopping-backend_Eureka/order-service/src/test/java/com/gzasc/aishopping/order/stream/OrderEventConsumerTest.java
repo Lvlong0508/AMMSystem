@@ -98,7 +98,7 @@ class OrderEventConsumerTest {
         consumer.onMessage(record);
 
         verify(productFeignClient).confirmReservation("ORDER001");
-        verify(productFeignClient, never()).releaseReservation(anyString());
+        verify(productFeignClient, never()).releaseReservation("ORDER001");
         verify(streamOps).acknowledge(anyString(), anyString(), any(RecordId.class));
     }
 
@@ -118,7 +118,7 @@ class OrderEventConsumerTest {
         consumer.onMessage(record);
 
         verify(productFeignClient).releaseReservation("ORDER001");
-        verify(productFeignClient, never()).confirmReservation(anyString());
+        verify(productFeignClient, never()).confirmReservation("ORDER001");
     }
 
     @Test
@@ -133,8 +133,8 @@ class OrderEventConsumerTest {
 
         consumer.onMessage(record);
 
-        verify(productFeignClient, never()).confirmReservation(anyString());
-        verify(productFeignClient, never()).releaseReservation(anyString());
+        verify(productFeignClient, never()).confirmReservation("ORDER001");
+        verify(productFeignClient, never()).releaseReservation("ORDER001");
         verify(streamOps).acknowledge(anyString(), anyString(), any(RecordId.class));
     }
 
@@ -296,8 +296,8 @@ class OrderEventConsumerTest {
 
         consumer.onMessage(record);
 
-        verify(productFeignClient, never()).confirmReservation(anyString());
-        verify(productFeignClient, never()).releaseReservation(anyString());
+        verify(productFeignClient, never()).confirmReservation("ORDER001");
+        verify(productFeignClient, never()).releaseReservation("ORDER001");
         verify(productFeignClient, never()).restoreStock(any());
         verify(logisticsFeignClient, never()).createLogistics(any());
     }

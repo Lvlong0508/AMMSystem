@@ -91,7 +91,8 @@ class OrderUserControllerTest {
                         .content("""
                                 {"productId":"1","quantity":1,"contactId":1}
                                 """))
-                .andExpect(status().is5xxServerError());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test

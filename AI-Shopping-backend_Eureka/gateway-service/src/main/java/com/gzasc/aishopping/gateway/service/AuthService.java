@@ -10,8 +10,6 @@ public interface AuthService {
 
     String validateToken(String token);
 
-    String extractRole(String loginId);
-
     String getAccountType(String token);
 
     boolean hasPermission(String accountType, String path, ServerHttpRequest request);
