@@ -108,7 +108,7 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-001 - 分页查询可售商品 - 有数据")
     void testGetSalableProductsAbstractWithData() {
-        when(salableProductMapper.selectAll(0)).thenReturn(List.of(1L, 2L));
+        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L, 2L));
         Product p1 = new Product(); p1.setId(1L); p1.setImageId(1); p1.setShopId(10L);
         Product p2 = new Product(); p2.setId(2L); p2.setImageId(2); p2.setShopId(10L);
         when(productMapper.selectAbstractProductsByIds(List.of(1L, 2L))).thenReturn(List.of(p1, p2));
@@ -123,7 +123,7 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-002 - 分页查询可售商品 - 无数据")
     void testGetSalableProductsAbstractEmpty() {
-        when(salableProductMapper.selectAll(0)).thenReturn(List.of());
+        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of());
 
         List<ProductWithImageAbstractDTO> result = productService.getSalableProductsAbstract(0);
 

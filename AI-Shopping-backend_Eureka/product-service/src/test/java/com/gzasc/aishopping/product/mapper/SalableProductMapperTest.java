@@ -39,7 +39,7 @@ class SalableProductMapperTest {
         return System.nanoTime();
     }
 
-    private String insertProduct() {
+    private Long insertProduct() {
         Long id = uniqueId();
         Product p = new Product();
         p.setId(id);
@@ -51,7 +51,7 @@ class SalableProductMapperTest {
         p.setSale(true);
         p.setShopId(100L);
         productMapper.insertProduct(p);
-        return String.valueOf(id);
+        return id;
     }
 
     @Nested
@@ -61,7 +61,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("添加可售商品")
         void addSalable_shouldInsert() {
-            String pid = insertProduct();
+            Long pid = insertProduct();
             int affected = salableProductMapper.addSalable(pid);
             assertThat(affected).isEqualTo(1);
         }
@@ -69,7 +69,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("重复添加可售商品应抛异常")
         void addSalable_duplicate_shouldThrow() {
-            String pid = insertProduct();
+            Long pid = insertProduct();
             salableProductMapper.addSalable(pid);
             org.junit.jupiter.api.Assertions.assertThrows(Exception.class,
                 () -> salableProductMapper.addSalable(pid));
@@ -83,7 +83,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("判断商品是否可售-存在")
         void isSalable_shouldReturnTrue() {
-            String pid = insertProduct();
+            Long pid = insertProduct();
             salableProductMapper.addSalable(pid);
             assertThat(salableProductMapper.isSalable(pid)).isTrue();
         }
@@ -91,15 +91,15 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("判断商品是否可售-不存在")
         void isSalable_notFound_shouldReturnFalse() {
-            assertThat(salableProductMapper.isSalable("999999")).isFalse();
+            assertThat(salableProductMapper.isSalable(999999L)).isFalse();
         }
 
         @Test
         @DisplayName("查询所有可售商品ID")
         void selectAll_shouldReturnIds() {
-            String pid = insertProduct();
+            Long pid = insertProduct();
             salableProductMapper.addSalable(pid);
-            List<String> list = salableProductMapper.selectAll(0);
+            List<Long> list = salableProductMapper.selectAll(0, 20);
             assertThat(list).isNotEmpty();
             assertThat(list).contains(pid);
         }
@@ -107,7 +107,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("查询可售商品超出偏移量返回空列表")
         void selectAll_offsetTooLarge_shouldReturnEmpty() {
-            List<String> list = salableProductMapper.selectAll(99999);
+            List<Long> list = salableProductMapper.selectAll(99999, 20);
             assertThat(list).isEmpty();
         }
     }
@@ -119,7 +119,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("移除可售商品")
         void removeSalable_shouldDelete() {
-            String pid = insertProduct();
+            Long pid = insertProduct();
             salableProductMapper.addSalable(pid);
             int affected = salableProductMapper.removeSalable(pid);
             assertThat(affected).isEqualTo(1);
@@ -129,7 +129,7 @@ class SalableProductMapperTest {
         @Test
         @DisplayName("移除不存在的可售商品返回0")
         void removeSalable_notFound_shouldReturnZero() {
-            int affected = salableProductMapper.removeSalable("999999");
+            int affected = salableProductMapper.removeSalable(999999L);
             assertThat(affected).isEqualTo(0);
         }
     }
