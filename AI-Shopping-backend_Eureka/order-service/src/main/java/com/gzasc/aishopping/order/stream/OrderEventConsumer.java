@@ -84,7 +84,7 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
             log.warn("订单不存在, orderId={}", orderId);
             return;
         }
-        productFeignClient.restoreStock(new StockDeductRequest(o.getProductId(), o.getQuantity()));
+        productFeignClient.restoreStock(new StockDeductRequest(Long.valueOf(o.getProductId()), o.getQuantity()));
         log.info("库存恢复成功, orderId={}", orderId);
     }
 

@@ -74,7 +74,7 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("创建订单失败");
         }
 
-        productFeignClient.reserveStock(new StockReserveRequest(orderId, order.getProductId(), request.getQuantity()));
+        productFeignClient.reserveStock(new StockReserveRequest(orderId, Long.valueOf(order.getProductId()), request.getQuantity()));
 
         return orderId;
     }
@@ -110,7 +110,7 @@ public class OrderServiceImpl implements OrderService {
 
         int updated = orderMapper.updateOrderStatusCas(orderId, Order.CANCELLED, Order.PAID);
         if (updated > 0) {
-            StockDeductRequest stockReq = new StockDeductRequest(order.getProductId(), order.getQuantity());
+            StockDeductRequest stockReq = new StockDeductRequest(Long.valueOf(order.getProductId()), order.getQuantity());
             productFeignClient.restoreStock(stockReq);
             log.info("已支付订单取消，恢复库存, orderId={}", orderId);
             return;

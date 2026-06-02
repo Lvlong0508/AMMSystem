@@ -27,7 +27,7 @@ public class InternalProductController {
 
     // 内部接口：根据ID查询商品详情（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/{productId}")
-    public ApiResponse<ProductDTO> getProductById(@PathVariable("productId") String productId) {
+    public ApiResponse<ProductDTO> getProductById(@PathVariable("productId") Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             return ApiResponse.error(404, "商品不存在");
@@ -48,7 +48,9 @@ public class InternalProductController {
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/batch")
     public List<ProductWithImageAbstractDTO> getProductsByIds(@RequestParam("ids") String ids) {
-        List<String> idList = Arrays.asList(ids.split(","));
+        List<Long> idList = Arrays.stream(ids.split(","))
+                .map(Long::valueOf)
+                .toList();
         return productService.getAbstractProductsForBuyer(idList);
     }
 
@@ -76,7 +78,7 @@ public class InternalProductController {
     @PostMapping("/reserve-stock")
     public ApiResponse<Void> reserveStock(@RequestBody StockReserveRequest req) {
         try {
-            reservationService.reserve(req.getOrderId(), req.getProductId(), req.getQuantity());
+            reservationService.reserve(req.getOrderId(), String.valueOf(req.getProductId()), req.getQuantity());
             return ApiResponse.success(null);
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());

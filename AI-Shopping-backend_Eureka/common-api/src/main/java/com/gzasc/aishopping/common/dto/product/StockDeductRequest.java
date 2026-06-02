@@ -13,6 +13,6 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StockDeductRequest implements Serializable {
-    private String productId;
+    private Long productId;
     private int quantity;
 }

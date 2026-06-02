@@ -11,6 +11,6 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class StockReserveRequest implements Serializable {
     private String orderId;
-    private String productId;
+    private Long productId;
     private int quantity;
 }

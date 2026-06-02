@@ -117,7 +117,7 @@ class OrderServiceImplTest {
         assertEquals("100", saved.getShopId());
         verify(productFeignClient).reserveStock(stockReserveCaptor.capture());
         assertEquals("2026052800001ABCDE", stockReserveCaptor.getValue().getOrderId());
-        assertEquals("1", stockReserveCaptor.getValue().getProductId());
+        assertEquals(1L, stockReserveCaptor.getValue().getProductId());
         assertEquals(2, stockReserveCaptor.getValue().getQuantity());
     }
 

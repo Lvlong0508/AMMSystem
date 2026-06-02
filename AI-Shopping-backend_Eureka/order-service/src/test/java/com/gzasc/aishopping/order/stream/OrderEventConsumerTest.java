@@ -176,7 +176,7 @@ class OrderEventConsumerTest {
         consumer.onMessage(record);
 
         verify(productFeignClient).restoreStock(stockDeductCaptor.capture());
-        assertEquals("1", stockDeductCaptor.getValue().getProductId());
+        assertEquals(1L, stockDeductCaptor.getValue().getProductId());
         assertEquals(2, stockDeductCaptor.getValue().getQuantity());
     }
 
