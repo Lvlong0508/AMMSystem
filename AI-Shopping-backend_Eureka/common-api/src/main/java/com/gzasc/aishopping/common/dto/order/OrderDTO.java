@@ -3,6 +3,7 @@ package com.gzasc.aishopping.common.dto.order;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
@@ -21,7 +22,7 @@ public class OrderDTO implements Serializable {
     private String orderId;
     private String productId;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
     private String orderStatus;
     private Timestamp orderDate;
     private Integer contactId;

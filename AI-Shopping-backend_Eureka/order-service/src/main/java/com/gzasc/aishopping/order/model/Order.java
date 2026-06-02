@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.model;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +44,7 @@ public class Order {
     private String shopId;
     private String productId;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
     private String orderStatus;
     private Timestamp orderDate;
     private Integer contactId;
@@ -62,7 +63,7 @@ public class Order {
     }
 
     public static Order buildInitOrder(String orderId, Long userId, String shopId,
-                                       String productId, int quantity, double totalPrice) {
+                                       String productId, int quantity, BigDecimal totalPrice) {
         Order order = new Order();
         order.orderId = orderId;
         order.userId = userId;

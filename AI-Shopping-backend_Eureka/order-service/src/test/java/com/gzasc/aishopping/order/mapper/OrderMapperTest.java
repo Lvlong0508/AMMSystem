@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,7 +35,7 @@ class OrderMapperTest {
         order.setShopId("SHOP001");
         order.setProductId("PROD001");
         order.setQuantity(2);
-        order.setTotalPrice(99.99);
+        order.setTotalPrice(new BigDecimal("99.99"));
         order.setOrderStatus(Order.PENDING);
         order.setOrderDate(new Timestamp(System.currentTimeMillis()));
         return order;

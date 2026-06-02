@@ -20,6 +20,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -100,8 +101,8 @@ class ChatControllerTest {
     @DisplayName("CH-003 正常聊天 - 订单查询（工具调用后返回 OrderData）")
     void chat_orderQuery() throws Exception {
         var orders = List.of(
-                new OrderItem("ORD001", "P001", 2, 5998.0, "PAID", "2026-05-28", "张三", "138xxx", "地址1"),
-                new OrderItem("ORD002", "P002", 1, 199.0, "SHIPPED", "2026-05-27", "李四", "139xxx", "地址2")
+                new OrderItem("ORD001", "P001", 2, BigDecimal.valueOf(5998), "PAID", "2026-05-28", "张三", "138xxx", "地址1"),
+                new OrderItem("ORD002", "P002", 1, BigDecimal.valueOf(199), "SHIPPED", "2026-05-27", "李四", "139xxx", "地址2")
         );
         var response = new AiResponse("您的订单", "called getOrderById", new OrderData(orders));
         when(assistant.chat(1L, "查一下我的订单")).thenReturn(response);
@@ -115,7 +116,7 @@ class ChatControllerTest {
                 .andExpect(jsonPath("$.data.data.orders").isArray())
                 .andExpect(jsonPath("$.data.data.orders[0].orderId").value("ORD001"))
                 .andExpect(jsonPath("$.data.data.orders[0].orderStatus").value("PAID"))
-                .andExpect(jsonPath("$.data.data.orders[0].totalPrice").value(5998.0))
+                .andExpect(jsonPath("$.data.data.orders[0].totalPrice").value(5998))
                 .andExpect(jsonPath("$.data.data.orders[1].orderId").value("ORD002"))
                 .andExpect(jsonPath("$.data.data.orders[1].orderStatus").value("SHIPPED"));
     }

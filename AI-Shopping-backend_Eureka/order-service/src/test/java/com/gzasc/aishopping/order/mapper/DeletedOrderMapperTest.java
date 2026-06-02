@@ -11,6 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,7 @@ class DeletedOrderMapperTest {
         d.setShopId("SHOP001");
         d.setProductId("PROD001");
         d.setQuantity(2);
-        d.setTotalPrice(99.99);
+        d.setTotalPrice(new BigDecimal("99.99"));
         d.setOrderStatus(Order.PENDING);
         d.setOrderDate(new Timestamp(System.currentTimeMillis()));
         d.setDeletedAt(new Timestamp(System.currentTimeMillis()));

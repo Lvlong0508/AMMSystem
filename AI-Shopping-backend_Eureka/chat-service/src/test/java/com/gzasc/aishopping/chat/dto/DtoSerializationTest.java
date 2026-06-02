@@ -7,6 +7,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -63,7 +64,7 @@ class DtoSerializationTest {
     @Test
     @DisplayName("CH-048 OrderData 序列化 - type=order")
     void orderData_serialization() throws Exception {
-        var items = List.of(new OrderItem("O001", "P001", 2, 5998.0, "PAID", "2026-05-28", "张三", "138xxx", "地址"));
+        var items = List.of(new OrderItem("O001", "P001", 2, BigDecimal.valueOf(5998), "PAID", "2026-05-28", "张三", "138xxx", "地址"));
         OrderData data = new OrderData(items);
 
         String json = objectMapper.writeValueAsString(data);
@@ -121,20 +122,20 @@ class DtoSerializationTest {
     @Test
     @DisplayName("CH-052 OrderItem 完整字段")
     void orderItem_allFields() throws Exception {
-        OrderItem item = new OrderItem("O001", "P001", 2, 5998.0, "PAID", "2026-05-28", "张三", "138xxx", "地址");
+        OrderItem item = new OrderItem("O001", "P001", 2, BigDecimal.valueOf(5998), "PAID", "2026-05-28", "张三", "138xxx", "地址");
 
         String json = objectMapper.writeValueAsString(item);
         assertTrue(json.contains("\"orderId\":\"O001\""));
         assertTrue(json.contains("\"productId\":\"P001\""));
         assertTrue(json.contains("\"quantity\":2"));
-        assertTrue(json.contains("\"totalPrice\":5998.0"));
+        assertTrue(json.contains("\"totalPrice\":5998"));
         assertTrue(json.contains("\"orderStatus\":\"PAID\""));
 
         OrderItem deserialized = objectMapper.readValue(json, OrderItem.class);
         assertEquals("O001", deserialized.orderId());
         assertEquals("P001", deserialized.productId());
         assertEquals(2, deserialized.quantity());
-        assertEquals(5998.0, deserialized.totalPrice());
+        assertEquals(BigDecimal.valueOf(5998), deserialized.totalPrice());
         assertEquals("PAID", deserialized.orderStatus());
     }
 
@@ -187,7 +188,7 @@ class DtoSerializationTest {
     @Test
     @DisplayName("AiResponse 完整序列化 - 包含 OrderData")
     void aiResponse_withOrderData() throws Exception {
-        var items = List.of(new OrderItem("O001", "P001", 2, 5998.0, "PAID", "2026-05-28", "张三", "138xxx", "地址"));
+        var items = List.of(new OrderItem("O001", "P001", 2, BigDecimal.valueOf(5998), "PAID", "2026-05-28", "张三", "138xxx", "地址"));
         AiResponse response = new AiResponse("订单", "order_query", new OrderData(items));
 
         String json = objectMapper.writeValueAsString(response);

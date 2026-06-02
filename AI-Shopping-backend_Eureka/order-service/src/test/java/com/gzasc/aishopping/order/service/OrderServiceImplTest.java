@@ -29,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -76,7 +77,7 @@ class OrderServiceImplTest {
         o.setShopId(shopId);
         o.setProductId("1");
         o.setQuantity(2);
-        o.setTotalPrice(100.0);
+        o.setTotalPrice(BigDecimal.valueOf(100));
         o.setOrderStatus(status);
         o.setOrderDate(new Timestamp(System.currentTimeMillis()));
         o.setContactId(1);
@@ -101,7 +102,7 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(orderIdSelector.generate()).thenReturn("2026052800001ABCDE");
-        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
@@ -145,7 +146,7 @@ class OrderServiceImplTest {
         request.setQuantity(5);
         request.setContactId(1);
 
-        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 3, 100L, null, null);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 3, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
 
         OrderException ex = assertThrows(OrderException.class,
@@ -163,7 +164,7 @@ class OrderServiceImplTest {
         request.setContactId(999);
 
         when(orderIdSelector.generate()).thenReturn("2026052800002ABCDE");
-        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
@@ -184,7 +185,7 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(orderIdSelector.generate()).thenReturn("2026052800003ABCDE");
-        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, 100L, null, null);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
@@ -203,7 +204,7 @@ class OrderServiceImplTest {
         request.setQuantity(1);
         request.setContactId(1);
 
-        ProductDTO mockProduct = new ProductDTO(1L, "Test", 50.0, null, null, 10, null, null, null);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, null, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
 
         OrderException ex = assertThrows(OrderException.class,
@@ -696,5 +697,194 @@ class OrderServiceImplTest {
     void stateMachine_nullParams() {
         assertFalse(new Order().canTransition(null, "PAID"));
         assertFalse(new Order().canTransition("PENDING", null));
+    }
+
+    // ==================== 补充覆盖 (buildDetailDTO 边界) ====================
+
+    @Test
+    @DisplayName("OR-066 getOrderDetailByUser - 联系人查询异常时仍能返回详情（容错）")
+    void getOrderDetailByUser_contactException() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
+        order.setContactId(99);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+
+        OrderDetailDTO dto = new OrderDetailDTO();
+        dto.setOrderId("ORDER001");
+        when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        when(contactFeignClient.getContactById(99)).thenThrow(new RuntimeException("Feign 联系人异常"));
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF111")));
+        when(orderConverter.enrichDetailDTO(any(), any(), any())).thenReturn(dto);
+
+        OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
+        assertNotNull(result);
+        verify(contactFeignClient).getContactById(99);
+        verify(logisticsFeignClient).getLatestLogistics("ORDER001", "DELIVERY");
+    }
+
+    @Test
+    @DisplayName("OR-067 getOrderDetailByUser - 物流查询异常时仍能返回详情（容错）")
+    void getOrderDetailByUser_logisticsException() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
+        order.setContactId(99);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+
+        OrderDetailDTO dto = new OrderDetailDTO();
+        when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        ContactDTO contact = new ContactDTO();
+        contact.setName("张三");
+        when(contactFeignClient.getContactById(99)).thenReturn(ApiResponse.success(contact));
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenThrow(new RuntimeException("Feign 物流异常"));
+        when(orderConverter.enrichDetailDTO(any(), any(ContactDTO.class), any())).thenReturn(dto);
+
+        OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("OR-068 getOrderDetailByUser - contactId 为 null 时跳过联系人查询")
+    void getOrderDetailByUser_nullContactId() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
+        order.setContactId(null);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+
+        OrderDetailDTO dto = new OrderDetailDTO();
+        when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF222")));
+        when(orderConverter.enrichDetailDTO(any(), isNull(), any())).thenReturn(dto);
+
+        OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
+        assertNotNull(result);
+        verify(contactFeignClient, never()).getContactById(any());
+    }
+
+    @Test
+    @DisplayName("OR-069 getOrderDetailByUser - 物流响应 data 为 null 时仍能返回")
+    void getOrderDetailByUser_logisticsDataNull() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
+        order.setContactId(99);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+
+        OrderDetailDTO dto = new OrderDetailDTO();
+        when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        when(contactFeignClient.getContactById(99))
+                .thenReturn(ApiResponse.success(null));
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenReturn(ApiResponse.success(null));
+        when(orderConverter.enrichDetailDTO(any(), any(), any())).thenReturn(dto);
+
+        OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
+        assertNotNull(result);
+    }
+
+    @Test
+    @DisplayName("OR-070 createOrder - 整个 ApiResponse 为 null 时抛商品不存在")
+    void createOrder_apiResponseNull() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId("1");
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        when(productFeignClient.getProductById(1L)).thenReturn(null);
+
+        OrderException ex = assertThrows(OrderException.class,
+                () -> orderService.createOrder(request, 100L));
+        assertTrue(ex.getMessage().contains("商品不存在"));
+        verify(orderMapper, never()).insertOrder(any());
+    }
+
+    @Test
+    @DisplayName("OR-071 createOrder - 商品价格刚好等于总额（quantity=1）")
+    void createOrder_priceEqualsTotal() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId("1");
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        when(orderIdSelector.generate()).thenReturn("ORDER100");
+        ProductDTO mockProduct = new ProductDTO(1L, "Test",
+                BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
+        when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
+                .thenReturn(ApiResponse.success(null));
+
+        orderService.createOrder(request, 100L);
+
+        verify(orderMapper).insertOrder(orderCaptor.capture());
+        assertEquals(0, BigDecimal.valueOf(50).compareTo(orderCaptor.getValue().getTotalPrice()));
+    }
+
+    @Test
+    @DisplayName("OR-072 createOrder - 商品价格为空时使用 BigDecimal.ZERO（防御性）")
+    void createOrder_priceNull() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId("1");
+        request.setQuantity(3);
+        request.setContactId(1);
+
+        when(orderIdSelector.generate()).thenReturn("ORDER101");
+        ProductDTO mockProduct = new ProductDTO(1L, "Free", null, null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
+        when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
+                .thenReturn(ApiResponse.success(null));
+
+        orderService.createOrder(request, 100L);
+
+        verify(orderMapper).insertOrder(orderCaptor.capture());
+        assertEquals(0, BigDecimal.ZERO.compareTo(orderCaptor.getValue().getTotalPrice()));
+    }
+
+    @Test
+    @DisplayName("OR-073 requestReturn - 订单不存在抛异常")
+    void requestReturn_notFound() {
+        when(orderMapper.selectOrderDetailByUser(999L, "MISSING")).thenReturn(null);
+
+        OrderException ex = assertThrows(OrderException.class,
+                () -> orderService.requestReturn(999L, "MISSING"));
+        assertTrue(ex.getMessage().contains("不存在") || ex.getMessage().contains("无权限"));
+    }
+
+    @Test
+    @DisplayName("OR-074 approveReturn - 订单不存在抛异常")
+    void approveReturn_notFound() {
+        when(orderMapper.selectOrderDetailByShop("SHOP001", "MISSING")).thenReturn(null);
+
+        assertThrows(OrderException.class,
+                () -> orderService.approveReturn("SHOP001", "MISSING"));
+    }
+
+    @Test
+    @DisplayName("OR-075 confirmReturn - 订单不存在抛异常")
+    void confirmReturn_notFound() {
+        when(orderMapper.selectOrderDetailByShop("SHOP001", "MISSING")).thenReturn(null);
+
+        assertThrows(OrderException.class,
+                () -> orderService.confirmReturn("SHOP001", "MISSING"));
+    }
+
+    @Test
+    @DisplayName("OR-076 cancelOrder - 订单不存在抛异常")
+    void cancelOrder_notFound() {
+        when(orderMapper.selectOrderDetailByUser(999L, "MISSING")).thenReturn(null);
+
+        assertThrows(OrderException.class,
+                () -> orderService.cancelOrder(999L, "MISSING"));
+    }
+
+    @Test
+    @DisplayName("OR-077 shipOrder - 订单不存在抛异常")
+    void shipOrder_notFound() {
+        ShipOrderRequest req = new ShipOrderRequest();
+        req.setTrackingNumber("SF123");
+        req.setContactId(1);
+
+        when(orderMapper.selectOrderDetailByShop("SHOP001", "MISSING")).thenReturn(null);
+
+        assertThrows(OrderException.class,
+                () -> orderService.shipOrder("SHOP001", "MISSING", req));
     }
 }

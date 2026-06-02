@@ -20,7 +20,7 @@ public class OrderConverter {
         dto.setOrderId(order.getOrderId());
         dto.setProductId(order.getProductId());
         dto.setShopId(order.getShopId());
-        dto.setTotalPrice(BigDecimal.valueOf(order.getTotalPrice()));
+        dto.setTotalPrice(order.getTotalPrice());
         dto.setQuantity(order.getQuantity());
         dto.setOrderStatus(order.getOrderStatus());
         return dto;
@@ -51,7 +51,7 @@ public class OrderConverter {
         dto.setShopId(order.getShopId());
         dto.setProductId(order.getProductId());
         dto.setQuantity(order.getQuantity());
-        dto.setTotalPrice(BigDecimal.valueOf(order.getTotalPrice()));
+        dto.setTotalPrice(order.getTotalPrice());
         dto.setOrderStatus(order.getOrderStatus());
         dto.setOrderDate(order.getOrderDate());
         dto.setContactId(order.getContactId());

@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.order.model;
 
 import lombok.Data;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 
 /**
@@ -15,7 +16,7 @@ public class DeletedOrder {
     private String shopId;
     private String productId;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
     private String orderStatus;
     private Timestamp orderDate;
     private Integer contactId;

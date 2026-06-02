@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.StreamOperations;
 import org.springframework.data.redis.core.ValueOperations;
 
 import java.sql.Timestamp;
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.Map;
 
@@ -59,7 +60,7 @@ class OrderEventConsumerTest {
         o.setShopId("SHOP001");
         o.setProductId("1");
         o.setQuantity(2);
-        o.setTotalPrice(100.0);
+        o.setTotalPrice(BigDecimal.valueOf(100));
         o.setOrderStatus(status);
         o.setOrderDate(new Timestamp(System.currentTimeMillis()));
         o.setContactId(1);
@@ -270,5 +271,147 @@ class OrderEventConsumerTest {
         consumer.onMessage(record);
 
         verify(streamOps, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    // ==================== 补充覆盖 (eventType null、logistics data==null 等) ====================
+
+    @Test
+    @DisplayName("OR-EC-01 eventType 为 null - 被异常捕获且不确认消息")
+    void handle_nullEventType() {
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(streamOps, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test
+    @DisplayName("OR-EC-02 eventType 为 null 时不影响其他业务调用")
+    void handle_nullEventType_noSideEffect() {
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient, never()).confirmReservation(anyString());
+        verify(productFeignClient, never()).releaseReservation(anyString());
+        verify(productFeignClient, never()).restoreStock(any());
+        verify(logisticsFeignClient, never()).createLogistics(any());
+    }
+
+    @Test
+    @DisplayName("OR-EC-03 handleLogistics - 已有物流但 data 为 null 时继续创建")
+    void handleLogistics_existingDataNull() {
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenReturn(ApiResponse.success(null));
+        when(logisticsFeignClient.createLogistics(any(LogisticsRequest.class)))
+                .thenReturn(ApiResponse.success(Map.of("id", 1)));
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "LOGISTICS_CREATE",
+                "orderId", "ORDER001",
+                "contactId", "1",
+                "trackingNumber", "SF123"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(logisticsFeignClient).createLogistics(any(LogisticsRequest.class));
+        verify(streamOps).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test
+    @DisplayName("OR-EC-04 handleStockRestore - Redis 返回 null（视为非首次）")
+    void handleStockRestore_firstNull() {
+        when(valueOps.setIfAbsent("restore:done:ORDER001", "1", Duration.ofDays(7)))
+                .thenReturn(null);
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "STOCK_RESTORE",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient, never()).restoreStock(any());
+    }
+
+    @Test
+    @DisplayName("OR-EC-05 handleStockRestore - 订单存在时调用 restoreStock 但不检查返回值")
+    void handleStockRestore_noResponseCheck() {
+        when(valueOps.setIfAbsent(anyString(), anyString(), any(Duration.class)))
+                .thenReturn(true);
+        Order order = createOrder("ORDER001", "RETURNED");
+        when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
+        when(productFeignClient.restoreStock(any(StockDeductRequest.class)))
+                .thenReturn(ApiResponse.error("失败"));
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "STOCK_RESTORE",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient).restoreStock(any(StockDeductRequest.class));
+        verify(streamOps).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test
+    @DisplayName("OR-EC-06 handleStockConfirm - confirmReservation 返回 null 时抛异常不确认")
+    void handleStockConfirm_nullResult() {
+        Order order = createOrder("ORDER001", "PAID");
+        when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
+        when(productFeignClient.confirmReservation("ORDER001")).thenReturn(null);
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "STOCK_CONFIRM",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(streamOps, never()).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test
+    @DisplayName("OR-EC-07 handleStockConfirm - 非 PAID 时 releaseReservation 返回 null 也不抛异常（按原代码）")
+    void handleStockConfirm_notPaidReleaseNull() {
+        Order order = createOrder("ORDER001", "CANCELLED");
+        when(orderMapper.selectOrderById("ORDER001")).thenReturn(order);
+        when(productFeignClient.releaseReservation("ORDER001")).thenReturn(null);
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "STOCK_CONFIRM",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient).releaseReservation("ORDER001");
+        verify(streamOps).acknowledge(anyString(), anyString(), any(RecordId.class));
+    }
+
+    @Test
+    @DisplayName("OR-EC-08 handleLogistics - getLatestLogistics 返回 ApiResponse 但 code 非 200")
+    void handleLogistics_errorResponse() {
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
+                .thenReturn(ApiResponse.error("调用失败"));
+        when(logisticsFeignClient.createLogistics(any(LogisticsRequest.class)))
+                .thenReturn(ApiResponse.success(Map.of("id", 1)));
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "LOGISTICS_CREATE",
+                "orderId", "ORDER001",
+                "contactId", "1",
+                "trackingNumber", "SF123"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(logisticsFeignClient).createLogistics(any());
     }
 }

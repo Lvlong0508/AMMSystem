@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
+import java.math.BigDecimal;
 import java.util.*;
 
 @Slf4j
@@ -51,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
         }
         ProductDTO product = productResp.getData();
 
-        double price = product.getPrice() != null ? product.getPrice() : 0.0;
+        BigDecimal price = product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
         int stock = product.getStock() != null ? product.getStock() : 0;
 
         if (stock < request.getQuantity()) {
@@ -66,7 +67,7 @@ public class OrderServiceImpl implements OrderService {
 
         String orderId = orderIdSelector.generate();
         Order order = Order.buildInitOrder(orderId, userId, shopId, request.getProductId(),
-                request.getQuantity(), price * request.getQuantity());
+                request.getQuantity(), price.multiply(BigDecimal.valueOf(request.getQuantity())));
         order.setContactId(request.getContactId());
 
         int result = orderMapper.insertOrder(order);
