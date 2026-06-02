@@ -154,7 +154,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page) {
-        List<Long> salableIds = salableProductMapper.selectAll(page * 20);
+        int pageSize = 20;
+        List<Long> salableIds = salableProductMapper.selectAll(page * pageSize, pageSize);
         if (salableIds.isEmpty()) {
             return List.of();
         }
@@ -187,6 +188,9 @@ public class ProductServiceImpl implements ProductService {
         }
         if (product.isSale()) {
             throw new ProductException(400, "商品在上架中，请先下架: " + productId);
+        }
+        if (product.getImageId() != null && product.getImageId() > 0) {
+            productImageInfoMapper.deleteById(product.getImageId());
         }
         return productMapper.deleteProduct(productId);
     }
