@@ -291,7 +291,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getProductsByPriceRange(Double minPrice, Double maxPrice) {
-        List<Product> products = productMapper.selectByPriceRange(minPrice, maxPrice);
+        List<Product> products = productMapper.selectByPriceRange(minPrice, maxPrice)
+            .stream()
+            .filter(Product::isSale)
+            .toList();
         if (products.isEmpty()) {
             return List.of();
         }
