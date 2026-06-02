@@ -37,7 +37,7 @@ public class InternalProductController {
         ProductDTO dto = new ProductDTO();
         dto.setId(product.getId());
         dto.setName(product.getName());
-        dto.setPrice(product.getPrice() != null ? product.getPrice().doubleValue() : null);
+        dto.setPrice(product.getPrice());
         dto.setTags(product.getTags());
         dto.setDescription(product.getDescription());
         dto.setStock(product.getStock());
@@ -49,16 +49,17 @@ public class InternalProductController {
 
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/batch")
-    public List<ProductWithImageAbstractDTO> getProductsByIds(@RequestParam("ids") String ids) {
+    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByIds(@RequestParam("ids") String ids) {
         List<Long> idList = Arrays.stream(ids.split(","))
                 .map(Long::valueOf)
                 .toList();
-        return productService.getAbstractProductsForBuyer(idList);
+        List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForBuyer(idList);
+        return ApiResponse.success(products);
     }
 
     // 内部接口：扣减库存（订单服务下单成功就执行）
     @PostMapping("/deduct-stock")
-    public ApiResponse<Void> deductStock(@RequestBody StockDeductRequest request) {
+    public ApiResponse<Void> deductStock(@RequestBody @Valid StockDeductRequest request) {
         boolean success = productService.deductStock(request.getProductId(), request.getQuantity());
         if (success) {
             return ApiResponse.success(null);
@@ -68,7 +69,7 @@ public class InternalProductController {
 
     // 内部接口：恢复库存（订单服务取消订单时执行）
     @PostMapping("/restore-stock")
-    public ApiResponse<Void> restoreStock(@RequestBody StockDeductRequest request) {
+    public ApiResponse<Void> restoreStock(@RequestBody @Valid StockDeductRequest request) {
         boolean success = productService.restoreStock(request.getProductId(), request.getQuantity());
         if (success) {
             return ApiResponse.success(null);
@@ -78,7 +79,7 @@ public class InternalProductController {
 
     // 内部接口：预占库存（订单服务下单成功后执行）
     @PostMapping("/reserve-stock")
-    public ApiResponse<Void> reserveStock(@RequestBody StockReserveRequest req) {
+    public ApiResponse<Void> reserveStock(@RequestBody @Valid StockReserveRequest req) {
         try {
             reservationService.reserve(req.getOrderId(), String.valueOf(req.getProductId()), req.getQuantity());
             return ApiResponse.success(null);
@@ -89,7 +90,8 @@ public class InternalProductController {
 
     // 内部接口：确认预占并扣减库存（订单服务支付时执行）
     @PostMapping("/confirm-reservation")
-    public ApiResponse<Void> confirmReservation(@RequestParam String orderId) {
+    public ApiResponse<Void> confirmReservation(@RequestBody Map<String, String> body) {
+        String orderId = body.get("orderId");
         try {
             reservationService.confirm(orderId);
             return ApiResponse.success(null);
@@ -127,7 +129,8 @@ public class InternalProductController {
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
     @PostMapping("/release-reservation")
-    public ApiResponse<Void> releaseReservation(@RequestParam String orderId) {
+    public ApiResponse<Void> releaseReservation(@RequestBody Map<String, String> body) {
+        String orderId = body.get("orderId");
         try {
             reservationService.release(orderId);
             return ApiResponse.success(null);
