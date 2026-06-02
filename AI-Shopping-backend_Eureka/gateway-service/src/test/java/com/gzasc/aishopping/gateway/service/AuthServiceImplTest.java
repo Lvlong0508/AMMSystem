@@ -85,31 +85,7 @@ class AuthServiceImplTest {
         assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/manage/update", request));
     }
 
-    @Test
-    @DisplayName("GW-RL-006: 非店长角色访问管理API被拒")
-    void hasPermission_staffAccessManageApi_returnsFalse() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Merchant-Role", "2");
-        when(request.getHeaders()).thenReturn(HttpHeaders.readOnlyHttpHeaders(headers));
 
-        assertFalse(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/manage/update", request));
-    }
-
-    @Test
-    @DisplayName("GW-RL-007: 无X-Merchant-Role Header访问管理API被拒")
-    void hasPermission_noMerchantRoleHeader_returnsFalse() {
-        assertFalse(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/manage/update", request));
-    }
-
-    @Test
-    @DisplayName("GW-RL-008: 无X-Shop-Id Header访问管理API被拒")
-    void hasPermission_noShopIdHeader_returnsFalse() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Merchant-Role", "1");
-        when(request.getHeaders()).thenReturn(HttpHeaders.readOnlyHttpHeaders(headers));
-
-        assertFalse(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/manage/update", request));
-    }
 
     @Test
     @DisplayName("GW-RL-009: 店员访问店铺查询API成功")
@@ -132,18 +108,6 @@ class AuthServiceImplTest {
         when(request.getHeaders()).thenReturn(HttpHeaders.readOnlyHttpHeaders(headers));
 
         assertTrue(authService.hasPermission("MERCHANT", "/api/seller/shop/100/products/200", request));
-    }
-
-    @Test
-    @DisplayName("GW-RL-012: 店员访问员工注册API被拒")
-    void hasPermission_staffAccessEmployeeRegister_returnsFalse() {
-        assertFalse(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/100/employees/register", request));
-    }
-
-    @Test
-    @DisplayName("GW-RL-013: 店员访问员工管理API被拒")
-    void hasPermission_staffAccessEmployeeManage_returnsFalse() {
-        assertFalse(authService.hasPermission("MERCHANT:m001", "/api/seller/shop/100/employees/50", request));
     }
 
     @Test

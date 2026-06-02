@@ -51,7 +51,7 @@ public class SaTokenAuthGlobalFilter implements GlobalFilter, Ordered {
         }
 
         ServerHttpRequest newRequest = request.mutate()
-                .header("userId", loginId)
+                .header("X-User-Id", loginId)
                 .header("satoken", token)
                 .build();
 

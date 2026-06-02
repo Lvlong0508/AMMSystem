@@ -4,6 +4,7 @@ import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
+import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
 import jakarta.validation.Valid;
@@ -22,7 +23,11 @@ public class ShopMerchantController {
 
     @GetMapping("/merchant/{merchantId}")
     public ApiResponse<Map<String, Object>> getShopsByMerchant(
-            @PathVariable("merchantId") Long merchantId) {
+            @PathVariable("merchantId") Long merchantId,
+            @RequestHeader("X-User-Id") Long userId) {
+        if (!merchantId.equals(userId)) {
+            throw new ShopException("无权限查看该商户的店铺列表");
+        }
         List<Long> shopIds = shopService.getShopIdsByMerchantId(merchantId);
         return ApiResponse.success(Map.of("shopIds", shopIds));
     }

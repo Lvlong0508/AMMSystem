@@ -241,7 +241,7 @@ class ShopServiceImplTest {
 
         ShopException ex = assertThrows(ShopException.class,
                 () -> shopService.closeShop(shopId, userId));
-        assertEquals("关闭店铺失败", ex.getMessage());
+        assertEquals("店铺已关闭或不存在", ex.getMessage());
     }
 
     @Test
@@ -271,6 +271,20 @@ class ShopServiceImplTest {
         assertEquals("仅店长可操作", ex.getMessage());
 
         verify(shopMapper, never()).openShop(any());
+    }
+
+    @Test
+    @DisplayName("SH-014b 重新开店 - 已开启店铺再次开启")
+    void openShop_alreadyOpen() {
+        Long userId = 1001L;
+        Long shopId = 1L;
+
+        when(merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1)).thenReturn(new MerchantRole());
+        when(shopMapper.openShop(shopId)).thenReturn(0);
+
+        ShopException ex = assertThrows(ShopException.class,
+                () -> shopService.openShop(shopId, userId));
+        assertEquals("店铺已开启或不存在", ex.getMessage());
     }
 
     // ========== 3.3 员工管理 ==========
@@ -547,6 +561,22 @@ class ShopServiceImplTest {
     }
 
     @Test
+    @DisplayName("SH-035 查询活跃店铺列表 - page 小于 1 抛异常")
+    void getUserShopList_pageInvalid() {
+        ShopException ex = assertThrows(ShopException.class,
+                () -> shopService.getUserShopList(0, 10));
+        assertEquals("分页参数错误: page 必须 >= 1", ex.getMessage());
+    }
+
+    @Test
+    @DisplayName("SH-036 查询活跃店铺列表 - size 小于 1 抛异常")
+    void getUserShopList_sizeInvalid() {
+        ShopException ex = assertThrows(ShopException.class,
+                () -> shopService.getUserShopList(1, 0));
+        assertEquals("分页参数错误: size 必须 >= 1", ex.getMessage());
+    }
+
+    @Test
     @DisplayName("SH-033 查询店铺详情 - 活跃店铺")
     void getActiveShopById_active() {
         Long shopId = 1L;
@@ -651,6 +681,23 @@ class ShopServiceImplTest {
         assertTrue(result.isEmpty());
 
         verify(shopMapper, never()).selectShopsByIds(any());
+    }
+
+    @Test
+    @DisplayName("SH-009b 更新店铺 - 名称为空字符串")
+    void updateShop_nameBlank() {
+        UpdateShopRequest request = new UpdateShopRequest();
+        request.setName("   ");
+        Long userId = 1001L;
+        Long shopId = 1L;
+
+        when(merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1)).thenReturn(new MerchantRole());
+
+        ShopException ex = assertThrows(ShopException.class,
+                () -> shopService.updateShop(shopId, request, userId));
+        assertEquals("店铺名称不能为空", ex.getMessage());
+
+        verify(shopMapper, never()).selectShopById(any());
     }
 
     // ========== 3.7 权限校验 ==========

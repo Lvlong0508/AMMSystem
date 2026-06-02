@@ -73,6 +73,9 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
         checkShopOwner(userId, shopId);
+        if (request.getName() != null && request.getName().trim().isEmpty()) {
+            throw new ShopException("店铺名称不能为空");
+        }
         Shop shop = shopMapper.selectShopById(shopId);
         if (shop == null) {
             throw new ShopException("店铺不存在");
@@ -93,7 +96,7 @@ public class ShopServiceImpl implements ShopService {
         checkShopOwner(userId, shopId);
         int result = shopMapper.closeShop(shopId);
         if (result <= 0) {
-            throw new ShopException("关闭店铺失败");
+            throw new ShopException("店铺已关闭或不存在");
         }
     }
 
@@ -103,7 +106,7 @@ public class ShopServiceImpl implements ShopService {
         checkShopOwner(userId, shopId);
         int result = shopMapper.openShop(shopId);
         if (result <= 0) {
-            throw new ShopException("重新开店失败");
+            throw new ShopException("店铺已开启或不存在");
         }
     }
 
@@ -192,6 +195,12 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     public Map<String, Object> getUserShopList(int page, int size) {
+        if (page < 1) {
+            throw new ShopException("分页参数错误: page 必须 >= 1");
+        }
+        if (size < 1) {
+            throw new ShopException("分页参数错误: size 必须 >= 1");
+        }
         List<Shop> shops = getActiveShops(page, size);
         int total = countActiveShops();
         Map<String, Object> result = new HashMap<>();

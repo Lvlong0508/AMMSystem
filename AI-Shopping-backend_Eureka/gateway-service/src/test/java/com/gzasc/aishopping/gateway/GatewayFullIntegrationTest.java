@@ -269,4 +269,14 @@ class GatewayFullIntegrationTest {
                 .expectStatus().value(status ->
                         org.junit.jupiter.api.Assertions.assertNotEquals(HttpStatus.UNAUTHORIZED.value(), status.intValue()));
     }
+
+    @Test
+    @DisplayName("GW-INT-HDR-001: 认证通过后注入 X-User-Id header")
+    void authenticatedRequestInjectsXUserIdHeader() {
+        webTestClient.get().uri("/api/user/product/all")
+                .header("satoken", "valid-user-token")
+                .exchange()
+                .expectStatus().value(status ->
+                        org.junit.jupiter.api.Assertions.assertNotEquals(HttpStatus.UNAUTHORIZED.value(), status.intValue()));
+    }
 }

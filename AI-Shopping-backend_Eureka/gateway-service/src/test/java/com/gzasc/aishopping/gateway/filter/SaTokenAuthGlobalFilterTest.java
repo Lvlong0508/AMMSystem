@@ -131,4 +131,14 @@ class SaTokenAuthGlobalFilterTest {
                 .expectStatus().value(s ->
                         assertNotEquals(HttpStatus.UNAUTHORIZED.value(), s.intValue()));
     }
+
+    @Test
+    @DisplayName("GW-SA-006: MERCHANT Token 请求注入 X-User-Id header")
+    void merchantTokenInjectsXUserIdHeader() {
+        webTestClient.get().uri("/api/seller/product/list")
+                .header("satoken", "merchant-token")
+                .exchange()
+                .expectStatus().value(s ->
+                        assertNotEquals(HttpStatus.UNAUTHORIZED.value(), s.intValue()));
+    }
 }

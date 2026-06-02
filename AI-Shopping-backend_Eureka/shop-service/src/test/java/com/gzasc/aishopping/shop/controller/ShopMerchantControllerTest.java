@@ -200,14 +200,14 @@ class ShopMerchantControllerTest {
     @Test
     @DisplayName("SH-013 关闭店铺 - 已关闭店铺再次关闭")
     void closeShop_alreadyClosed() throws Exception {
-        doThrow(new ShopException("关闭店铺失败"))
+        doThrow(new ShopException("店铺已关闭或不存在"))
                 .when(shopService).closeShop(1L, 1001L);
 
         mockMvc.perform(delete("/api/seller/shop/1")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("关闭店铺失败"));
+                .andExpect(jsonPath("$.message").value("店铺已关闭或不存在"));
     }
 
     @Test
@@ -328,7 +328,8 @@ class ShopMerchantControllerTest {
     void getShopsByMerchant() throws Exception {
         when(shopService.getShopIdsByMerchantId(1001L)).thenReturn(List.of(1L, 2L, 3L));
 
-        mockMvc.perform(get("/api/seller/shop/merchant/1001"))
+        mockMvc.perform(get("/api/seller/shop/merchant/1001")
+                        .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.shopIds[0]").value(1))
@@ -405,9 +406,20 @@ class ShopMerchantControllerTest {
         when(shopService.getShopIdsByMerchantId(any()))
                 .thenThrow(new RuntimeException("未知错误"));
 
-        mockMvc.perform(get("/api/seller/shop/merchant/1"))
+        mockMvc.perform(get("/api/seller/shop/merchant/1001")
+                        .header("X-User-Id", 1001L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
+    }
+
+    @Test
+    @DisplayName("SH-049 按商家查询 - userId != merchantId 无权限")
+    void getShopsByMerchant_noPermission() throws Exception {
+        mockMvc.perform(get("/api/seller/shop/merchant/2001")
+                        .header("X-User-Id", 1001L))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("无权限查看该商户的店铺列表"));
     }
 }

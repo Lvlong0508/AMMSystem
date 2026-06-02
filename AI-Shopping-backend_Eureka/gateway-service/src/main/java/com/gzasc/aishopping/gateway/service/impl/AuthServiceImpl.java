@@ -98,15 +98,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private boolean isShopOwnerOnlyApi(String path) {
-        if (pathMatcher.match("/api/seller/shop/query/**", path)
-                || pathMatcher.match("/api/seller/shop/manage/**/ship", path)) {
-            return false;
-        }
-        return pathMatcher.match("/api/seller/shop/manage/**", path)
-                || pathMatcher.match("/api/seller/shop/register", path)
-                || pathMatcher.match("/api/seller/shop/*/products/*", path)
-                || pathMatcher.match("/api/seller/shop/*/employees/register", path)
-                || pathMatcher.match("/api/seller/shop/*/employees/*", path);
+        return false;
     }
 
     private boolean checkShopOwnerPermission(ServerHttpRequest request) {

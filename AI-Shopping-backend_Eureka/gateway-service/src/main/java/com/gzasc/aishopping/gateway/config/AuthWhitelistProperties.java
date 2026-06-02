@@ -17,8 +17,7 @@ public class AuthWhitelistProperties {
             "/api/seller/auth/login",
             "/api/seller/auth/register",
             "/api/seller/auth/check-username",
-            "/api/seller/auth/check-phone",
-            "/api/seller/shop/register"
+            "/api/seller/auth/check-phone"
     ));
 
     public List<String> getPaths() {
