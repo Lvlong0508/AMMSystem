@@ -6,8 +6,10 @@ import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.InternalCreateProductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
+import com.gzasc.aishopping.product.model.ProductImageInfo;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
 import jakarta.validation.Valid;
@@ -25,6 +27,7 @@ public class InternalProductController {
 
     private final ProductService productService;
     private final ProductMapper productMapper;
+    private final ProductImageInfoMapper productImageInfoMapper;
     private final ProductReservationService reservationService;
 
     // 内部接口：根据ID查询商品详情（订单服务构建订单信息进行抽象商品信息获取）
@@ -44,6 +47,12 @@ public class InternalProductController {
         dto.setShopId(product.getShopId());
         dto.setCreatedAt(product.getCreatedAt());
         dto.setUpdatedAt(product.getUpdatedAt());
+        if (product.getImageId() != null && product.getImageId() > 0) {
+            ProductImageInfo img = productImageInfoMapper.selectURLById(product.getImageId());
+            if (img != null) {
+                dto.setImageUrl(img.getUrl());
+            }
+        }
         return ApiResponse.success(dto);
     }
 

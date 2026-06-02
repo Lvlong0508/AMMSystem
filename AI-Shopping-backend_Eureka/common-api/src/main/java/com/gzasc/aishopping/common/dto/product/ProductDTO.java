@@ -21,4 +21,5 @@ public class ProductDTO implements Serializable {
     private Long shopId;
     private Date createdAt;
     private Date updatedAt;
+    private String imageUrl;
 }
