@@ -13,10 +13,10 @@ public class RedisRateLimitService {
 
     private final StringRedisTemplate redisTemplate;
 
-    @Value("${ip-rate-limit.max-requests:300}")
+    @Value("${ip-rate-limit.max-requests}")
     private int maxRequests;
 
-    @Value("${ip-rate-limit.time-window-seconds:60}")
+    @Value("${ip-rate-limit.time-window-seconds}")
     private int timeWindowSeconds;
 
     public RedisRateLimitService(StringRedisTemplate redisTemplate) {
