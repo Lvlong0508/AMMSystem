@@ -4,11 +4,13 @@ import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.product.dto.InternalCreateProductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -98,7 +100,14 @@ public class InternalProductController {
 
     // 内部接口：创建商品
     @PostMapping("/create")
-    public ApiResponse<Map<String, Object>> createProduct(@RequestBody Product product) {
+    public ApiResponse<Map<String, Object>> createProduct(@RequestBody @Valid InternalCreateProductRequest request) {
+        Product product = new Product();
+        product.setName(request.getName());
+        product.setPrice(request.getPrice());
+        product.setTags(request.getTags());
+        product.setDescription(request.getDescription());
+        product.setStock(request.getStock() != null ? request.getStock() : 0);
+        product.setSale(false);
         int result = productService.createProduct(product);
         if (result > 0) {
             return ApiResponse.success("创建商品成功", Map.of("id", product.getId()));
