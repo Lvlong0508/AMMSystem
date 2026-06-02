@@ -19,7 +19,7 @@ public interface ProductImageInfoMapper {
     ProductImageInfo selectURLById(@Param("id") int id);
 
     @Select("<script>" +
-            "SELECT url FROM product_images WHERE id IN " +
+            "SELECT id, url FROM product_images WHERE id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +
