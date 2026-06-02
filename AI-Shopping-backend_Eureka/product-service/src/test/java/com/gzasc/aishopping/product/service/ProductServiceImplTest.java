@@ -2,7 +2,6 @@ package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.product.cache.ProductCache;
 import com.gzasc.aishopping.product.converter.ProductConverter;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
@@ -40,8 +39,6 @@ class ProductServiceImplTest {
     @Mock
     private ProductConverter productConverter;
     @Mock
-    private ProductCache productCache;
-    @Mock
     private ShopFeignClient shopFeignClient;
 
     @InjectMocks
@@ -58,24 +55,24 @@ class ProductServiceImplTest {
         product.setName("测试商品");
         product.setImageId(1);
         product.setShopId(10L);
-        when(productMapper.selectProductById("1001")).thenReturn(product);
+        when(productMapper.selectProductById(1001L)).thenReturn(product);
         when(productImageInfoMapper.selectURLById(1)).thenReturn(new ProductImageInfo(1, "http://img.test/a.jpg"));
         when(shopFeignClient.getShopInfo(10L)).thenReturn(ApiResponse.success(null));
         ProductWithImageDetailDTO dto = new ProductWithImageDetailDTO();
         when(productConverter.toDetailWithImageDTO(eq(product), anyString(), any())).thenReturn(dto);
 
-        ProductWithImageDetailDTO result = productService.getProductById("1001");
+        ProductWithImageDetailDTO result = productService.getProductById(1001L);
 
         assertNotNull(result);
-        verify(productMapper).selectProductById("1001");
+        verify(productMapper).selectProductById(1001L);
     }
 
     @Test
     @DisplayName("PR-005 - 根据ID查询商品详情 - 不存在返回null")
     void testGetProductByIdNotFound() {
-        when(productMapper.selectProductById("99999")).thenReturn(null);
+        when(productMapper.selectProductById(99999L)).thenReturn(null);
 
-        ProductWithImageDetailDTO result = productService.getProductById("99999");
+        ProductWithImageDetailDTO result = productService.getProductById(99999L);
 
         assertNull(result);
     }
@@ -87,6 +84,7 @@ class ProductServiceImplTest {
         product.setId(1L);
         product.setName("测试手机");
         product.setImageId(1);
+        product.setSale(true);
         product.setShopId(10L);
         when(productMapper.selectProductsByName("手机")).thenReturn(List.of(product));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of(new ProductImageInfo(1, "http://img.test/phone.jpg")));
@@ -110,10 +108,10 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-001 - 分页查询可售商品 - 有数据")
     void testGetSalableProductsAbstractWithData() {
-        when(salableProductMapper.selectAll(0)).thenReturn(List.of("1", "2"));
+        when(salableProductMapper.selectAll(0)).thenReturn(List.of(1L, 2L));
         Product p1 = new Product(); p1.setId(1L); p1.setImageId(1); p1.setShopId(10L);
         Product p2 = new Product(); p2.setId(2L); p2.setImageId(2); p2.setShopId(10L);
-        when(productMapper.selectAbstractProductsByIds(List.of("1", "2"))).thenReturn(List.of(p1, p2));
+        when(productMapper.selectAbstractProductsByIds(List.of(1L, 2L))).thenReturn(List.of(p1, p2));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
         when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
 
@@ -135,7 +133,7 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-010 - 价格区间查询 - 有结果")
     void testGetProductsByPriceRangeWithResults() {
-        Product p = new Product(); p.setId(1L); p.setImageId(1); p.setShopId(10L);
+        Product p = new Product(); p.setId(1L); p.setImageId(1); p.setSale(true); p.setShopId(10L);
         when(productMapper.selectByPriceRangeWithPage(eq(BigDecimal.valueOf(50)), eq(BigDecimal.valueOf(200)), eq(0))).thenReturn(List.of(p));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
         when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
@@ -199,7 +197,7 @@ class ProductServiceImplTest {
         existing.setId(2001L);
         existing.setName("旧名称");
         existing.setImageId(1);
-        when(productMapper.selectProductById("2001")).thenReturn(existing);
+        when(productMapper.selectProductById(2001L)).thenReturn(existing);
         when(productImageInfoMapper.updateUrl(any(ProductImageInfo.class))).thenReturn(1);
         when(productMapper.updateProduct(any(Product.class))).thenReturn(1);
 
@@ -217,7 +215,7 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-023 - 更新不存在的商品")
     void testUpdateProductNotFound() {
-        when(productMapper.selectProductById("99999")).thenReturn(null);
+        when(productMapper.selectProductById(99999L)).thenReturn(null);
 
         Product update = new Product();
         update.setId(99999L);
@@ -233,10 +231,10 @@ class ProductServiceImplTest {
         Product product = new Product();
         product.setId(3001L);
         product.setSale(false);
-        when(productMapper.selectProductById("3001")).thenReturn(product);
+        when(productMapper.selectProductById(3001L)).thenReturn(product);
         when(productMapper.deleteProduct(3001L)).thenReturn(1);
 
-        int result = productService.deleteProduct("3001");
+        int result = productService.deleteProduct(3001L);
 
         assertEquals(1, result);
     }
@@ -247,20 +245,20 @@ class ProductServiceImplTest {
         Product product = new Product();
         product.setId(3002L);
         product.setSale(true);
-        when(productMapper.selectProductById("3002")).thenReturn(product);
+        when(productMapper.selectProductById(3002L)).thenReturn(product);
 
         ProductException exception = assertThrows(ProductException.class,
-                () -> productService.deleteProduct("3002"));
+                () -> productService.deleteProduct(3002L));
         assertTrue(exception.getMessage().contains("上架中"));
     }
 
     @Test
     @DisplayName("PR-027 - 删除不存在的商品")
     void testDeleteProductNotFound() {
-        when(productMapper.selectProductById("99999")).thenReturn(null);
+        when(productMapper.selectProductById(99999L)).thenReturn(null);
 
         ProductException exception = assertThrows(ProductException.class,
-                () -> productService.deleteProduct("99999"));
+                () -> productService.deleteProduct(99999L));
         assertTrue(exception.getMessage().contains("不存在"));
     }
 
@@ -269,7 +267,7 @@ class ProductServiceImplTest {
     void testDeductStockSuccess() {
         when(productMapper.deductStock(6001L, 10)).thenReturn(1);
 
-        boolean result = productService.deductStock("6001", 10);
+        boolean result = productService.deductStock(6001L, 10);
 
         assertTrue(result);
     }
@@ -279,7 +277,7 @@ class ProductServiceImplTest {
     void testDeductStockInsufficient() {
         when(productMapper.deductStock(6001L, 999)).thenReturn(0);
 
-        boolean result = productService.deductStock("6001", 999);
+        boolean result = productService.deductStock(6001L, 999);
 
         assertFalse(result);
     }
@@ -289,7 +287,7 @@ class ProductServiceImplTest {
     void testRestoreStockSuccess() {
         when(productMapper.restoreStock(6001L, 5)).thenReturn(1);
 
-        boolean result = productService.restoreStock("6001", 5);
+        boolean result = productService.restoreStock(6001L, 5);
 
         assertTrue(result);
     }
@@ -300,15 +298,15 @@ class ProductServiceImplTest {
         Product product = new Product();
         product.setId(7001L);
         product.setSale(false);
-        when(productMapper.selectProductById("7001")).thenReturn(product);
+        when(productMapper.selectProductById(7001L)).thenReturn(product);
         when(productMapper.updateSaleStatus(7001L, true)).thenReturn(1);
-        when(salableProductMapper.addSalable("7001")).thenReturn(1);
+        when(salableProductMapper.addSalable(7001L)).thenReturn(1);
 
-        boolean result = productService.listProduct("7001");
+        boolean result = productService.listProduct(7001L);
 
         assertTrue(result);
         verify(productMapper).updateSaleStatus(7001L, true);
-        verify(salableProductMapper).addSalable("7001");
+        verify(salableProductMapper).addSalable(7001L);
     }
 
     @Test
@@ -317,34 +315,34 @@ class ProductServiceImplTest {
         Product product = new Product();
         product.setId(7002L);
         product.setSale(true);
-        when(productMapper.selectProductById("7002")).thenReturn(product);
+        when(productMapper.selectProductById(7002L)).thenReturn(product);
         when(productMapper.updateSaleStatus(7002L, false)).thenReturn(1);
-        when(salableProductMapper.removeSalable("7002")).thenReturn(1);
+        when(salableProductMapper.removeSalable(7002L)).thenReturn(1);
 
-        boolean result = productService.unlistProduct("7002");
+        boolean result = productService.unlistProduct(7002L);
 
         assertTrue(result);
         verify(productMapper).updateSaleStatus(7002L, false);
-        verify(salableProductMapper).removeSalable("7002");
+        verify(salableProductMapper).removeSalable(7002L);
     }
 
     @Test
     @DisplayName("PR-062 - 上架不存在的商品")
     void testListProductNotFound() {
-        when(productMapper.selectProductById("99999")).thenReturn(null);
+        when(productMapper.selectProductById(99999L)).thenReturn(null);
 
         ProductException exception = assertThrows(ProductException.class,
-                () -> productService.listProduct("99999"));
+                () -> productService.listProduct(99999L));
         assertTrue(exception.getMessage().contains("不存在"));
     }
 
     @Test
     @DisplayName("PR-065 - 下架不存在的商品")
     void testUnlistProductNotFound() {
-        when(productMapper.selectProductById("99999")).thenReturn(null);
+        when(productMapper.selectProductById(99999L)).thenReturn(null);
 
         ProductException exception = assertThrows(ProductException.class,
-                () -> productService.unlistProduct("99999"));
+                () -> productService.unlistProduct(99999L));
         assertTrue(exception.getMessage().contains("不存在"));
     }
 
@@ -352,11 +350,11 @@ class ProductServiceImplTest {
     @DisplayName("PR-030 - 商家批量查询商品")
     void testGetAbstractProductsForMerchant() {
         Product p = new Product(); p.setId(1L); p.setImageId(1); p.setShopId(10L);
-        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of("1001", "1002"))).thenReturn(List.of(p));
+        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of(1001L, 1002L))).thenReturn(List.of(p));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of(new ProductImageInfo(1, "http://img.test/a.jpg")));
         when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
 
-        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of("1001", "1002"));
+        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of(1001L, 1002L));
 
         assertEquals(1, result.size());
     }
@@ -364,9 +362,9 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-031 - 批量查询含无效ID（空列表返回）")
     void testGetAbstractProductsForMerchantWithInvalidIds() {
-        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of("1001", "99999"))).thenReturn(List.of());
+        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of(1001L, 99999L))).thenReturn(List.of());
 
-        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of("1001", "99999"));
+        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of(1001L, 99999L));
 
         assertTrue(result.isEmpty());
     }

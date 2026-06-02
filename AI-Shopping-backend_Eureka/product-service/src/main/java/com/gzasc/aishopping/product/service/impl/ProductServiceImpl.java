@@ -4,7 +4,6 @@ import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
-import com.gzasc.aishopping.product.cache.ProductCache;
 import com.gzasc.aishopping.product.converter.ProductConverter;
 import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductDetailDTO;
@@ -47,7 +46,6 @@ public class ProductServiceImpl implements ProductService {
     private final ProductImageInfoMapper productImageInfoMapper;
     private final SalableProductMapper salableProductMapper;
     private final ProductConverter productConverter;
-    private final ProductCache productCache;
     private final ShopFeignClient shopFeignClient;
 
     private final Cache<Long, ShopInfoDTO> shopInfoCache = Caffeine.newBuilder()
@@ -108,7 +106,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductWithImageDetailDTO getProductById(String productId) {
+    public ProductWithImageDetailDTO getProductById(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             return null;
@@ -120,7 +118,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageDetailDTO> getProductsByName(String name) {
-        List<Product> products = productMapper.selectProductsByName(name);
+        List<Product> products = productMapper.selectProductsByName(name)
+            .stream()
+            .filter(Product::isSale)
+            .toList();
         if (products.isEmpty()) {
             return List.of();
         }
@@ -134,7 +135,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<String> ids) {
+    public List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -153,7 +154,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page) {
-        List<String> salableIds = salableProductMapper.selectAll(page * 20);
+        List<Long> salableIds = salableProductMapper.selectAll(page * 20);
         if (salableIds.isEmpty()) {
             return List.of();
         }
@@ -179,7 +180,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public int deleteProduct(String productId) {
+    public int deleteProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
@@ -187,7 +188,7 @@ public class ProductServiceImpl implements ProductService {
         if (product.isSale()) {
             throw new ProductException(400, "商品在上架中，请先下架: " + productId);
         }
-        return productMapper.deleteProduct(Long.valueOf(productId));
+        return productMapper.deleteProduct(productId);
     }
 
     @Override
@@ -198,18 +199,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public boolean deductStock(String productId, int quantity) {
-        return productMapper.deductStock(Long.valueOf(productId), quantity) > 0;
+    public boolean deductStock(Long productId, int quantity) {
+        return productMapper.deductStock(productId, quantity) > 0;
     }
 
     @Override
     @Transactional
-    public boolean restoreStock(String productId, int quantity) {
-        return productMapper.restoreStock(Long.valueOf(productId), quantity) > 0;
+    public boolean restoreStock(Long productId, int quantity) {
+        return productMapper.restoreStock(productId, quantity) > 0;
     }
 
     @Override
-    public List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<String> ids) {
+    public List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -261,30 +262,30 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public boolean listProduct(String productId) {
+    public boolean listProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
         }
-        productMapper.updateSaleStatus(Long.valueOf(productId), true);
+        productMapper.updateSaleStatus(productId, true);
         salableProductMapper.addSalable(productId);
         return true;
     }
 
     @Override
     @Transactional
-    public boolean unlistProduct(String productId) {
+    public boolean unlistProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
         }
-        productMapper.updateSaleStatus(Long.valueOf(productId), false);
+        productMapper.updateSaleStatus(productId, false);
         salableProductMapper.removeSalable(productId);
         return true;
     }
 
     @Override
-    public boolean isProductSalable(String productId) {
+    public boolean isProductSalable(Long productId) {
         return salableProductMapper.isSalable(productId);
     }
 
@@ -305,7 +306,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
-        List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
+        List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20)
+            .stream()
+            .filter(Product::isSale)
+            .toList();
         if (products.isEmpty()) {
             return List.of();
         }
@@ -319,7 +323,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductAbstractDTO> getAbstractProductDTOs(List<String> ids) {
+    public List<ProductAbstractDTO> getAbstractProductDTOs(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -328,22 +332,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductDetailDTO getProductDetailDTO(String productId) {
+    public ProductDetailDTO getProductDetailDTO(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在: " + productId);
         }
-        // TODO: 启用缓存
-        // ProductDetailDTO cached = (ProductDetailDTO) productCache.get("detail:" + productId);
-        // if (cached != null) return cached;
-        // ProductDetailDTO dto = productConverter.toDetailDTO(product);
-        // productCache.put("detail:" + productId, dto);
-        // return dto;
         return productConverter.toDetailDTO(product);
     }
 
     @Override
-    public List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<String> ids) {
+    public List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<Long> ids) {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -381,9 +379,9 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public int updateProductWithImage(Product product, String imageUrl) {
-        Product existingProduct = productMapper.selectProductById(String.valueOf(product.getId()));
+        Product existingProduct = productMapper.selectProductById(product.getId());
         if (existingProduct == null) {
-            throw new ProductException(404, "商品不存在: " + String.valueOf(product.getId()));
+            throw new ProductException(404, "商品不存在: " + product.getId());
         }
 
         if (imageUrl != null && !imageUrl.isBlank()) {
