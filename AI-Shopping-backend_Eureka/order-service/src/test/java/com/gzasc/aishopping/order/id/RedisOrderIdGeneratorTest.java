@@ -98,19 +98,20 @@ class RedisOrderIdGeneratorTest {
     // ==================== 补充覆盖 (sequence 为 null 边界) ====================
 
     @Test
-    @DisplayName("OID-01 increment 返回 null 时按原代码行为生成包含 'null' 的 ID（代码未做防御，记录现状）")
+    @DisplayName("OID-01 increment 返回 null 时抛 IllegalStateException 含 key 信息")
     void generate_sequenceNull() {
         when(redisTemplate.opsForValue()).thenReturn(valueOps);
         when(valueOps.increment(anyString())).thenReturn(null);
 
         RedisOrderIdGenerator gen = new RedisOrderIdGenerator(redisTemplate);
-        String orderId = gen.generate();
+        IllegalStateException ex = assertThrows(IllegalStateException.class, gen::generate);
 
-        assertNotNull(orderId);
-        assertEquals(18, orderId.length());
-        assertTrue(orderId.contains("null"),
-                "sequence 为 null 时 %05d 会输出 'null' 字符串：" + orderId);
-        verify(redisTemplate, never()).expire(anyString(), anyLong(), any());
+        String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String expectedKey = "order:seq:" + currentDate;
+        assertTrue(ex.getMessage().contains(expectedKey),
+                "异常信息应包含 Redis key，便于排障: " + ex.getMessage());
+        assertTrue(ex.getMessage().contains("INCR"),
+                "异常信息应说明是 INCR 操作: " + ex.getMessage());
     }
 
     @Test

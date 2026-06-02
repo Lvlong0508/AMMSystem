@@ -20,7 +20,11 @@ public class RedisOrderIdGenerator implements OrderIdGenerator {
         String currentDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         String key = "order:seq:" + currentDate;
         Long sequence = redisTemplate.opsForValue().increment(key);
-        if (sequence != null && sequence == 1) {
+        if (sequence == null) {
+            throw new IllegalStateException(
+                    "Redis INCR 返回 null，无法生成订单号。请检查 Redis 连接状态。key=" + key);
+        }
+        if (sequence == 1) {
             redisTemplate.expire(key, 24, TimeUnit.HOURS);
         }
         String seqStr = String.format("%05d", sequence);
