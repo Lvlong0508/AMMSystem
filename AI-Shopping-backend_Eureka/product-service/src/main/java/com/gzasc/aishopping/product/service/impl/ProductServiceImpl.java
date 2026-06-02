@@ -394,6 +394,11 @@ public class ProductServiceImpl implements ProductService {
                 imageInfo.setId(existingProduct.getImageId());
                 imageInfo.setUrl(imageUrl);
                 productImageInfoMapper.updateUrl(imageInfo);
+            } else {
+                ProductImageInfo newImage = new ProductImageInfo();
+                newImage.setUrl(imageUrl);
+                productImageInfoMapper.insert(newImage);
+                product.setImageId(newImage.getId());
             }
         }
 
