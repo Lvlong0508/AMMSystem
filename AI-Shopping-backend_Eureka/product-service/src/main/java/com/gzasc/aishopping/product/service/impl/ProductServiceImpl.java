@@ -72,9 +72,13 @@ public class ProductServiceImpl implements ProductService {
             .filter(id -> shopInfoCache.getIfPresent(id) == null)
             .collect(Collectors.toSet());
         if (!uncached.isEmpty()) {
-            ApiResponse<Map<Long, ShopInfoDTO>> response = shopFeignClient.batchGetShopInfo(uncached);
-            if (response != null && response.getData() != null) {
-                response.getData().forEach(shopInfoCache::put);
+            try {
+                ApiResponse<Map<Long, ShopInfoDTO>> response = shopFeignClient.batchGetShopInfo(uncached);
+                if (response != null && response.getData() != null) {
+                    response.getData().forEach(shopInfoCache::put);
+                }
+            } catch (Exception e) {
+                log.warn("批量获取店铺信息失败, shopIds={}", uncached, e);
             }
         }
         return shopIds.stream()

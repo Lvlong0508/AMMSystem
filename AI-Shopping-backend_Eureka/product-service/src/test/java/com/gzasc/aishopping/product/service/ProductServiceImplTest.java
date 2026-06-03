@@ -121,6 +121,25 @@ class ProductServiceImplTest {
     }
 
     @Test
+    @DisplayName("PR-002-b - shop-service不可用时 分页查询应降级返回空店铺信息")
+    void testGetSalableProductsAbstractWhenShopServiceDown() {
+        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L));
+        Product p = new Product();
+        p.setId(1L);
+        p.setImageId(1);
+        p.setShopId(10L);
+        when(productMapper.selectAbstractProductsByIds(List.of(1L))).thenReturn(List.of(p));
+        when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
+        when(shopFeignClient.batchGetShopInfo(any())).thenThrow(new RuntimeException("shop-service unavailable"));
+        when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
+
+        List<ProductWithImageAbstractDTO> result = productService.getSalableProductsAbstract(0);
+
+        assertEquals(1, result.size());
+        verify(productConverter).toAbstractWithImageDTOList(anyList(), anyMap(), anyMap());
+    }
+
+    @Test
     @DisplayName("PR-002 - 分页查询可售商品 - 无数据")
     void testGetSalableProductsAbstractEmpty() {
         when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of());
