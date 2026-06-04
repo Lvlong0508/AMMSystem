@@ -20,3 +20,9 @@ eureka:
 order:
   timeout:
     payment-minutes: 30
+
+app:
+  image:
+    base-url: http://localhost:8081
+    storage-path: ./target/test-image/goods/main
+    resource-location: file:./target/test-image/
