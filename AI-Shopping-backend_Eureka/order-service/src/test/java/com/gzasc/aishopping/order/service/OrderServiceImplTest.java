@@ -106,7 +106,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-001 正常下单 - 所有参数合法")
     void createOrder_success() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(2);
         request.setContactId(1);
 
@@ -136,7 +136,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-002 下单 - 商品不存在")
     void createOrder_productNotFound() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("999");
+        request.setProductId(999L);
         request.setQuantity(1);
         request.setContactId(1);
 
@@ -152,7 +152,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-003 下单 - 库存不足")
     void createOrder_insufficientStock() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(5);
         request.setContactId(1);
 
@@ -169,7 +169,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-004 下单 - 合法联系人ID允许创建")
     void createOrder_arbitraryContactId() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(1);
         request.setContactId(999);
 
@@ -191,7 +191,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-005 下单 - 预占库存后下游失败")
     void createOrder_reserveStockFeignFailure() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(1);
         request.setContactId(1);
 
@@ -212,7 +212,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-002 下单 - shopId为null")
     void createOrder_shopIdNull() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(1);
         request.setContactId(1);
 
@@ -796,7 +796,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-070 createOrder - 整个 ApiResponse 为 null 时抛商品不存在")
     void createOrder_apiResponseNull() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(1);
         request.setContactId(1);
 
@@ -812,7 +812,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-071 createOrder - 商品价格刚好等于总额（quantity=1）")
     void createOrder_priceEqualsTotal() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(1);
         request.setContactId(1);
 
@@ -835,7 +835,7 @@ class OrderServiceImplTest {
     @DisplayName("OR-072 createOrder - 商品价格为空时使用 BigDecimal.ZERO（防御性）")
     void createOrder_priceNull() {
         PlaceOrderRequest request = new PlaceOrderRequest();
-        request.setProductId("1");
+        request.setProductId(1L);
         request.setQuantity(3);
         request.setContactId(1);
 

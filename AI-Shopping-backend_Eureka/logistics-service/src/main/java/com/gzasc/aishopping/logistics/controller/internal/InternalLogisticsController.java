@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.logistics.controller;
+package com.gzasc.aishopping.logistics.controller.internal;
 
 import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;

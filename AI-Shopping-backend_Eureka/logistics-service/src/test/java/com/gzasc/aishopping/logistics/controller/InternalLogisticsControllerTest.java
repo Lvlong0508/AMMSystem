@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.logistics.controller;
 
 import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
+import com.gzasc.aishopping.logistics.controller.internal.InternalLogisticsController;
 import com.gzasc.aishopping.logistics.converter.LogisticsConverter;
 import com.gzasc.aishopping.logistics.dto.LogisticsResponse;
 import com.gzasc.aishopping.logistics.exception.LogisticsException;

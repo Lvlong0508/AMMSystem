@@ -46,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public String createOrder(PlaceOrderRequest request, Long userId) {
-        ApiResponse<ProductDTO> productResp = productFeignClient.getProductById(Long.valueOf(request.getProductId()));
+        ApiResponse<ProductDTO> productResp = productFeignClient.getProductById(request.getProductId());
         if (productResp == null || productResp.getData() == null) {
             throw new OrderException("商品不存在（错误代码：O-003）");
         }
@@ -71,7 +71,7 @@ public class OrderServiceImpl implements OrderService {
         String shopId = String.valueOf(shopIdObj);
 
         String orderId = orderIdSelector.generate();
-        Order order = Order.buildInitOrder(orderId, userId, shopId, request.getProductId(),
+        Order order = Order.buildInitOrder(orderId, userId, shopId, String.valueOf(request.getProductId()),
                 request.getQuantity(), price.multiply(BigDecimal.valueOf(request.getQuantity())));
         order.setContactId(request.getContactId());
 
