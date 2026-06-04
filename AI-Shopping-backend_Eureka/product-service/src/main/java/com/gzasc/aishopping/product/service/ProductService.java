@@ -206,10 +206,10 @@ public interface ProductService {
     /**
      * 更新商品并关联新图片（同一事务：先写图片 → 获取ID → 再更新商品）
      * @param product 商品基本信息（需包含ID）
-     * @param imageUrl 新图片URL，为空则不更新图片
+     * @param image 图片文件，为空则不更新图片
      * @return 影响的行数
      */
-    int updateProductWithImage(Product product, String imageUrl);
+    int updateProductWithImage(Product product, MultipartFile image);
 
     /**
      * 根据店铺ID分页查询商品

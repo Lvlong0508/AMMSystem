@@ -149,17 +149,24 @@ class ProductSellerControllerTest {
     }
 
     @Test
-    @DisplayName("PR-020 - PUT /api/seller/product/{productId} - 更新商品")
+    @DisplayName("PR-020 - PUT /api/seller/product/{productId} - 更新商品（含图片）")
     void testUpdateProductSuccess() throws Exception {
-        when(productService.updateProductWithImage(any(), isNull())).thenReturn(1);
+        when(productService.updateProductWithImage(any(Product.class), any(MultipartFile.class))).thenReturn(1);
 
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName("新名称");
         request.setPrice(BigDecimal.valueOf(199));
 
-        mockMvc.perform(put("/api/seller/product/2001")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/api/seller/product/2001")
+                        .file(productPart)
+                        .file(imageFile)
+                        .with(requestPut -> {
+                            requestPut.setMethod("PUT");
+                            return requestPut;
+                        }))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
     }
@@ -167,16 +174,62 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-023 - PUT /api/seller/product/{productId} - 商品不存在")
     void testUpdateProductNotFound() throws Exception {
-        when(productService.updateProductWithImage(any(), isNull())).thenReturn(0);
+        when(productService.updateProductWithImage(any(Product.class), isNull())).thenReturn(0);
 
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName("新名称");
 
-        mockMvc.perform(put("/api/seller/product/99999")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/api/seller/product/99999")
+                        .file(productPart)
+                        .with(requestPut -> {
+                            requestPut.setMethod("PUT");
+                            return requestPut;
+                        }))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
+    }
+
+    @Test
+    @DisplayName("updateProduct - 更新商品不传图片（纯文本）")
+    void testUpdateProductWithoutImage() throws Exception {
+        when(productService.updateProductWithImage(any(Product.class), isNull())).thenReturn(1);
+
+        UpdateProductRequest request = new UpdateProductRequest();
+        request.setName("纯文本更新");
+
+        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/api/seller/product/2001")
+                        .file(productPart)
+                        .with(requestPut -> {
+                            requestPut.setMethod("PUT");
+                            return requestPut;
+                        }))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200));
+    }
+
+    @Test
+    @DisplayName("updateProduct - 图片格式不支持")
+    void testUpdateProductWithInvalidImageFormat() throws Exception {
+        UpdateProductRequest request = new UpdateProductRequest();
+        request.setName("新名称");
+        request.setPrice(BigDecimal.valueOf(199));
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "test.gif", "image/gif", "fake-gif-content".getBytes(StandardCharsets.UTF_8));
+        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/api/seller/product/2001")
+                        .file(productPart)
+                        .file(imageFile)
+                        .with(requestPut -> {
+                            requestPut.setMethod("PUT");
+                            return requestPut;
+                        }))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test

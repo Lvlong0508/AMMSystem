@@ -210,13 +210,16 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("PR-020 - 更新商品名称和价格")
+    @DisplayName("PR-020 - 更新商品名称和价格（含新图片）")
     void testUpdateProductWithImageSuccess() {
         Product existing = new Product();
         existing.setId(2001L);
         existing.setName("旧名称");
         existing.setImageId(1);
         when(productMapper.selectProductById(2001L)).thenReturn(existing);
+        when(imageStorageService.saveImage(anyLong(), any(MultipartFile.class)))
+                .thenReturn("/image/goods/main/2001/2001_abc.jpg");
+        when(productImageInfoMapper.selectURLById(1)).thenReturn(new ProductImageInfo(1, "http://localhost:8081/image/goods/main/2001/old.jpg"));
         when(productImageInfoMapper.updateUrl(any(ProductImageInfo.class))).thenReturn(1);
         when(productMapper.updateProduct(any(Product.class))).thenReturn(1);
 
@@ -224,11 +227,15 @@ class ProductServiceImplTest {
         update.setId(2001L);
         update.setName("新名称");
         update.setPrice(BigDecimal.valueOf(199));
-        int result = productService.updateProductWithImage(update, "http://img.test/new.jpg");
+        MockMultipartFile imageFile = new MockMultipartFile("image", "new.jpg", "image/jpeg", "new-image-content".getBytes());
+
+        int result = productService.updateProductWithImage(update, imageFile);
 
         assertEquals(1, result);
+        verify(imageStorageService).saveImage(eq(2001L), any(MultipartFile.class));
         verify(productImageInfoMapper).updateUrl(any(ProductImageInfo.class));
         verify(productMapper).updateProduct(any(Product.class));
+        verify(imageStorageService).deleteImage("http://localhost:8081/image/goods/main/2001/old.jpg");
     }
 
     @Test
@@ -404,7 +411,7 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("B1 - updateProductWithImage传入新imageUrl且原商品无图片时，imageId应正确关联")
+    @DisplayName("B1 - updateProductWithImage 传入新 image 且原商品无图片时，imageId 应正确关联")
     void testUpdateProductWithNewImage_ExistingProductWithoutImage() {
         Product existingProduct = new Product();
         existingProduct.setId(1L);
@@ -414,6 +421,8 @@ class ProductServiceImplTest {
         existingProduct.setStock(10);
 
         when(productMapper.selectProductById(1L)).thenReturn(existingProduct);
+        when(imageStorageService.saveImage(anyLong(), any(MultipartFile.class)))
+                .thenReturn("/image/goods/main/1/1_new.jpg");
 
         doAnswer(invocation -> {
             ProductImageInfo arg = invocation.getArgument(0);
@@ -426,18 +435,45 @@ class ProductServiceImplTest {
         Product updateData = new Product();
         updateData.setId(1L);
         updateData.setName("更新后");
+        MockMultipartFile imageFile = new MockMultipartFile("image", "new.jpg", "image/jpeg", "content".getBytes());
 
-        int result = productService.updateProductWithImage(updateData, "http://new-image.jpg");
+        int result = productService.updateProductWithImage(updateData, imageFile);
 
         ArgumentCaptor<ProductImageInfo> imageCaptor = ArgumentCaptor.forClass(ProductImageInfo.class);
         verify(productImageInfoMapper).insert(imageCaptor.capture());
-        assertEquals("http://new-image.jpg", imageCaptor.getValue().getUrl());
+        assertEquals("http://localhost:8081/image/goods/main/1/1_new.jpg", imageCaptor.getValue().getUrl());
 
         ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
         verify(productMapper).updateProduct(productCaptor.capture());
         assertNotNull(productCaptor.getValue().getImageId());
         assertEquals(Integer.valueOf(999), productCaptor.getValue().getImageId());
 
+        verify(imageStorageService, never()).deleteImage(anyString());
+
         assertEquals(1, result);
+    }
+
+    @Test
+    @DisplayName("updateProduct - 纯文本更新不传图片，保留原图")
+    void testUpdateProductWithoutImage() {
+        Product existing = new Product();
+        existing.setId(3001L);
+        existing.setName("旧名称");
+        existing.setImageId(5);
+        when(productMapper.selectProductById(3001L)).thenReturn(existing);
+        when(productMapper.updateProduct(any(Product.class))).thenReturn(1);
+
+        Product update = new Product();
+        update.setId(3001L);
+        update.setName("新名称");
+        update.setPrice(BigDecimal.valueOf(299));
+
+        int result = productService.updateProductWithImage(update, null);
+
+        assertEquals(1, result);
+        verify(productMapper).updateProduct(productCaptor.capture());
+        assertEquals(Integer.valueOf(5), productCaptor.getValue().getImageId());
+        verify(imageStorageService, never()).saveImage(anyLong(), any(MultipartFile.class));
+        verify(imageStorageService, never()).deleteImage(anyString());
     }
 }

@@ -75,11 +75,20 @@ public class ProductSellerController {
         throw new ProductException(500, "创建商品失败");
     }
 
-    @PutMapping("/{productId}")
+    @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Void> updateProduct(
             @PathVariable("productId") Long productId,
-            @RequestBody @Valid UpdateProductRequest request) {
+            @RequestPart("product") @Valid UpdateProductRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
         log.info("更新商品, productId={}", productId);
+
+        if (image != null && !image.isEmpty()) {
+            String contentType = image.getContentType();
+            if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
+                throw new ProductException(400, "仅支持 JPG 和 PNG 格式");
+            }
+        }
+
         Product product = new Product();
         product.setId(productId);
         if (request.getName() != null) product.setName(request.getName());
@@ -87,7 +96,7 @@ public class ProductSellerController {
         if (request.getPrice() != null) product.setPrice(request.getPrice());
         if (request.getStock() != null) product.setStock(request.getStock());
 
-        int result = productService.updateProductWithImage(product, request.getImageUrl());
+        int result = productService.updateProductWithImage(product, image);
         if (result > 0) {
             return ApiResponse.success("更新商品成功", null);
         }

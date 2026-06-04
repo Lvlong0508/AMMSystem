@@ -4,6 +4,7 @@ import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ImageStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +22,9 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final Path storagePath;
+
+    @Value("${app.image.base-url}")
+    private String imageBaseUrl;
 
     public ImageStorageServiceImpl(@Value("${app.image.storage-path}") String storagePath) {
         this.storagePath = Paths.get(storagePath).toAbsolutePath().normalize();
@@ -57,6 +61,29 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         }
 
         return "/image/goods/main/" + productId + "/" + fileName;
+    }
+
+    @Async
+    @Override
+    public void deleteImage(String imageUrl) {
+        if (imageUrl == null || imageUrl.isBlank()) {
+            return;
+        }
+        String relativePath = imageUrl.replace(imageBaseUrl, "");
+        if (relativePath.startsWith("/")) {
+            relativePath = relativePath.substring(1);
+        }
+        Path filePath = storagePath.resolve(relativePath).normalize();
+        try {
+            boolean deleted = Files.deleteIfExists(filePath);
+            if (deleted) {
+                log.info("删除旧图片成功: {}", filePath);
+            } else {
+                log.warn("旧图片文件不存在: {}", filePath);
+            }
+        } catch (IOException e) {
+            log.error("删除旧图片失败: {}", filePath, e);
+        }
     }
 
     private byte[] generateRandomBytes(int count) {

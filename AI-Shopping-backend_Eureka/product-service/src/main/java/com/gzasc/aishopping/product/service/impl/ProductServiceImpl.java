@@ -399,27 +399,38 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public int updateProductWithImage(Product product, String imageUrl) {
+    public int updateProductWithImage(Product product, MultipartFile image) {
         Product existingProduct = productMapper.selectProductById(product.getId());
         if (existingProduct == null) {
             throw new ProductException(404, "商品不存在: " + product.getId());
         }
 
-        if (imageUrl != null && !imageUrl.isBlank()) {
-            if (existingProduct.getImageId() != null && existingProduct.getImageId() > 0) {
+        if (image != null && !image.isEmpty()) {
+            String relativePath = imageStorageService.saveImage(product.getId(), image);
+            String fullUrl = imageBaseUrl + relativePath;
+
+            Integer oldImageId = existingProduct.getImageId();
+            String oldImageUrl = (oldImageId != null && oldImageId > 0) ? getImageUrl(oldImageId) : null;
+
+            if (oldImageId != null && oldImageId > 0) {
                 ProductImageInfo imageInfo = new ProductImageInfo();
-                imageInfo.setId(existingProduct.getImageId());
-                imageInfo.setUrl(imageUrl);
+                imageInfo.setId(oldImageId);
+                imageInfo.setUrl(fullUrl);
                 productImageInfoMapper.updateUrl(imageInfo);
             } else {
                 ProductImageInfo newImage = new ProductImageInfo();
-                newImage.setUrl(imageUrl);
+                newImage.setUrl(fullUrl);
                 productImageInfoMapper.insert(newImage);
                 product.setImageId(newImage.getId());
+            }
+
+            if (oldImageUrl != null && !DEFAULT_IMAGE_URL.equals(oldImageUrl)) {
+                imageStorageService.deleteImage(oldImageUrl);
             }
         } else {
             product.setImageId(existingProduct.getImageId());
         }
+
         return productMapper.updateProduct(product);
     }
 }

@@ -5,11 +5,11 @@
 | 测试类 | 用例数 | 通过 |
 |--------|:------:|:----:|
 | ProductUserControllerTest | 12 | 12 |
-| ProductSellerControllerTest | 18 | 18 |
-| InternalProductControllerTest | 16 | 16 |
+| ProductSellerControllerTest | 20 | 20 |
+| InternalProductControllerTest | 19 | 19 |
 | GlobalExceptionHandlerTest | 8 | 8 |
 | ProductConverterTest | 5 | 5 |
-| ProductServiceImplTest | 26 | 26 |
+| ProductServiceImplTest | 27 | 27 |
 | ImageStorageServiceImplTest | 5 | 5 |
 | ProductReservationServiceImplTest | 15 | 15 |
 | ProductMapperTest | 21 | 21 |
@@ -18,11 +18,11 @@
 | SalableProductMapperTest | 8 | 8 |
 | ReservationCleanupTaskTest | 2 | 2 |
 | ProductServiceApplicationTests | 1 | 1 |
-| **合计** | **159** | **159（100%）** |
+| **合计** | **162** | **162（100%）** |
 
 ## API 端到端集成测试
 
-所有端点 27/27 全部通过。
+所有端点 27/27 全部通过。updateProduct 已改为 multipart 图片上传（可选），新增测试场景：含图更新、纯文本更新、格式校验、商品不存在。
 
 ### 用户端 API
 
@@ -40,7 +40,7 @@
 |------|------|:----:|
 | POST | `/api/seller/product/create` | ✅ |
 | GET | `/api/seller/product/{id}` | ✅ |
-| PUT | `/api/seller/product/{id}` | ✅ |
+| PUT | `/api/seller/product/{id}` (multipart, 图片可选) | ✅ |
 | DELETE | `/api/seller/product/{id}` | ✅ |
 | POST | `/api/seller/product/{id}/list` | ✅ |
 | POST | `/api/seller/product/{id}/unlist` | ✅ |
@@ -61,8 +61,8 @@
 
 ## 总结
 
-- **单元测试**：159 个全部通过，覆盖 Controller、Service、Mapper、Converter、ExceptionHandler 各层
-- **API 端到端测试**：27 个端点全部通过，覆盖用户端、商家端、内部 API 的成功/失败/参数校验路径
+- **单元测试**：162 个全部通过，覆盖 Controller、Service、Mapper、Converter、ExceptionHandler 各层
+- **API 端到端测试**：27 个端点全部通过，覆盖用户端、商家端、内部 API 的成功/失败/参数校验路径。本次将 updateProduct 改为 multipart 图片上传（可选），新增异步删除旧图功能
 - **未修复 BUG**：无
 
 ## 未修复 BUG
