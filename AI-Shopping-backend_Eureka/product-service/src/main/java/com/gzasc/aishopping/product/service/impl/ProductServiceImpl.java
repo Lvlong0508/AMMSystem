@@ -249,7 +249,7 @@ public class ProductServiceImpl implements ProductService {
         if (products.isEmpty()) return List.of();
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
         ShopInfoDTO shopInfo = getCachedShopInfo(shopId);
-        Map<Long, ShopInfoDTO> shopInfoMap = shopId != null ? Map.of(shopId, shopInfo) : Map.of();
+        Map<Long, ShopInfoDTO> shopInfoMap = shopId != null && shopInfo != null ? Map.of(shopId, shopInfo) : Map.of();
         return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
