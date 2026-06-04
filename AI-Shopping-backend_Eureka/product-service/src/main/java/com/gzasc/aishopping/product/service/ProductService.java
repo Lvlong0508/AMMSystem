@@ -1,12 +1,8 @@
 package com.gzasc.aishopping.product.service;
 
-import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
-import com.gzasc.aishopping.product.dto.ProductDetailDTO;
-import com.gzasc.aishopping.product.dto.ProductImageDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
-import com.gzasc.aishopping.product.model.ProductImageInfo;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -45,25 +41,11 @@ public interface ProductService {
     List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page);
 
     /**
-     * 创建新商品
-     * @param product 商品信息
-     * @return 影响的行数
-     */
-    int createProduct(Product product);
-
-    /**
      * 删除商品
      * @param productId 商品ID
      * @return 影响的行数
      */
     int deleteProduct(Long productId);
-
-    /**
-     * 更新商品信息
-     * @param product 商品信息（需包含ID）
-     * @return 影响的行数
-     */
-    int updateProduct(Product product);
 
     /**
      * 商家端: 根据商品ID批量查询抽象信息（包含isSale字段）
@@ -75,51 +57,12 @@ public interface ProductService {
     // ==================== 库存管理 ====================
 
     /**
-     * 扣减商品库存（用于下单）
-     * @param productId 商品ID
-     * @param quantity 扣减数量
-     * @return 是否扣减成功（库存不足返回false）
-     */
-    boolean deductStock(Long productId, int quantity);
-
-    /**
      * 恢复商品库存（用于取消订单、退货）
      * @param productId 商品ID
      * @param quantity 恢复数量
      * @return 是否恢复成功
      */
     boolean restoreStock(Long productId, int quantity);
-
-
-    // ==================== 图片管理 ====================
-
-    /**
-     * 添加商品图片
-     * @param image 图片信息
-     * @return 影响的行数
-     */
-    int addImage(ProductImageInfo image);
-
-    /**
-     * 删除商品图片
-     * @param imageId 图片ID
-     * @return 影响的行数
-     */
-    int removeImage(int imageId);
-
-    /**
-     * 根据图片ID查询图片
-     * @param imageId 图片ID
-     * @return 图片信息，null表示不存在
-     */
-    ProductImageInfo getImageById(int imageId);
-
-    /**
-     * 批量查询图片
-     * @param ids 图片ID列表
-     * @return 对应的图片列表
-     */
-    List<ProductImageInfo> getImagesByIds(List<Integer> ids);
 
 
     // ==================== 上下架管理 ====================
@@ -138,23 +81,7 @@ public interface ProductService {
      */
     boolean unlistProduct(Long productId);
 
-    /**
-     * 检查商品是否可售
-     * @param productId 商品ID
-     * @return 是否可售
-     */
-    boolean isProductSalable(Long productId);
-
-
     // ==================== 高级查询 ====================
-
-    /**
-     * 根据价格区间查询商品（无分页）
-     * @param minPrice 最低价格
-     * @param maxPrice 最高价格
-     * @return 对应的商品列表
-     */
-    List<ProductWithImageAbstractDTO> getProductsByPriceRange(Double minPrice, Double maxPrice);
 
     /**
      * 分页按价格区间查询商品
@@ -164,34 +91,6 @@ public interface ProductService {
      * @return 当前页的商品列表
      */
     List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
-
-    // ==================== DTO 查询接口 ====================
-
-    /**
-     * 用户端: 根据ID批量查询抽象信息 DTO
-     */
-    List<ProductAbstractDTO> getAbstractProductDTOs(List<Long> ids);
-
-    /**
-     * 用户端: 根据ID查询商品详情 DTO
-     */
-    ProductDetailDTO getProductDetailDTO(Long productId);
-
-    /**
-     * 商家端: 根据ID批量查询抽象信息 DTO（包含isSale）
-     */
-    List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<Long> ids);
-
-    /**
-     * 根据图片ID查询图片 DTO
-     */
-    ProductImageDTO getImageDTO(int imageId);
-
-    /**
-     * 批量查询图片 DTO
-     */
-    List<ProductImageDTO> getImageDTOs(List<Integer> ids);
-
 
     // ==================== 统一创建/更新（含图片） ====================
 
@@ -211,12 +110,4 @@ public interface ProductService {
      */
     int updateProductWithImage(Product product, MultipartFile image);
 
-    /**
-     * 根据店铺ID分页查询商品
-     * @param shopId 店铺ID
-     * @param page 页码，从1开始
-     * @param size 每页数量
-     * @return 商品列表
-     */
-    List<ProductWithImageAbstractDTO> getProductsByShopId(Long shopId, int page, int size);
 }

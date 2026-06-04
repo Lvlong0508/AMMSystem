@@ -13,9 +13,6 @@ public interface SalableProductMapper {
     @Delete("DELETE FROM salable_products WHERE id = #{productId}")
     int removeSalable(@Param("productId") Long productId);
 
-    @Select("SELECT COUNT(*) > 0 FROM salable_products WHERE id = #{productId}")
-    boolean isSalable(@Param("productId") Long productId);
-
     @Select("SELECT id FROM salable_products LIMIT #{limit} OFFSET #{offset}")
     List<Long> selectAll(@Param("offset") int offset, @Param("limit") int limit);
 }

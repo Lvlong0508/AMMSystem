@@ -289,26 +289,6 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("PR-055 - 直接扣减库存成功")
-    void testDeductStockSuccess() {
-        when(productMapper.deductStock(6001L, 10)).thenReturn(1);
-
-        boolean result = productService.deductStock(6001L, 10);
-
-        assertTrue(result);
-    }
-
-    @Test
-    @DisplayName("PR-056 - 库存不足扣减失败")
-    void testDeductStockInsufficient() {
-        when(productMapper.deductStock(6001L, 999)).thenReturn(0);
-
-        boolean result = productService.deductStock(6001L, 999);
-
-        assertFalse(result);
-    }
-
-    @Test
     @DisplayName("PR-058 - 恢复库存成功")
     void testRestoreStockSuccess() {
         when(productMapper.restoreStock(6001L, 5)).thenReturn(1);
@@ -393,21 +373,6 @@ class ProductServiceImplTest {
         List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of(1001L, 99999L));
 
         assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("PR-080 - 雪花ID生成后不为空")
-    void testCreateProductGeneratesSnowflakeId() {
-        when(productMapper.insertProduct(any(Product.class))).thenReturn(1);
-
-        Product product = new Product();
-        product.setName("ID测试");
-        int result = productService.createProduct(product);
-
-        assertEquals(1, result);
-        verify(productMapper).insertProduct(productCaptor.capture());
-        assertNotNull(productCaptor.getValue().getId());
-        assertTrue(productCaptor.getValue().getId() > 0);
     }
 
     @Test

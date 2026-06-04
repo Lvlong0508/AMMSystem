@@ -25,9 +25,6 @@ public interface ProductMapper {
     @Select("SELECT * FROM products WHERE name LIKE CONCAT('%', #{name}, '%')")
     List<Product> selectProductsByName(@Param("name") String name);
 
-    @Update("UPDATE products SET stock = stock - #{quantity} WHERE id = #{productId} AND stock >= #{quantity}")
-    int deductStock(@Param("productId") Long productId, @Param("quantity") int quantity);
-
     @Update("UPDATE products SET stock = stock + #{quantity} WHERE id = #{productId}")
     int restoreStock(@Param("productId") Long productId, @Param("quantity") int quantity);
 
@@ -54,9 +51,6 @@ public interface ProductMapper {
             "</script>")
     int updateProduct(Product product);
 
-    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice}")
-    List<Product> selectByPriceRange(@Param("minPrice") Double minPrice, @Param("maxPrice") Double maxPrice);
-
     // 提供给商家端的分页抽象查询接口
     @Select("<script>" +
             "SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
@@ -72,6 +66,4 @@ public interface ProductMapper {
     @Update("UPDATE products SET image_id = #{imageId}, updated_at = NOW() WHERE id = #{id}")
     int updateProductImageId(@Param("id") Long id, @Param("imageId") int imageId);
 
-    @Select("SELECT * FROM products WHERE shop_id = #{shopId} ORDER BY created_at DESC LIMIT #{size} OFFSET #{offset}")
-    List<Product> selectByShopId(@Param("shopId") Long shopId, @Param("offset") int offset, @Param("size") int size);
 }

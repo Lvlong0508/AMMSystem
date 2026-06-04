@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.product.controller.GlobalExceptionHandler;
-import com.gzasc.aishopping.product.dto.InternalCreateProductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
@@ -23,7 +22,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
@@ -119,33 +117,6 @@ class InternalProductControllerTest {
     }
 
     @Test
-    @DisplayName("POST /internal/product/deduct-stock - 扣减库存成功")
-    void testDeductStockSuccess() throws Exception {
-        when(productService.deductStock(1L, 10)).thenReturn(true);
-        StockDeductRequest request = new StockDeductRequest(1L, 10);
-
-        mockMvc.perform(post("/internal/product/deduct-stock")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/deduct-stock - 库存不足")
-    void testDeductStockInsufficient() throws Exception {
-        when(productService.deductStock(1L, 999999)).thenReturn(false);
-        StockDeductRequest request = new StockDeductRequest(1L, 999999);
-
-        mockMvc.perform(post("/internal/product/deduct-stock")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("扣减失败：库存不足"));
-    }
-
-    @Test
     @DisplayName("POST /internal/product/restore-stock - 恢复库存成功")
     void testRestoreStockSuccess() throws Exception {
         when(productService.restoreStock(1L, 5)).thenReturn(true);
@@ -216,100 +187,4 @@ class InternalProductControllerTest {
                 .andExpect(jsonPath("$.message").value("预占不存在"));
     }
 
-    @Test
-    @DisplayName("POST /internal/product/create - 创建商品成功")
-    void testCreateProductSuccess() throws Exception {
-        when(productService.createProduct(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            p.setId(100L);
-            return 1;
-        });
-
-        InternalCreateProductRequest request = new InternalCreateProductRequest();
-        request.setName("内部创建商品");
-        request.setPrice(BigDecimal.valueOf(199.99));
-        request.setStock(50);
-
-        mockMvc.perform(post("/internal/product/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(100));
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/create - 创建商品失败")
-    void testCreateProductFailed() throws Exception {
-        when(productService.createProduct(any(Product.class))).thenReturn(0);
-
-        InternalCreateProductRequest request = new InternalCreateProductRequest();
-        request.setName("失败商品");
-        request.setPrice(BigDecimal.valueOf(99));
-
-        mockMvc.perform(post("/internal/product/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
-    }
-
-    @Test
-    @DisplayName("GET /internal/product/by-shop/{shopId} - 按店铺分页查询成功")
-    void testGetProductsByShopId() throws Exception {
-        when(productService.getProductsByShopId(100L, 0, 10))
-                .thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
-
-        mockMvc.perform(get("/internal/product/by-shop/100")
-                        .param("page", "0")
-                        .param("size", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data").isArray());
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/release-reservation - 释放预占成功")
-    void testReleaseReservationSuccess() throws Exception {
-        mockMvc.perform(post("/internal/product/release-reservation").param("orderId", "order-001"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/release-reservation - 释放预占失败")
-    void testReleaseReservationFailed() throws Exception {
-        doThrow(new RuntimeException("预占记录不存在")).when(reservationService).release("order-002");
-
-        mockMvc.perform(post("/internal/product/release-reservation").param("orderId", "order-002"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("预占记录不存在"));
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/deduct-stock - 参数校验失败（商品ID为空）")
-    void testDeductStockValidationFailed() throws Exception {
-        StockDeductRequest request = new StockDeductRequest(null, 10);
-
-        mockMvc.perform(post("/internal/product/deduct-stock")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
-
-    @Test
-    @DisplayName("POST /internal/product/create - 参数校验失败（名称为空）")
-    void testCreateProductValidationFailed() throws Exception {
-        InternalCreateProductRequest request = new InternalCreateProductRequest();
-        request.setName("");
-        request.setPrice(BigDecimal.valueOf(99));
-
-        mockMvc.perform(post("/internal/product/create")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
 }

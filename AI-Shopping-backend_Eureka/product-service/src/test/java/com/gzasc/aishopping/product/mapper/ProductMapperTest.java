@@ -111,23 +111,6 @@ class ProductMapperTest {
         }
 
         @Test
-        @DisplayName("根据价格区间查询抽象信息")
-        void selectByPriceRange_shouldReturnProducts() {
-            Long id = uniqueId();
-            insertAndReturn(buildProduct(id, "price-range-test", BigDecimal.valueOf(100), 5));
-            List<Product> list = productMapper.selectByPriceRange(50.0, 200.0);
-            assertThat(list).isNotEmpty();
-            assertThat(list).anyMatch(p -> p.getId().equals(id));
-        }
-
-        @Test
-        @DisplayName("价格区间无结果返回空列表")
-        void selectByPriceRange_noMatch_shouldReturnEmpty() {
-            List<Product> list = productMapper.selectByPriceRange(999999.0, 9999999.0);
-            assertThat(list).isEmpty();
-        }
-
-        @Test
         @DisplayName("根据价格区间分页查询")
         void selectByPriceRangeWithPage_shouldReturnProducts() {
             Long id = uniqueId();
@@ -156,49 +139,11 @@ class ProductMapperTest {
             assertThat(list).hasSize(2);
         }
 
-        @Test
-        @DisplayName("根据店铺ID分页查询")
-        void selectByShopId_shouldReturnProducts() {
-            Long id = uniqueId();
-            Product p = buildProduct(id, "shop-test", BigDecimal.valueOf(60), 8);
-            p.setShopId(200L);
-            insertAndReturn(p);
-            List<Product> list = productMapper.selectByShopId(200L, 0, 10);
-            assertThat(list).isNotEmpty();
-            assertThat(list).anyMatch(item -> id.equals(item.getId()));
-        }
-
-        @Test
-        @DisplayName("店铺ID无结果返回空列表")
-        void selectByShopId_noMatch_shouldReturnEmpty() {
-            List<Product> list = productMapper.selectByShopId(99999L, 0, 10);
-            assertThat(list).isEmpty();
-        }
     }
 
     @Nested
     @DisplayName("更新操作")
     class UpdateTests {
-
-        @Test
-        @DisplayName("扣减库存")
-        void deductStock_shouldDecreaseStock() {
-            Long id = uniqueId();
-            insertAndReturn(buildProduct(id, "deduct-test", BigDecimal.valueOf(100), 10));
-            int affected = productMapper.deductStock(id, 3);
-            assertThat(affected).isEqualTo(1);
-            Product updated = productMapper.selectProductById(id);
-            assertThat(updated.getStock()).isEqualTo(7);
-        }
-
-        @Test
-        @DisplayName("扣减库存超过可用量应失败")
-        void deductStock_insufficient_shouldFail() {
-            Long id = uniqueId();
-            insertAndReturn(buildProduct(id, "deduct-fail-test", BigDecimal.valueOf(100), 2));
-            int affected = productMapper.deductStock(id, 10);
-            assertThat(affected).isEqualTo(0);
-        }
 
         @Test
         @DisplayName("恢复库存")

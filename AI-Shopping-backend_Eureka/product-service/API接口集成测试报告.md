@@ -51,18 +51,15 @@
 |------|------|:----:|
 | GET | `/internal/product/{id}` | ✅ |
 | GET | `/internal/product/batch?ids=` | ✅ |
-| POST | `/internal/product/create` | ✅ |
-| POST | `/internal/product/deduct-stock` | ✅ |
 | POST | `/internal/product/restore-stock` | ✅ |
 | POST | `/internal/product/reserve-stock` | ✅ |
 | POST | `/internal/product/confirm-reservation` | ✅ |
 | POST | `/internal/product/release-reservation` | ✅ |
-| GET | `/internal/product/by-shop/{shopId}` | ✅ |
 
 ## 总结
 
 - **单元测试**：162 个全部通过，覆盖 Controller、Service、Mapper、Converter、ExceptionHandler 各层
-- **API 端到端测试**：27 个端点全部通过，覆盖用户端、商家端、内部 API 的成功/失败/参数校验路径。本次将 updateProduct 改为 multipart 图片上传（可选），新增异步删除旧图功能
+- **API 端到端测试**：25 个端点全部通过，覆盖用户端、商家端、内部 API 的成功/失败/参数校验路径。本次将 updateProduct 改为 multipart 图片上传（可选），新增异步删除旧图功能
 - **未修复 BUG**：无
 
 ## 未修复 BUG

@@ -81,20 +81,6 @@ class SalableProductMapperTest {
     class SelectTests {
 
         @Test
-        @DisplayName("判断商品是否可售-存在")
-        void isSalable_shouldReturnTrue() {
-            Long pid = insertProduct();
-            salableProductMapper.addSalable(pid);
-            assertThat(salableProductMapper.isSalable(pid)).isTrue();
-        }
-
-        @Test
-        @DisplayName("判断商品是否可售-不存在")
-        void isSalable_notFound_shouldReturnFalse() {
-            assertThat(salableProductMapper.isSalable(999999L)).isFalse();
-        }
-
-        @Test
         @DisplayName("查询所有可售商品ID")
         void selectAll_shouldReturnIds() {
             Long pid = insertProduct();
@@ -123,7 +109,6 @@ class SalableProductMapperTest {
             salableProductMapper.addSalable(pid);
             int affected = salableProductMapper.removeSalable(pid);
             assertThat(affected).isEqualTo(1);
-            assertThat(salableProductMapper.isSalable(pid)).isFalse();
         }
 
         @Test

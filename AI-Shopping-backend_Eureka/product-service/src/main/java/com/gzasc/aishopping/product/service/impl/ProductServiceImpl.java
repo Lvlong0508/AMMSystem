@@ -5,9 +5,6 @@ import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
 import com.gzasc.aishopping.product.converter.ProductConverter;
-import com.gzasc.aishopping.product.dto.ProductAbstractDTO;
-import com.gzasc.aishopping.product.dto.ProductDetailDTO;
-import com.gzasc.aishopping.product.dto.ProductImageDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 
@@ -32,10 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Map;
-import java.util.HashMap;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -185,13 +180,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public int createProduct(Product product) {
-        product.setId(SnowflakeIdGenerator.nextId());
-        return productMapper.insertProduct(product);
-    }
-
-    @Override
-    @Transactional
     public int deleteProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
@@ -204,18 +192,6 @@ public class ProductServiceImpl implements ProductService {
             productImageInfoMapper.deleteById(product.getImageId());
         }
         return productMapper.deleteProduct(productId);
-    }
-
-    @Override
-    @Transactional
-    public int updateProduct(Product product) {
-        return productMapper.updateProduct(product);
-    }
-
-    @Override
-    @Transactional
-    public boolean deductStock(Long productId, int quantity) {
-        return productMapper.deductStock(productId, quantity) > 0;
     }
 
     @Override
@@ -243,40 +219,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductWithImageAbstractDTO> getProductsByShopId(Long shopId, int page, int size) {
-        int offset = page > 0 ? (page - 1) * size : 0;
-        List<Product> products = productMapper.selectByShopId(shopId, offset, size);
-        if (products.isEmpty()) return List.of();
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        ShopInfoDTO shopInfo = getCachedShopInfo(shopId);
-        Map<Long, ShopInfoDTO> shopInfoMap = shopId != null && shopInfo != null ? Map.of(shopId, shopInfo) : Map.of();
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
-
-    @Override
-    public int addImage(ProductImageInfo image) {
-        return productImageInfoMapper.insert(image);
-    }
-
-    @Override
-    public int removeImage(int imageId) {
-        return productImageInfoMapper.deleteById(imageId);
-    }
-
-    @Override
-    public ProductImageInfo getImageById(int imageId) {
-        return productImageInfoMapper.selectURLById(imageId);
-    }
-
-    @Override
-    public List<ProductImageInfo> getImagesByIds(List<Integer> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return List.of();
-        }
-        return productImageInfoMapper.selectByIds(ids);
-    }
-
-    @Override
     @Transactional
     public boolean listProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
@@ -301,29 +243,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public boolean isProductSalable(Long productId) {
-        return salableProductMapper.isSalable(productId);
-    }
-
-    @Override
-    public List<ProductWithImageAbstractDTO> getProductsByPriceRange(Double minPrice, Double maxPrice) {
-        List<Product> products = productMapper.selectByPriceRange(minPrice, maxPrice)
-            .stream()
-            .filter(Product::isSale)
-            .toList();
-        if (products.isEmpty()) {
-            return List.of();
-        }
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        Set<Long> shopIds = products.stream()
-            .map(Product::getShopId)
-            .filter(id -> id != null)
-            .collect(Collectors.toSet());
-        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
-
-    @Override
     public List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
         List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20)
             .stream()
@@ -339,45 +258,6 @@ public class ProductServiceImpl implements ProductService {
             .collect(Collectors.toSet());
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
         return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
-
-    @Override
-    public List<ProductAbstractDTO> getAbstractProductDTOs(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return List.of();
-        }
-        List<Product> products = productMapper.selectAbstractProductsByIds(ids);
-        return productConverter.toAbstractDTOList(products);
-    }
-
-    @Override
-    public ProductDetailDTO getProductDetailDTO(Long productId) {
-        Product product = productMapper.selectProductById(productId);
-        if (product == null) {
-            throw new ProductException(404, "商品不存在: " + productId);
-        }
-        return productConverter.toDetailDTO(product);
-    }
-
-    @Override
-    public List<ProductAbstractDTO> getMerchantAbstractProductDTOs(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return List.of();
-        }
-        List<Product> products = productMapper.selectAbstractProductsByIdsJustMerchant(ids);
-        return productConverter.toAbstractDTOList(products);
-    }
-
-    @Override
-    public ProductImageDTO getImageDTO(int imageId) {
-        ProductImageInfo info = productImageInfoMapper.selectURLById(imageId);
-        return productConverter.toImageDTO(info);
-    }
-
-    @Override
-    public List<ProductImageDTO> getImageDTOs(List<Integer> ids) {
-        List<ProductImageInfo> infos = getImagesByIds(ids);
-        return productConverter.toImageDTOList(infos);
     }
 
     @Override

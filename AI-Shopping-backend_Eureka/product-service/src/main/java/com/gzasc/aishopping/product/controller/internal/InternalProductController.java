@@ -4,7 +4,6 @@ import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.product.dto.InternalCreateProductRequest;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
@@ -18,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/internal/product")
@@ -66,16 +64,6 @@ public class InternalProductController {
         return ApiResponse.success(products);
     }
 
-    // 内部接口：扣减库存（订单服务下单成功就执行）
-    @PostMapping("/deduct-stock")
-    public ApiResponse<Void> deductStock(@RequestBody @Valid StockDeductRequest request) {
-        boolean success = productService.deductStock(request.getProductId(), request.getQuantity());
-        if (success) {
-            return ApiResponse.success(null);
-        }
-        return ApiResponse.error(400, "扣减失败：库存不足");
-    }
-
     // 内部接口：恢复库存（订单服务取消订单时执行）
     @PostMapping("/restore-stock")
     public ApiResponse<Void> restoreStock(@RequestBody @Valid StockDeductRequest request) {
@@ -106,33 +94,6 @@ public class InternalProductController {
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
-    }
-
-    // 内部接口：创建商品
-    @PostMapping("/create")
-    public ApiResponse<Map<String, Object>> createProduct(@RequestBody @Valid InternalCreateProductRequest request) {
-        Product product = new Product();
-        product.setName(request.getName());
-        product.setPrice(request.getPrice());
-        product.setTags(request.getTags());
-        product.setDescription(request.getDescription());
-        product.setStock(request.getStock() != null ? request.getStock() : 0);
-        product.setSale(false);
-        int result = productService.createProduct(product);
-        if (result > 0) {
-            return ApiResponse.success("创建商品成功", Map.of("id", product.getId()));
-        }
-        return ApiResponse.error("创建商品失败");
-    }
-
-    // 内部接口：根据店铺ID分页查询商品
-    @GetMapping("/by-shop/{shopId}")
-    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByShopId(
-            @PathVariable("shopId") Long shopId,
-            @RequestParam("page") int page,
-            @RequestParam("size") int size) {
-        List<ProductWithImageAbstractDTO> products = productService.getProductsByShopId(shopId, page, size);
-        return ApiResponse.success(products);
     }
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
