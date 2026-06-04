@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
@@ -84,6 +85,8 @@ public class InternalProductController {
         try {
             reservationService.reserve(req.getOrderId(), String.valueOf(req.getProductId()), req.getQuantity());
             return ApiResponse.success(null);
+        } catch (ProductException e) {
+            return ApiResponse.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -95,6 +98,8 @@ public class InternalProductController {
         try {
             reservationService.confirm(orderId);
             return ApiResponse.success(null);
+        } catch (ProductException e) {
+            return ApiResponse.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
@@ -106,6 +111,8 @@ public class InternalProductController {
         try {
             reservationService.release(orderId);
             return ApiResponse.success(null);
+        } catch (ProductException e) {
+            return ApiResponse.error(e.getCode(), e.getMessage());
         } catch (Exception e) {
             return ApiResponse.error(e.getMessage());
         }
