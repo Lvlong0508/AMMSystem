@@ -49,6 +49,4 @@
 
 ## 未修复 BUG
 
-| BUG | 描述 |
-|-----|------|
-| UserContactMapperTest 1 个既有失败 | `selectByUserId_shouldReturnContacts` 依赖 MySQL 预置数据，非代码逻辑问题 |
+无
