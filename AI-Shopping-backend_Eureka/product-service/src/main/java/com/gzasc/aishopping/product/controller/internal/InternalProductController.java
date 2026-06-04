@@ -73,7 +73,7 @@ public class InternalProductController {
         if (success) {
             return ApiResponse.success(null);
         }
-        return ApiResponse.error("扣减失败：库存不足");
+        return ApiResponse.error(400, "扣减失败：库存不足");
     }
 
     // 内部接口：恢复库存（订单服务取消订单时执行）
