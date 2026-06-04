@@ -160,6 +160,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page) {
+        if (page < 0) {
+            throw new ProductException(400, "页码不能为负数");
+        }
         int pageSize = 20;
         List<Long> salableIds = salableProductMapper.selectAll(page * pageSize, pageSize);
         if (salableIds.isEmpty()) {

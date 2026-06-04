@@ -32,6 +32,8 @@ public class ProductUserController {
             List<ProductWithImageAbstractDTO> products = productService.getSalableProductsAbstract(page);
             log.info("查询所有商品成功, page={}, size={}", page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
+        } catch (ProductException e) {
+            throw e;
         } catch (Exception e) {
             log.error("查询所有商品失败: {}", e.getMessage());
             throw new ProductException(500, "查询错误：" + e.getMessage());

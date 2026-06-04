@@ -419,6 +419,13 @@ class ProductServiceImplTest {
     }
 
     @Test
+    @DisplayName("getSalableProductsAbstract page为负数抛出ProductException")
+    void getSalableProductsAbstract_negativePage() {
+        assertThrows(ProductException.class,
+                () -> productService.getSalableProductsAbstract(-1));
+    }
+
+    @Test
     @DisplayName("updateProduct - 纯文本更新不传图片，保留原图")
     void testUpdateProductWithoutImage() {
         Product existing = new Product();
