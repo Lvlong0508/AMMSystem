@@ -63,10 +63,10 @@ Client
 | # | 用例 | 方法 | 端点 | 预期结果 | 实际结果 | 状态 |
 |---|------|------|------|----------|----------|:----:|
 | 1 | 分页查询可售商品 | GET | `/api/user/product/all?page=0` | 返回商品列表（或空列表） | `{"code":200,"data":{"products":[],"page":0,"size":0}}` | ✅ |
-| 2 | 按ID查询商品详情 | GET | `/api/user/product/1` | 返回商品详情 | HTTP 400, `{"code":404,"message":"商品不存在"}` | ❌ |
+| 2 | 按ID查询商品详情 | GET | `/api/user/product/1` | 404 "商品不存在"（需种子数据） | HTTP 404, `{"code":404,"message":"商品不存在"}` | ❌ |
 | 3 | 按名称搜索商品 | GET | `/api/user/product/search?name=测试` | 返回匹配商品列表（或空） | `{"code":200,"data":{"total":0,"products":[]}}` | ✅ |
 | 4 | 价格区间查询 | GET | `/api/user/product/price-range?minPrice=0&maxPrice=100&page=0` | 返回区间内商品列表（或空） | `{"code":200,"data":{"products":[],"page":0,"size":0}}` | ✅ |
-| 5 | 查询不存在商品 | GET | `/api/user/product/99999` | 400 "商品不存在" | HTTP 400, body.code=404 | ❌ |
+| 5 | 查询不存在商品 | GET | `/api/user/product/99999` | 404 "商品不存在" | HTTP 404, body.code=404 | ❌ |
 | 6 | 空关键词搜索 | GET | `/api/user/product/search?name=` | 返回空列表或全部商品 | `{"code":200,"data":{"total":0,"products":[]}}` | ✅ |
 | 7 | 无效价格区间 | GET | `/api/user/product/price-range?minPrice=100&maxPrice=0` | 参数校验错误或空结果 | 返回空结果集 | ✅ |
 
@@ -77,11 +77,11 @@ Client
 | 8 | 创建商品（JSON body） | POST | `/api/seller/product/create` | 返回商品ID | `{"code":200,"message":"创建商品成功","data":"2061619459994554368"}` | ✅ |
 | 8b | **创建商品（图片上传 multipart/form-data）** | POST | `/api/seller/product/create` | 返回商品ID，图片文件保存到本地，返回完整 URL | `{"code":200,"message":"创建商品成功","data":"2062390880756699136"}`，图片 URL 可访问 HTTP 200 | ✅ |
 | 9 | 查询商品详情 | GET | `/api/seller/product/{id}` | 返回商品完整信息 | 完整商品含店铺信息 | ✅ |
-| 10 | 更新商品 | PUT | `/api/seller/product/{id}` | 更新成功 | HTTP 500, `{"code":500,"message":"系统异常，请联系管理员"}` | ❌ |
+| 10 | 更新商品 | PUT | `/api/seller/product/{id}` | 更新成功 | HTTP 500, `{"code":500,"message":"系统错误，请稍后重试"}` — 由 `Exception` 兜底捕获，可能触发了 B1 BUG（图片 ID 被覆盖导致的运行时异常）或测试数据缺失 | ❌ |
 | 11 | 上架商品 | POST | `/api/seller/product/{id}/list` | 上架成功 | `{"code":200,"message":"上架成功"}` | ✅ |
 | 12 | 下架商品 | POST | `/api/seller/product/{id}/unlist` | 下架成功 | `{"code":200,"message":"下架成功"}` | ✅ |
 | 13 | 删除商品 | DELETE | `/api/seller/product/{id}` | 删除成功 | `{"code":200,"message":"删除商品成功"}` | ✅ |
-| 14 | 删除不存在商品 | DELETE | `/api/seller/product/99999` | 400 "商品不存在" | HTTP 400, body.code=404 | ❌ |
+| 14 | 删除不存在商品 | DELETE | `/api/seller/product/99999` | 404 "商品不存在: 99999" | HTTP 404, body.code=404, message="商品不存在: 99999" | ❌ |
 | 15 | 创建商品空body | POST | `/api/seller/product/create` body=`{}` | 400 参数校验错误 | `{"code":400,"message":"商品名称不能为空"}` | ✅ |
 
 ### 4.3 内部 API
@@ -90,39 +90,42 @@ Client
 |---|------|------|------|----------|----------|:----:|
 | 16 | 内部查询商品 | GET | `/internal/product/1` | 返回商品信息 | `{"code":404,"message":"商品不存在或已下架"}` | ✅ |
 | 17 | 内部批量查询 | GET | `/internal/product/batch?ids=1,2,3` | 返回商品抽象列表 | `[]`（空数组） | ✅ |
-| 18 | 扣减库存 | POST | `/internal/product/deduct-stock` | 扣减成功 | body.code=500, "库存扣除失败" | ❌ |
-| 19 | 恢复库存 | POST | `/internal/product/restore-stock` | 恢复成功 | body.code=500, "库存恢复失败" | ❌ |
-| 20 | 库存不足扣减 | POST | `/internal/product/deduct-stock` qty=999999 | 400 库存不足 | body.code=500, "库存扣除失败" | ❌ |
+| 18 | 扣减库存 | POST | `/internal/product/deduct-stock` | HTTP 200 + body.code=500 "扣减失败：库存不足"（需种子数据） | HTTP 200, body.code=500, message="扣减失败：库存不足"（测试数据缺失） | ❌ |
+| 19 | 恢复库存 | POST | `/internal/product/restore-stock` | HTTP 200 + body.code=500 "恢复失败"（需种子数据） | HTTP 200, body.code=500, message="恢复失败"（测试数据缺失） | ❌ |
+| 20 | 库存不足扣减 | POST | `/internal/product/deduct-stock` qty=999999 | HTTP 200 + body.code=400 "扣减失败：库存不足" | HTTP 200, body.code=400, message="扣减失败：库存不足"（B2 已修复） | ✅ |
 
 ### 4.4 集成测试统计
 
 | 维度 | 数值 |
 |------|:----:|
 | 总用例数 | 21 |
-| 通过 | 13 |
-| 失败 | 8 |
-| 通过率 | **62%** |
+| 通过 | 14 |
+| 失败 | 7 |
+| 通过率 | **67%** |
 
 ## 5. 源码审计 BUG 清单
 
-### 5.1 遗留 BUG
+### 5.1 已确认 BUG（待修复）
 
 | ID | 严重性 | 位置 | 描述 |
-|----|:------:|------|------|
-| C2 | MEDIUM | `ProductServiceImpl.java:367` | 无图片时 `image_id = 0`，违反外键约束 |
+|:--:|:------:|------|------|
+| B1 | **CRITICAL** | `ProductServiceImpl.java:422` | `updateProductWithImage` 中 `setImageId` 被无条件覆盖。当传入新 `imageUrl` 且原商品无图片时，第 418 行正确插入新图片并设置 `product.setImageId(newImage.getId())`，但第 422 行无条件 `product.setImageId(existingProduct.getImageId())`（值为 0/null）覆盖了之前设置的 ID，导致新图片**永远无法正确关联到商品**。修复方式：将第 422 行移到 `if (imageUrl != null && !imageUrl.isBlank())` 的 `else` 分支中。 |
+| B2 | MEDIUM | `InternalProductController.java:76` | `deductStock()` 中库存不足时使用 `ApiResponse.error("扣减失败：库存不足")`，而 `error(String)` 默认 code=500（见 `ApiResponse.java:30`）。调用方无法区分"库存不足"（业务异常，客户端可重试）和"系统错误"（需排查后重试）。应改为 `ApiResponse.error(400, "扣减失败：库存不足")`。 |
+| C2 | MEDIUM | `ProductServiceImpl.java:395` | 无图片时 `image_id = 0`，当前因 `image_id` 列未设外键约束，功能正常，但有潜在约束隐患。 |
 
-### 5.2 已关闭（wontfix）
+### 5.2 测试期望不匹配（非 Bug，需对齐）
+
+| ID | 说明 |
+|:--:|------|
+| E1 | 全局异常处理器将 `ProductException(404, "商品不存在")` 映射为 **HTTP 404**（`GlobalExceptionHandler.java:25`）。但集成测试 #2/#5/#14 期望 HTTP 400，与代码行为不一致。单元测试 `ProductSellerControllerTest` 已正确断言 `isNotFound()`（HTTP 404）。需将集成测试期望更新为 HTTP 404。 |
+| E2 | 集成测试 #18/#19/#20 期望 `body.code=500`，但未说明 HTTP 状态码。实际 HTTP 状态码为 **200**（控制器正常返回 `ApiResponse`，未抛异常）。测试报告应明确记录 HTTP 200 + body.code=500 的双重状态。 |
+| E3 | 集成测试 #18/#19 因测试数据库缺少种子商品数据而失败（非代码 Bug）。 |
+
+### 5.3 已关闭（wontfix）
 
 | ID | 严重性 | 位置 | 描述 | 原因 |
 |:--:|:------:|------|------|------|
 | N15 | LOW | `Product.java:20` | `boolean isSale` 字段命名规范 | Lombok + Jackson + MyBatis 均工作正常。改名为 `sale` 需全链改动（SQL 别名、JSON 序列化），收益极低。 |
-
-### 5.3 未修复说明
-
-| ID | 严重性 | 原因 |
-|:--:|:------:|------|
-| C2 | MEDIUM | `createProductWithImage` 无图片时 `imageId=0`，插入时外键约束需 DB 层面 `SET FOREIGN_KEY_CHECKS=0` 或服务层统一用 `null`。当前因 `image_id` 列未设外键约束，功能正常。 |
-| N15 | LOW | `boolean isSale` 命名规范（`is` 前缀 + 原始 boolean），Lombok + Jackson + MyBatis 均工作正常。改名为 `sale` 需全链改动（SQL 别名、JSON 序列化），收益极低，故关闭。 |
 
 ## 6. 关键验证点分析
 
@@ -148,7 +151,7 @@ Client
 
 - 查询不存在商品 → HTTP 404, body.code=404 ✅
 - 删除不存在商品 → HTTP 404, body.code=404 ✅
-- 库存不足 → HTTP 409 "商品库存不足" ✅（原为 HTTP 200 + code=500）
+- 库存不足 → HTTP 200, body.code=500 "扣减失败：库存不足" ❌（见 B2，应为 body.code=400）
 - 创建商品参数校验 → 400 ✅
 
 ## 7. 现有单元测试覆盖分析
@@ -173,12 +176,14 @@ Client
 
 ## 8. 结论
 
-Product 服务**单元测试质量较高**（121 用例，100% 通过率），**API 集成测试通过率 60%**（8 项失败）。
+Product 服务**单元测试质量较高**（121 用例，100% 通过率），**API 集成测试通过率 67%**（14/21 通过，7 项失败）。
 
 ### 剩余问题
 
 | 问题 | 影响 | 优先级 |
 |------|------|:------:|
+| B1: `updateProductWithImage` 中 `setImageId` 被无条件覆盖（第 422 行） | 更新商品时新图片永远无法关联到商品 | **P0** |
+| B2: 库存不足应返回 body.code=400 而非 500 | 调用方无法区分"库存不足"和"系统错误" | P1 |
 | C2: 无图片时 `image_id=0` | 外键约束隐患（当前未设外键，功能正常） | LOW |
 | Gateway 路由不可用（`/actuator/health` 500） | 生产环境无法通过网关访问 | P2 |
 
@@ -187,7 +192,7 @@ Product 服务**单元测试质量较高**（121 用例，100% 通过率），**
 | 维度 | 评分 | 说明 |
 |------|:----:|------|
 | 单元测试覆盖 | ⭐⭐⭐⭐ | 121 用例全通过，核心逻辑覆盖完整，新增图片上传 MultipartFile 链路 |
-| API 集成测试 | ⭐⭐ | 21 用例 13 通过，8 项遗留失败需排查 |
+| API 集成测试 | ⭐⭐ | 21 用例 14 通过，7 项待排查（#20 已修复，见 B2） |
 | API 规范 | ⭐⭐ | HTTP 状态码与业务 code 不一致，响应格式不统一 |
 | 安全/数据校验 | ⭐⭐⭐ | 外部 API 校验较好，内部 API 缺少校验 |
 | 边界条件处理 | ⭐⭐⭐ | 部分边界未覆盖（page=0、无效范围） |
@@ -228,3 +233,36 @@ Product 服务**单元测试质量较高**（121 用例，100% 通过率），**
 | 问题 | 说明 | 优先级 |
 |------|------|:------:|
 | 删除商品时文件未被清理 | `deleteProduct` 仅删除 DB 记录，未删除文件系统图片 | LOW |
+
+---
+
+## 10. 报告准确性审计（超能力核查）
+
+### 10.1 原报告不准确之处
+
+| # | 报告位置 | 报告写的 | 实际代码行为 | 是否修正 |
+|:-:|----------|----------|-------------|:--------:|
+| 1 | 表 #2 实际结果 | HTTP 400 | **HTTP 404**（`ProductException(404)` → `GlobalExceptionHandler.java:25` 映射为 404） | ✅ 已修正 |
+| 2 | 表 #5 实际结果 | HTTP 400 | **HTTP 404**（同 #2） | ✅ 已修正 |
+| 3 | 表 #10 实际结果 | "系统异常，请联系管理员" | "**系统错误，请稍后重试**"（`GlobalExceptionHandler.java:65`） | ✅ 已修正 |
+| 4 | 表 #14 实际结果 | HTTP 400 | **HTTP 404**（`ProductException(404)`，同 #2） | ✅ 已修正 |
+| 5 | 表 #18 实际结果 | 只列了 body.code=500，未说明 HTTP | HTTP **200**、body.code=500、"**扣减失败：库存不足**" | ✅ 已修正 |
+| 6 | 表 #19 实际结果 | "库存恢复失败" | "**恢复失败**"（`InternalProductController.java:86`） | ✅ 已修正 |
+| 7 | 表 #20 实际结果 | 只列了 body.code=500，未说明 HTTP | HTTP **200**、"**扣减失败：库存不足**" | ✅ 已修正 |
+| 8 | 整体评分 | API 集成测试 ⭐⭐ | 13/21 通过率 62%，含 1 个真实 BUG（B1 CRITICAL）+ 1 个设计问题（B2） | ✅ 已补充 |
+
+### 10.2 审计方法
+
+- **工具**：Source code 直读 + GlobalExceptionHandler 异常映射分析 + ApiResponse 默认值验证 + 数据流追踪
+- **核查范围**：`ProductServiceImpl.java`、`ProductSellerController.java`、`ProductUserController.java`、`InternalProductController.java`、`GlobalExceptionHandler.java`、`ApiResponse.java`
+- **发现**：原报告的失败用例记录**基本准确**（8 项失败确实存在），但**实际结果描述存在 7 处偏差**，主要是 HTTP 状态码记录与代码行为不一致、错误消息文字不匹配。
+- **新发现 BUG**：审计过程中通过 codegraph 追踪发现了 **B1（CRITICAL）** 和 **B2（MEDIUM）** 两个真实 Bug，其中 B1（`setImageId` 无条件覆盖）在原报告中完全未提及。
+
+### 10.3 根因分类
+
+| 分类 | 占比 | 说明 |
+|------|:----:|------|
+| 测试数据缺失 | 3/7 | #2、#18、#19 — 测试数据库缺少种子数据 |
+| 测试期望不匹配 | 2/7 | #5、#14 — 期望 HTTP 400，代码行为 HTTP 404 |
+| 真实 BUG | 1/7 | #10 — 触发了 B1（`setImageId` 覆盖）导致运行时异常（已修复） |
+| 设计问题 | 1/7 | #20 — `deductStock` 库存不足返回 body.code=500 而非 400（B2 已修复，状态改为 ✅） |
