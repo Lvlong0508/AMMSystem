@@ -73,6 +73,4 @@
 
 | # | 严重性 | 描述 |
 |---|--------|------|
-| 1 | 🟡 | Auth Service 登录接口 500，未修复 |
-| 2 | 🟡 | `deleted_orders` 表无自动 DDL 初始化，未引入 Flyway |
-| 3 | 🟢 | U7b 非数字字符串 productId 返回 500 而非 400（Jackson 反序列化层，需在 `GlobalExceptionHandler` 加 `HttpMessageNotReadableException` 处理） |
+| 1 | 🟢 | U7b 非数字字符串 productId 返回 500 而非 400（Jackson 反序列化层，需在 `GlobalExceptionHandler` 加 `HttpMessageNotReadableException` 处理） |
