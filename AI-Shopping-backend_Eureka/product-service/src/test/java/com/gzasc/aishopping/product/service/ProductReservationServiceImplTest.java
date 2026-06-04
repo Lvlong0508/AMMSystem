@@ -94,14 +94,13 @@ class ProductReservationServiceImplTest {
     }
 
     @Test
-    @DisplayName("PR-046 - 商品不存在时预占")
+    @DisplayName("PR-046 - 商品不存在时预占返回400")
     void testReserveProductNotFound() {
-        when(mapper.selectProductStockForUpdate(99999L)).thenReturn(0);
-        when(mapper.sumReservedQty(99999L)).thenReturn(0);
+        when(mapper.selectProductStockForUpdate(99999L)).thenReturn(null);
 
         ProductException exception = assertThrows(ProductException.class,
                 () -> reservationService.reserve("ORDER005", "99999", 1));
-        assertTrue(exception.getMessage().contains("库存不足"));
+        assertTrue(exception.getMessage().contains("商品不存在"));
     }
 
     @Test

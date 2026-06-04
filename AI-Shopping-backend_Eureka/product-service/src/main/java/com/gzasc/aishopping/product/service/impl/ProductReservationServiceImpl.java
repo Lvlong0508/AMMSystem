@@ -30,7 +30,10 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     @Transactional
     public void reserve(String orderId, String productId, int quantity) {
         Long pid = Long.valueOf(productId);
-        int stock = mapper.selectProductStockForUpdate(pid);
+        Integer stock = mapper.selectProductStockForUpdate(pid);
+        if (stock == null) {
+            throw new ProductException(400, "商品不存在");
+        }
         int alreadyReserved = mapper.sumReservedQty(pid);
         if (stock - alreadyReserved < quantity) {
             throw new ProductException(409, "商品库存不足");

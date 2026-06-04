@@ -29,7 +29,7 @@ public interface ProductReservationMapper {
     int deductProductStock(@Param("productId") Long productId, @Param("quantity") int quantity);
 
     @Select("SELECT stock FROM products WHERE id = #{productId} FOR UPDATE")
-    int selectProductStockForUpdate(@Param("productId") Long productId);
+    Integer selectProductStockForUpdate(@Param("productId") Long productId);
 
     @Select("SELECT COALESCE(SUM(quantity), 0) FROM product_reservations " +
             "WHERE product_id = #{productId} AND status = 'RESERVED' FOR UPDATE")
