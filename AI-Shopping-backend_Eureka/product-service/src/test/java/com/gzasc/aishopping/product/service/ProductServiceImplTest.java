@@ -421,8 +421,10 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("getSalableProductsAbstract page为负数抛出ProductException")
     void getSalableProductsAbstract_negativePage() {
-        assertThrows(ProductException.class,
+        ProductException ex = assertThrows(ProductException.class,
                 () -> productService.getSalableProductsAbstract(-1));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("负数"));
     }
 
     @Test

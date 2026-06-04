@@ -247,6 +247,9 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
+        if (page < 0) {
+            throw new ProductException(400, "页码不能为负数");
+        }
         List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20)
             .stream()
             .filter(Product::isSale)

@@ -80,6 +80,8 @@ public class ProductUserController {
             List<ProductWithImageAbstractDTO> products = productService.getProductsByPriceRange(minPrice, maxPrice, page);
             log.info("按价格范围查询商品成功, minPrice={}, maxPrice={}, page={}, size={}", minPrice, maxPrice, page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
+        } catch (ProductException e) {
+            throw e;
         } catch (Exception e) {
             log.error("按价格范围查询商品失败: {}", e.getMessage());
             throw new ProductException(500, "查询错误：" + e.getMessage());
