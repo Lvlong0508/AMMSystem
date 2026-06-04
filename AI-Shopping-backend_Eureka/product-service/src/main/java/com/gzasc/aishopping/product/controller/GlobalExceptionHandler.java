@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @Slf4j
 @RestControllerAdvice
@@ -56,6 +58,20 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleMessageNotReadable(HttpMessageNotReadableException e) {
         log.warn("请求参数格式错误: {}", e.getMessage());
         return ApiResponse.error(400, "请求参数格式错误，请检查 JSON 格式");
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMissingParam(MissingServletRequestParameterException e) {
+        log.warn("缺少必要参数: {}", e.getParameterName());
+        return ApiResponse.error(400, "缺少必要参数: " + e.getParameterName());
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("参数类型转换失败: {} -> {}", e.getName(), e.getValue());
+        return ApiResponse.error(400, "参数格式错误: " + e.getName());
     }
 
     @ExceptionHandler(Exception.class)

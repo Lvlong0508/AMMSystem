@@ -13,6 +13,8 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -107,5 +109,23 @@ class GlobalExceptionHandlerTest {
 
         assertEquals(500, result.getCode());
         assertEquals("系统错误，请稍后重试", result.getMessage());
+    }
+
+    @Test
+    @DisplayName("MissingServletRequestParameterException → 400 缺少必要参数")
+    void testMissingServletRequestParameterException() {
+        MissingServletRequestParameterException e = new MissingServletRequestParameterException("name", "String");
+        ApiResponse<Void> result = handler.handleMissingParam(e);
+        assertEquals(400, result.getCode());
+        assertThat(result.getMessage()).contains("name");
+    }
+
+    @Test
+    @DisplayName("MethodArgumentTypeMismatchException → 400 参数格式错误")
+    void testMethodArgumentTypeMismatchException() {
+        MethodArgumentTypeMismatchException e = new MethodArgumentTypeMismatchException("abc", int.class, "page", null, null);
+        ApiResponse<Void> result = handler.handleTypeMismatch(e);
+        assertEquals(400, result.getCode());
+        assertThat(result.getMessage()).contains("page");
     }
 }
