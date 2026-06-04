@@ -445,17 +445,25 @@
 #### 请求体:
 
 **创建商品**:
+
+请求方式: `multipart/form-data`
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `product` | JSON 字符串 | 商品信息（见下方 JSON 结构） |
+| `image` | 文件 | 商品图片，仅支持 JPG/PNG，最大 10MB |
+
+`product` 部分 JSON 结构:
 ```json
 {
   "name": "商品名称",
   "description": "商品描述",
   "price": 99.99,
-  "stock": 100,
-  "imageUrl": "http://example.com/image.jpg"
+  "stock": 100
 }
 ```
 
-- `name`、`imageUrl` 必填
+- `name` 必填
 - `price` 必须为正数
 - `stock` 必须 >= 0
 

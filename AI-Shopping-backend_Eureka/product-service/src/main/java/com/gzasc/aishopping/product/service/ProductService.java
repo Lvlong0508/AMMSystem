@@ -7,6 +7,7 @@ import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -197,10 +198,10 @@ public interface ProductService {
     /**
      * 创建商品并关联图片（同一事务：先写图片 → 获取ID → 再写商品）
      * @param product 商品信息（不含 imageId，由方法内部设置）
-     * @param imageUrl 图片URL，为空则不创建图片
+     * @param imageFile 图片文件
      * @return 影响的行数
      */
-    int createProductWithImage(Product product, String imageUrl);
+    int createProductWithImage(Product product, MultipartFile imageFile);
 
     /**
      * 更新商品并关联新图片（同一事务：先写图片 → 获取ID → 再更新商品）

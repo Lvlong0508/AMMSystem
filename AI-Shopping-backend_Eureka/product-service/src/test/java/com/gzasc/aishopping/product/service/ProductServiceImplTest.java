@@ -11,6 +11,7 @@ import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.mapper.SalableProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
+import com.gzasc.aishopping.product.service.ImageStorageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,12 +20,16 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -40,9 +45,16 @@ class ProductServiceImplTest {
     private ProductConverter productConverter;
     @Mock
     private ShopFeignClient shopFeignClient;
+    @Mock
+    private ImageStorageService imageStorageService;
 
     @InjectMocks
     private ProductServiceImpl productService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(productService, "imageBaseUrl", "http://localhost:8081");
+    }
 
     @Captor
     private ArgumentCaptor<Product> productCaptor;
@@ -173,40 +185,28 @@ class ProductServiceImplTest {
     }
 
     @Test
-    @DisplayName("PR-014 - 创建商品（含图片）")
+    @DisplayName("创建商品（含图片上传）")
     void testCreateProductWithImage() {
         Product product = new Product();
         product.setName("测试商品A");
         product.setDescription("描述");
         product.setPrice(BigDecimal.valueOf(99.99));
         product.setStock(100);
+
+        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes());
+        when(imageStorageService.saveImage(anyLong(), any(MultipartFile.class))).thenReturn("/image/goods/main/123/123_abc123.jpg");
         when(productImageInfoMapper.insert(any(ProductImageInfo.class))).thenReturn(1);
         when(productMapper.insertProduct(any(Product.class))).thenReturn(1);
 
-        int result = productService.createProductWithImage(product, "http://img.test/a.jpg");
+        int result = productService.createProductWithImage(product, imageFile);
 
         assertEquals(1, result);
+        verify(imageStorageService).saveImage(anyLong(), any(MultipartFile.class));
         verify(productImageInfoMapper).insert(any(ProductImageInfo.class));
         verify(productMapper).insertProduct(productCaptor.capture());
         Product captured = productCaptor.getValue();
         assertNotNull(captured.getId());
         assertEquals("测试商品A", captured.getName());
-    }
-
-    @Test
-    @DisplayName("PR-014 - 创建商品（无图片）imageId设为0")
-    void testCreateProductWithoutImage() {
-        Product product = new Product();
-        product.setName("测试商品B");
-        product.setPrice(BigDecimal.valueOf(50));
-        product.setStock(10);
-        when(productMapper.insertProduct(any(Product.class))).thenReturn(1);
-
-        int result = productService.createProductWithImage(product, null);
-
-        assertEquals(1, result);
-        verify(productMapper).insertProduct(productCaptor.capture());
-        assertEquals(0, productCaptor.getValue().getImageId());
     }
 
     @Test

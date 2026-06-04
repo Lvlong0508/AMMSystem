@@ -11,7 +11,9 @@ import com.gzasc.aishopping.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,8 +47,18 @@ public class ProductSellerController {
         return ApiResponse.success(products);
     }
 
-    @PostMapping("/create")
-    public ApiResponse<String> createProduct(@RequestBody @Valid CreateProductRequest request) {
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<String> createProduct(
+            @RequestPart("product") @Valid CreateProductRequest request,
+            @RequestPart("image") MultipartFile image) {
+        if (image.isEmpty()) {
+            throw new ProductException(400, "图片不能为空");
+        }
+        String contentType = image.getContentType();
+        if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
+            throw new ProductException(400, "仅支持 JPG 和 PNG 格式");
+        }
+
         log.info("创建商品, name={}, shopId={}", request.getName(), request.getShopId());
         Product product = new Product();
         product.setName(request.getName());
@@ -56,7 +68,7 @@ public class ProductSellerController {
         product.setSale(false);
         product.setShopId(request.getShopId());
 
-        int result = productService.createProductWithImage(product, request.getImageUrl());
+        int result = productService.createProductWithImage(product, image);
         if (result > 0) {
             return ApiResponse.success("创建商品成功", product.getId().toString());
         }

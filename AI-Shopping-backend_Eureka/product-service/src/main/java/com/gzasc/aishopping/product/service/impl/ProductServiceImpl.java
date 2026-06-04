@@ -17,11 +17,14 @@ import com.gzasc.aishopping.product.mapper.SalableProductMapper;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
+import com.gzasc.aishopping.product.service.ImageStorageService;
 import com.gzasc.aishopping.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 
@@ -47,6 +50,10 @@ public class ProductServiceImpl implements ProductService {
     private final SalableProductMapper salableProductMapper;
     private final ProductConverter productConverter;
     private final ShopFeignClient shopFeignClient;
+    private final ImageStorageService imageStorageService;
+
+    @Value("${app.image.base-url}")
+    private String imageBaseUrl;
 
     private final Cache<Long, ShopInfoDTO> shopInfoCache = Caffeine.newBuilder()
             .expireAfterWrite(10, TimeUnit.MINUTES)
@@ -375,16 +382,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    public int createProductWithImage(Product product, String imageUrl) {
-        if (imageUrl != null && !imageUrl.isBlank()) {
-            ProductImageInfo image = new ProductImageInfo();
-            image.setUrl(imageUrl);
-            productImageInfoMapper.insert(image);
-            product.setImageId(image.getId());
-        } else {
-            product.setImageId(0);
-        }
-        product.setId(SnowflakeIdGenerator.nextId());
+    public int createProductWithImage(Product product, MultipartFile imageFile) {
+        long productId = SnowflakeIdGenerator.nextId();
+        product.setId(productId);
+
+        String relativePath = imageStorageService.saveImage(productId, imageFile);
+        String fullUrl = imageBaseUrl + relativePath;
+
+        ProductImageInfo image = new ProductImageInfo();
+        image.setUrl(fullUrl);
+        productImageInfoMapper.insert(image);
+        product.setImageId(image.getId());
+
         return productMapper.insertProduct(product);
     }
 

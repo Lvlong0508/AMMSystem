@@ -6,9 +6,9 @@
 |------|------|
 | 测试目标 | 对 Product 服务进行全层次测试（单元测试 + API 集成测试 + 源码审计），验证全部 REST API 端点的功能正确性和容错能力 |
 | 测试类型 | 单元测试 + API 接口集成测试（端到端，通过 Gateway / 直连） + 源码审计 |
-| 测试日期 | 2026-06-02 |
+| 测试日期 | 2026-06-02 ~ 2026-06-04 |
 | 代码修复日期 | 2026-06-02 |
-| 测试工具 | Maven `mvn test`, PowerShell `Invoke-WebRequest`, 源码审计 |
+| 测试工具 | Maven `mvn test`, PowerShell `Invoke-WebRequest`, curl, 源码审计 |
 
 ## 2. 测试环境
 
@@ -46,7 +46,7 @@ Client
 |--------|:------:|:----:|:----:|------|----------|
 | `ProductUserControllerTest` | 12 | 12 | 0 | MockMvc 单元测试 | 用户端 API：分页/详情/搜索/价格区间/异常处理 |
 | `ProductSellerControllerTest` | 18 | 18 | 0 | MockMvc 单元测试 | 商家端 API：CRUD/上下架/批量/参数校验（含 HTTP 状态码断言更新） |
-| `ProductServiceImplTest` | 25 | 25 | 0 | Mockito 单元测试 | CRUD/库存/上下架/价格区间（含 `is_sale` 过滤）/雪花ID/图片管理 |
+| `ProductServiceImplTest` | 25 | 25 | 0 | Mockito 单元测试 | CRUD/库存/上下架/价格区间（含 `is_sale` 过滤）/雪花ID/图片管理/图片上传（MultipartFile） |
 | `ProductReservationServiceImplTest` | 15 | 15 | 0 | Mockito 单元测试 | 预占/确认/释放/过期清理/边界条件 |
 | `ProductMapperTest` | 21 | 21 | 0 | SpringBoot + MySQL 集成测试 | 商品 CRUD/库存扣减/价格区间/按店铺查询/**部分字段更新** |
 | `ProductImageInfoMapperTest` | 7 | 7 | 0 | SpringBoot + MySQL 集成测试 | 图片 CRUD/批量查询 |
@@ -74,7 +74,8 @@ Client
 
 | # | 用例 | 方法 | 端点 | 预期结果 | 实际结果 | 状态 |
 |---|------|------|------|----------|----------|:----:|
-| 8 | 创建商品 | POST | `/api/seller/product/create` | 返回商品ID | `{"code":200,"message":"创建商品成功","data":"2061619459994554368"}` | ✅ |
+| 8 | 创建商品（JSON body） | POST | `/api/seller/product/create` | 返回商品ID | `{"code":200,"message":"创建商品成功","data":"2061619459994554368"}` | ✅ |
+| 8b | **创建商品（图片上传 multipart/form-data）** | POST | `/api/seller/product/create` | 返回商品ID，图片文件保存到本地，返回完整 URL | `{"code":200,"message":"创建商品成功","data":"2062390880756699136"}`，图片 URL 可访问 HTTP 200 | ✅ |
 | 9 | 查询商品详情 | GET | `/api/seller/product/{id}` | 返回商品完整信息 | 完整商品含店铺信息 | ✅ |
 | 10 | 更新商品 | PUT | `/api/seller/product/{id}` | 更新成功 | HTTP 500, `{"code":500,"message":"系统异常，请联系管理员"}` | ❌ |
 | 11 | 上架商品 | POST | `/api/seller/product/{id}/list` | 上架成功 | `{"code":200,"message":"上架成功"}` | ✅ |
@@ -97,10 +98,10 @@ Client
 
 | 维度 | 数值 |
 |------|:----:|
-| 总用例数 | 20 |
-| 通过 | 12 |
+| 总用例数 | 21 |
+| 通过 | 13 |
 | 失败 | 8 |
-| 通过率 | **60%** |
+| 通过率 | **62%** |
 
 ## 5. 源码审计 BUG 清单
 
@@ -128,6 +129,7 @@ Client
 ### 6.1 正常业务流程
 
 - **创建商品**：正常，返回雪花ID（如 `2061619459994554368`）
+- **创建商品（含图片上传）**：正常，`multipart/form-data` 方式上传 JPG/PNG，后端保存到本地文件系统，返回可访问 URL
 - **商品上下架**：正常，salable_products 表插入/删除正确
 - **删除商品**：正常，需先下架
 - **分页查询**：正常，返回 products/page/size 结构
@@ -137,6 +139,9 @@ Client
 
 - `@Valid` 注解在 CreateProductRequest 上正常工作（name NotBlank, price Positive, stock Min(0)）
 - 商品名称为空时返回 400 "商品名称不能为空"
+- 图片上传校验：`image.isEmpty()` 拒绝空文件，`ContentType` 只允许 `image/jpeg` 和 `image/png`
+- `MissingServletRequestPartException` → 400 "缺少必要文件"
+- `MultipartException` → 400 "文件大小超出限制（最大 10MB）"
 - 商家端 API 通过 Sa-Token 鉴权
 
 ### 6.3 容错处理
@@ -181,9 +186,45 @@ Product 服务**单元测试质量较高**（121 用例，100% 通过率），**
 
 | 维度 | 评分 | 说明 |
 |------|:----:|------|
-| 单元测试覆盖 | ⭐⭐⭐⭐ | 121 用例全通过，核心逻辑覆盖完整 |
-| API 集成测试 | ⭐⭐ | 20 用例仅 12 通过，8 项失败需排查 |
+| 单元测试覆盖 | ⭐⭐⭐⭐ | 121 用例全通过，核心逻辑覆盖完整，新增图片上传 MultipartFile 链路 |
+| API 集成测试 | ⭐⭐ | 21 用例 13 通过，8 项遗留失败需排查 |
 | API 规范 | ⭐⭐ | HTTP 状态码与业务 code 不一致，响应格式不统一 |
 | 安全/数据校验 | ⭐⭐⭐ | 外部 API 校验较好，内部 API 缺少校验 |
 | 边界条件处理 | ⭐⭐⭐ | 部分边界未覆盖（page=0、无效范围） |
 | 数据一致性 | ⭐⭐⭐ | 库存扣减使用乐观锁，删除后图片未清理 |
+
+---
+
+## 9. 图片上传功能专项测试（2026-06-04）
+
+### 9.1 单元测试
+
+| 测试类 | 测试数 | 通过 | 说明 |
+|--------|:------:|:----:|------|
+| `ProductSellerControllerTest` | 18 | 18 | 将 JSON body 测试全部迁移为 multipart/form-data，新增图片格式校验测试 |
+| `ProductServiceImplTest` | 25 | 25 | 新增 `ImageStorageService` mock，`createProductWithImage` 改为 `MultipartFile` 参数 |
+
+### 9.2 API 集成测试（全链路）
+
+| 步骤 | 操作 | 结果 |
+|------|------|:----:|
+| 1 | `POST /api/seller/product/create` multipart: product(JSON) + image(PNG) | ✅ 200, `data: "2062390880756699136"` |
+| 2 | 检查图片文件系统保存位置 | ✅ `static/image/goods/main/{productId}/{productId}_{random8}.png`（110KB） |
+| 3 | `GET /image/goods/main/{productId}/{fileName}` | ✅ HTTP 200, Content-Type: image/png |
+| 4 | `GET /api/seller/product/{id}` 验证 `imageUrl` 字段 | ✅ `imageUrl: "http://localhost:8081/image/goods/main/..."` |
+| 5 | `DELETE /api/seller/product/{id}` 清理数据 | ✅ 200, 数据库记录删除 |
+
+### 9.3 关键变更
+
+| 变更 | 旧 | 新 |
+|------|----|-----|
+| 请求格式 | `application/json` (含 `imageUrl` 字段) | `multipart/form-data`（`product`+`image` 两个 part） |
+| 图片参数 | 字符串 URL | `MultipartFile` 文件上传 |
+| 服务端处理 | 直接存 URL | `ImageStorageService` 保存到本地文件系统，拼接完整 URL |
+| 配置 | — | 新增 `app.image.storage-path`、`app.image.resource-location`、`spring.servlet.multipart` |
+
+### 9.4 已知问题
+
+| 问题 | 说明 | 优先级 |
+|------|------|:------:|
+| 删除商品时文件未被清理 | `deleteProduct` 仅删除 DB 记录，未删除文件系统图片 | LOW |

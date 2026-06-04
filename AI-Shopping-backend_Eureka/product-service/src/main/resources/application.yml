@@ -9,6 +9,10 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
 
 order:
   timeout:
@@ -28,3 +32,9 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
+
+app:
+  image:
+    base-url: http://localhost:8081
+    storage-path: ${project.root:./AI-Shopping-backend_Eureka}/static/image/goods/main
+    resource-location: file:${project.root:./AI-Shopping-backend_Eureka}/static/image/
