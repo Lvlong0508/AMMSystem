@@ -402,4 +402,42 @@ class ProductServiceImplTest {
         assertNotNull(productCaptor.getValue().getId());
         assertTrue(productCaptor.getValue().getId() > 0);
     }
+
+    @Test
+    @DisplayName("B1 - updateProductWithImage传入新imageUrl且原商品无图片时，imageId应正确关联")
+    void testUpdateProductWithNewImage_ExistingProductWithoutImage() {
+        Product existingProduct = new Product();
+        existingProduct.setId(1L);
+        existingProduct.setShopId(100L);
+        existingProduct.setName("测试商品");
+        existingProduct.setPrice(BigDecimal.valueOf(99.00));
+        existingProduct.setStock(10);
+
+        when(productMapper.selectProductById(1L)).thenReturn(existingProduct);
+
+        doAnswer(invocation -> {
+            ProductImageInfo arg = invocation.getArgument(0);
+            arg.setId(999);
+            return 1;
+        }).when(productImageInfoMapper).insert(any());
+
+        when(productMapper.updateProduct(any())).thenReturn(1);
+
+        Product updateData = new Product();
+        updateData.setId(1L);
+        updateData.setName("更新后");
+
+        int result = productService.updateProductWithImage(updateData, "http://new-image.jpg");
+
+        ArgumentCaptor<ProductImageInfo> imageCaptor = ArgumentCaptor.forClass(ProductImageInfo.class);
+        verify(productImageInfoMapper).insert(imageCaptor.capture());
+        assertEquals("http://new-image.jpg", imageCaptor.getValue().getUrl());
+
+        ArgumentCaptor<Product> productCaptor = ArgumentCaptor.forClass(Product.class);
+        verify(productMapper).updateProduct(productCaptor.capture());
+        assertNotNull(productCaptor.getValue().getImageId());
+        assertEquals(Integer.valueOf(999), productCaptor.getValue().getImageId());
+
+        assertEquals(1, result);
+    }
 }

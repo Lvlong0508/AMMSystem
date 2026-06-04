@@ -417,9 +417,9 @@ public class ProductServiceImpl implements ProductService {
                 productImageInfoMapper.insert(newImage);
                 product.setImageId(newImage.getId());
             }
+        } else {
+            product.setImageId(existingProduct.getImageId());
         }
-
-        product.setImageId(existingProduct.getImageId());
         return productMapper.updateProduct(product);
     }
 }
