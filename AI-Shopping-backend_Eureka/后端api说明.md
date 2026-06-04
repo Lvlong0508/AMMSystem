@@ -102,13 +102,7 @@
 }
 ```
 
----
 
-### 内部接口 API (`/internal/contact`)
-
-| 方法 | 路径 | 作用                               |
-|------|------|----------------------------------|
-| GET | `/internal/contact/{id}` | 根据ID查询联系人，提供给Order服务构建订单信息（内部调用） |
 
 ---
 
@@ -338,7 +332,7 @@
 
 ```json
 {
-  "productId": "string",
+  "productId": 1,
   "quantity": 1,
   "contactId": 1
 }
@@ -356,8 +350,8 @@
   "data": [
     {
       "orderId": "2026052200001ABCDE",
-      "productId": "1",
-      "shopId": "1",
+      "productId": 1,
+      "shopId": 1,
       "totalPrice": 99.99,
       "quantity": 1,
       "orderStatus": "PENDING"
@@ -375,8 +369,8 @@
   "data": {
     "orderId": "2026052200001ABCDE",
     "userId": 1,
-    "shopId": "1",
-    "productId": "1",
+    "shopId": 1,
+    "productId": 1,
     "quantity": 1,
     "totalPrice": 99.99,
     "orderStatus": "PENDING",
@@ -418,13 +412,7 @@
 }
 ```
 
----
 
-### 内部接口 API (`/internal/auth`)
-
-| 方法 | 路径 | 作用                         |
-|------|------|----------------------------|
-| POST | `/internal/auth/register-employee` | 内部调用（店长为自己店铺添加店员账号）：注册店员账号 |
 
 ---
 
@@ -463,63 +451,26 @@
   "name": "商品名称",
   "description": "商品描述",
   "price": 99.99,
-  "stock": 100
+  "stock": 100,
+  "shopId": 1
 }
 ```
 
-- `name` 必填
+- `name`、`price`、`stock`、`shopId` 必填
 - `price` 必须为正数
 - `stock` 必须 >= 0
 
-**更新商品**（全部可选）:
+**更新商品**（全部可选，以 multipart/form-data 提交）:
 ```json
 {
   "name": "新名称",
   "description": "新描述",
   "price": 199.99,
-  "stock": 50,
-  "imageUrl": "http://example.com/new-image.jpg"
+  "stock": 50
 }
 ```
 
----
 
-### 内部接口 API (`/internal/product`)
-
-供其他微服务通过 Feign 调用。
-
-| 方法 | 路径 | 作用 |
-|------|------|------|
-| GET | `/internal/product/{productId}` | 根据ID查询商品详情（订单服务调用） |
-| GET | `/internal/product/batch?ids=1,2,3` | 批量查询商品抽象信息 |
-| POST | `/internal/product/restore-stock` | 恢复库存 |
-| POST | `/internal/product/reserve-stock` | 预占库存 |
-| POST | `/internal/product/confirm-reservation?orderId=xxx` | 确认预占并扣减库存 |
-| POST | `/internal/product/release-reservation?orderId=xxx` | 释放预占 |
-
-#### 请求体:
-
-**恢复库存**:
-```json
-{
-  "productId": "1",
-  "quantity": 2
-}
-```
-
-- `productId`、`quantity` 必填
-- `quantity` 必须为正数
-
-**预占库存**:
-```json
-{
-  "orderId": "ORDER001",
-  "productId": "1",
-  "quantity": 2
-}
-```
-
-- `orderId`、`productId`、`quantity` 必填
 
 ---
 
@@ -643,34 +594,6 @@
 }
 ```
 
-### 内部接口 API (`/internal/logistics`)
-
-供 order-service 通过 Feign 调用。
-
-| 方法 | 路径 | 作用 | 参数 |
-|------|------|------|------|
-| POST | `/internal/logistics/create` | 创建物流记录（订单发货时调用） | 见下方请求体 |
-| GET | `/internal/logistics/order/{orderId}` | 查询某订单所有物流 | `orderId`（路径参数） |
-| GET | `/internal/logistics/order/{orderId}/latest?type=DELIVERY` | 查询某订单最新物流 | `orderId`、`type` |
-
-#### 请求体（创建物流）:
-
-```json
-{
-  "orderId": "2026052200001ABCDE",
-  "type": "DELIVERY",
-  "contactId": 1,
-  "trackingNumber": "SF1234567890"
-}
-```
-
-#### 使用场景:
-
-- **发货**: order-service 调用 `POST /internal/logistics/create` 创建 `type=DELIVERY` 的物流记录，然后更新订单状态为 `SHIPPED`
-- **退货**: 用户发起退货后，商家调用 `POST /internal/logistics/create` 创建 `type=RETURN` 的物流记录
-- **查单**: 订单详情页面调用 `GET /internal/logistics/order/{orderId}/latest?type=DELIVERY` 获取发货物流信息
-
-> 一个订单可关联多条物流记录（如：一次发货 + 一次退货），通过 `orderId` + `type` 进行区分和查询。
 
 ---
 
@@ -710,7 +633,7 @@
   "data": [
     {
       "orderId": "2026052200001ABCDE",
-      "productId": "1",
+      "productId": 1,
       "contactId": 1,
       "quantity": 1,
       "orderStatus": "PENDING"
@@ -820,49 +743,5 @@
 }
 ```
 
----
 
-### 内部接口 API (`/internal/shop`)
-
-供其他微服务通过 Feign 调用。
-
-| 方法 | 路径 | 作用 |
-|------|------|------|
-| GET | `/internal/shop/employees/roles/{merchantId}` | 查询商家的所有角色 |
-| GET | `/internal/shop/info/{shopId}` | 查询店铺基本信息 |
-| POST | `/internal/shop/info/batch` | 批量查询店铺基本信息 |
-
-#### 请求体（批量查询）:
-
-```json
-[1, 2, 3]
-```
-
-#### 响应示例:
-
-**店铺基本信息**:
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "id": 1,
-    "name": "店铺名称",
-    "description": "店铺描述",
-    "logourl": "http://example.com/logo.jpg"
-  }
-}
-```
-
-**批量查询**:
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "1": { "id": 1, "name": "店铺A", "description": "描述A", "logourl": "http://example.com/a.jpg" },
-    "2": { "id": 2, "name": "店铺B", "description": "描述B", "logourl": "http://example.com/b.jpg" }
-  }
-}
-```
 
