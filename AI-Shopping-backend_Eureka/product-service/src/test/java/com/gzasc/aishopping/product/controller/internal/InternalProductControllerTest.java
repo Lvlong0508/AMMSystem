@@ -187,4 +187,13 @@ class InternalProductControllerTest {
                 .andExpect(jsonPath("$.message").value("预占不存在"));
     }
 
+    @Test
+    @DisplayName("GET /internal/product/batch - 空ids返回空列表")
+    void testGetProductsByIds_emptyIds() throws Exception {
+        mockMvc.perform(get("/internal/product/batch").param("ids", ""))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isEmpty());
+    }
+
 }

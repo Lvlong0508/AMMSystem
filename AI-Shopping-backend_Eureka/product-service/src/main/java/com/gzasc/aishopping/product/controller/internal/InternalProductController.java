@@ -57,8 +57,12 @@ public class InternalProductController {
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/batch")
     public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByIds(@RequestParam("ids") String ids) {
+        if (ids == null || ids.trim().isEmpty()) {
+            return ApiResponse.success(List.of());
+        }
         List<Long> idList = Arrays.stream(ids.split(","))
-                .map(Long::valueOf)
+                .filter(s -> !s.trim().isEmpty())
+                .map(s -> Long.valueOf(s.trim()))
                 .toList();
         List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForBuyer(idList);
         return ApiResponse.success(products);
