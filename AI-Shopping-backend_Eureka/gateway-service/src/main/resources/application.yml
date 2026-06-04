@@ -103,12 +103,12 @@ spring:
             - RewritePath=/api/seller/contact/(?<segment>.*), /api/seller/contact/${segment}
 
         # 商家地址服务
-        - id: seller-address
+        - id: merchant-address
           uri: lb://contact-service
           predicates:
-            - Path=/api/seller/address/**
+            - Path=/api/merchant/address/**
           filters:
-            - RewritePath=/api/seller/address/(?<segment>.*), /api/seller/address/${segment}
+            - RewritePath=/api/merchant/address/(?<segment>.*), /api/merchant/address/${segment}
         
         # 商家物流服务
         - id: seller-logistics
