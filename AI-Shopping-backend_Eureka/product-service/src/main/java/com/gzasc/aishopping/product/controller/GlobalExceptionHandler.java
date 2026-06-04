@@ -40,12 +40,14 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingServletRequestPartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleMissingPart(MissingServletRequestPartException e) {
+        log.warn("缺少必要文件: {}", e.getRequestPartName());
         return ApiResponse.error(400, "缺少必要文件: " + e.getRequestPartName());
     }
 
     @ExceptionHandler(MultipartException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleMultipartException(MultipartException e) {
+        log.warn("文件上传异常: {}", e.getMessage());
         return ApiResponse.error(400, "文件大小超出限制（最大 10MB）");
     }
 

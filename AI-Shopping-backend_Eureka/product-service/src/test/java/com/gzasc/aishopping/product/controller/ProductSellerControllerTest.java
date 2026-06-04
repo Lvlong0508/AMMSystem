@@ -15,12 +15,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -48,9 +45,9 @@ class ProductSellerControllerTest {
     }
 
     @Test
-    @DisplayName("创建商品成功 - multipart/form-data")
+    @DisplayName("PR-014 - POST /api/seller/product/create - 创建商品成功")
     void testCreateProductSuccess() throws Exception {
-        when(productService.createProductWithImage(any(Product.class), any(MultipartFile.class))).thenAnswer(invocation -> {
+        when(productService.createProductWithImage(any(), eq("http://img.test/a.jpg"))).thenAnswer(invocation -> {
             Product productArg = invocation.getArgument(0);
             productArg.setId(10001L);
             return 1;
@@ -61,84 +58,86 @@ class ProductSellerControllerTest {
         request.setDescription("描述");
         request.setPrice(BigDecimal.valueOf(99.99));
         request.setStock(100);
+        request.setImageUrl("http://img.test/a.jpg");
         request.setShopId(1L);
 
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
-
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200));
     }
 
     @Test
-    @DisplayName("创建商品 - name为空")
+    @DisplayName("PR-015 - POST /api/seller/product/create - 图片为空被拦截")
+    void testCreateProductWithoutImage() throws Exception {
+        CreateProductRequest request = new CreateProductRequest();
+        request.setName("测试商品A");
+        request.setPrice(BigDecimal.valueOf(99.99));
+        request.setStock(100);
+        request.setImageUrl("");
+
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
+
+    @Test
+    @DisplayName("PR-016 - POST /api/seller/product/create - name为空")
     void testCreateProductWithoutName() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("");
         request.setPrice(BigDecimal.valueOf(99.99));
         request.setStock(100);
-        request.setShopId(1L);
+        request.setImageUrl("http://img.test/a.jpg");
 
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
-
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test
-    @DisplayName("创建商品 - 非法JSON格式应返回400")
-    void testCreateProductWithInvalidJson() throws Exception {
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", "not-json".getBytes(StandardCharsets.UTF_8));
-
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
-
-    @Test
-    @DisplayName("创建商品 - price为负数")
+    @DisplayName("PR-017 - POST /api/seller/product/create - price为负数")
     void testCreateProductWithNegativePrice() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("测试商品");
         request.setPrice(BigDecimal.valueOf(-10));
         request.setStock(100);
-        request.setShopId(1L);
+        request.setImageUrl("http://img.test/a.jpg");
 
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
-
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test
-    @DisplayName("创建商品 - stock为负数")
+    @DisplayName("PR-018 - POST /api/seller/product/create - stock为负数")
     void testCreateProductWithNegativeStock() throws Exception {
         CreateProductRequest request = new CreateProductRequest();
         request.setName("测试商品");
         request.setPrice(BigDecimal.valueOf(100));
         request.setStock(-1);
-        request.setShopId(1L);
+        request.setImageUrl("http://img.test/a.jpg");
 
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
+    }
 
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
+    @Test
+    @DisplayName("B1 - POST /api/seller/product/create - 非法JSON格式应返回400")
+    void testCreateProductWithInvalidJson() throws Exception {
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("not-json"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
@@ -150,13 +149,11 @@ class ProductSellerControllerTest {
         request.setName("测试商品");
         request.setPrice(BigDecimal.valueOf(100));
         request.setStock(10);
+        request.setImageUrl("http://img.test/a.jpg");
 
-        MockMultipartFile imageFile = new MockMultipartFile("image", "test.jpg", "image/jpeg", "fake-image-content".getBytes(StandardCharsets.UTF_8));
-        MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
-
-        mockMvc.perform(multipart("/api/seller/product/create")
-                        .file(productPart)
-                        .file(imageFile))
+        mockMvc.perform(post("/api/seller/product/create")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
