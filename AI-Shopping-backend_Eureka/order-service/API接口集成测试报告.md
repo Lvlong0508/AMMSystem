@@ -35,7 +35,7 @@
 | U5 | 支付不存在订单 | PUT | `/api/user/order/{orderId}/pay` | ✅ 400 |
 | U6 | 取消不存在订单 | PUT | `/api/user/order/{orderId}/cancel` | ✅ 400 |
 | U7a | 商品不存在（合法 Long） | POST | `/api/user/order/place` | ✅ **400（修复后）** |
-| U7b | 商品不存在（非数字字符串） | POST | `/api/user/order/place` | ⚠ 500（Jackson 反序列化拦截，未传到 Product Service） |
+| U7b | 非数字字符串 productId | POST | `/api/user/order/place` | ✅ **400（已修复）** |
 | U8 | quantity=0 参数校验 | POST | `/api/user/order/place` | ✅ 400 |
 | U9 | 联系人不存在 | POST | `/api/user/order/place` | ✅ **400（修复后）** |
 | U10 | 支付不存在的订单 | PUT | `/api/user/order/NOPAY/pay` | ✅ 400 |
@@ -65,12 +65,5 @@
 ## 总结
 
 - **单元测试**：201 全通过 ✅
-- **API 端到端测试**：22 场景，18 ✅，1 ⚠（U7b 非数字字符串 500，Jackson 层问题），3 ⏭
-- **U13（X-User-Id 缺失）已确认修复** ✅
-- **U2/U7/U9（下单/商品校验/联系人校验）已确认修复** ✅
-
-## 已知问题
-
-| # | 严重性 | 描述 |
-|---|--------|------|
-| 1 | 🟢 | U7b 非数字字符串 productId 返回 500 而非 400（Jackson 反序列化层，需在 `GlobalExceptionHandler` 加 `HttpMessageNotReadableException` 处理） |
+- **API 端到端测试**：22 场景，19 ✅，3 ⏭
+- **修复汇总**：U2/U7/U9（productId Long 类型修正 + 商品/联系人校验确认）、U13（缺失 X-User-Id 返回 400）、U7b（`GlobalExceptionHandler` 新增 `HttpMessageNotReadableException` → 400）
