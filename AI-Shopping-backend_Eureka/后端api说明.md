@@ -230,16 +230,20 @@
 {
   "code": 200,
   "message": "成功",
-  "data": [
-    {
-      "id": 1,
-      "name": "商品名称",
-      "price": 99.99,
-      "tags": "标签1,标签2",
-      "imageId": 1,
-      "imageUrl": "http://example.com/image.jpg"
-    }
-  ]
+  "data": {
+    "products": [
+      {
+        "id": 1,
+        "name": "商品名称",
+        "price": 99.99,
+        "tags": "标签1,标签2",
+        "imageId": 1,
+        "imageUrl": "http://example.com/image.jpg"
+      }
+    ],
+    "page": 0,
+    "size": 20
+  }
 }
 ```
 
@@ -482,14 +486,23 @@
 
 ### 内部接口 API (`/internal/product`)
 
+供其他微服务通过 Feign 调用。
+
 | 方法 | 路径 | 作用 |
 |------|------|------|
 | GET | `/internal/product/{productId}` | 根据ID查询商品详情（订单服务调用） |
 | GET | `/internal/product/batch?ids=1,2,3` | 批量查询商品抽象信息 |
 | POST | `/internal/product/deduct-stock` | 扣减库存 |
 | POST | `/internal/product/restore-stock` | 恢复库存 |
+| POST | `/internal/product/reserve-stock` | 预占库存 |
+| POST | `/internal/product/confirm-reservation?orderId=xxx` | 确认预占并扣减库存 |
+| POST | `/internal/product/release-reservation?orderId=xxx` | 释放预占 |
+| POST | `/internal/product/create` | 创建商品 |
+| GET | `/internal/product/by-shop/{shopId}?page=1&size=10` | 根据店铺ID分页查询商品 |
 
-#### 请求体（扣减/恢复库存）:
+#### 请求体:
+
+**扣减/恢复库存**:
 ```json
 {
   "productId": "1",
@@ -499,6 +512,32 @@
 
 - `productId`、`quantity` 必填
 - `quantity` 必须为正数
+
+**预占库存**:
+```json
+{
+  "orderId": "ORDER001",
+  "productId": "1",
+  "quantity": 2
+}
+```
+
+- `orderId`、`productId`、`quantity` 必填
+
+**创建商品**:
+```json
+{
+  "name": "商品名称",
+  "price": 99.99,
+  "tags": "标签1,标签2",
+  "description": "商品描述",
+  "stock": 100
+}
+```
+
+- `name`、`price` 必填
+- `stock` 可选，默认 0
+- 创建后商品为下架状态
 
 ---
 
