@@ -1,7 +1,6 @@
 <template>
   <div class="app-shell">
-    <router-view v-if="isLoginPage" />
-    <div v-else class="app-layout">
+    <div class="app-layout">
       <header class="top-nav">
         <div class="top-nav-brand">{{ text.brand }}</div>
         <div class="top-nav-actions">
@@ -68,14 +67,6 @@
               <span>{{ text.user.logout }}</span>
             </button>
           </template>
-          <router-link v-else to="/login" class="sidebar-item">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="9" y2="12" />
-            </svg>
-            <span>{{ text.login }}</span>
-          </router-link>
         </div>
       </aside>
 
@@ -83,14 +74,22 @@
         <router-view />
       </main>
     </div>
+
+    <LoginCard v-if="!isLoggedIn && !loading" @logged-in="onLoggedIn" />
   </div>
 </template>
 
 <script setup>
 import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
+import LoginCard from '@/components/LoginCard/LoginCard.vue'
 
-const { isLoggedIn, userName, activeRoute, isLoginPage, handleLogout } = useAppLayout()
+const { isLoggedIn, userName, activeRoute, handleLogout } = useAppLayout()
+const loading = false
+
+const onLoggedIn = () => {
+  window.location.reload()
+}
 </script>
 
 <style>

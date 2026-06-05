@@ -1,4 +1,4 @@
-export const LOGIN_VIEW_TEXT = {
+export const T = {
   LOGIN_TITLE: '登录',
   LOGIN_SUB: '欢迎回来',
   REGISTER_TITLE: '注册',

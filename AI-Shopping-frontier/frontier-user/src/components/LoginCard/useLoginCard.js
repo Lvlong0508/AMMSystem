@@ -1,10 +1,12 @@
 import { ref, reactive, computed } from 'vue'
-import { useRouter } from 'vue-router'
 import { userLogin, userRegister } from '@/api/auth'
 import { showSuccess, showError } from '@/utils/swal'
+import { T } from './Text'
 
-export function useLoginView() {
-  const router = useRouter()
+const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,20}$/
+
+export function useLoginCard(emit) {
   const isRegister = ref(false)
   const loading = ref(false)
 
@@ -20,9 +22,6 @@ export function useLoginView() {
     password: '',
     confirmPassword: ''
   })
-
-  const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/
-  const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,20}$/
 
   const isFormValid = computed(() => {
     if (!form.username || !form.password) return false
@@ -67,8 +66,7 @@ export function useLoginView() {
         localStorage.setItem('satoken', res.token)
         if (res.userInfo) localStorage.setItem('userInfo', JSON.stringify(res.userInfo))
         await showSuccess(res.message || '成功')
-        sessionStorage.setItem('needReload', '1')
-        router.push('/')
+        emit('logged-in')
       } else {
         showError(res.message || '操作失败')
       }

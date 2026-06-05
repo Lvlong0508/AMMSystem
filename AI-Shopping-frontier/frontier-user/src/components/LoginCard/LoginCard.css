@@ -1,56 +1,60 @@
-.login-view {
-  min-height: 100vh;
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-  padding: 20px;
-  font-family: var(--font-body);
+  background: rgba(15,23,42,0.5);
+  backdrop-filter: blur(2px);
+  animation: loginFadeIn 250ms ease-out;
 }
-.login-view__card {
+.login-card {
   width: 100%;
   max-width: 400px;
   background: #fff;
   border-radius: var(--radius-xl);
-  padding: 40px 36px;
-  box-shadow: 0 4px 24px rgba(15,23,42,0.08), 0 1px 3px rgba(15,23,42,0.04);
+  box-shadow: 0 8px 40px rgba(15,23,42,0.15);
+  animation: loginPop 300ms ease-out;
+  overflow: hidden;
 }
-.login-view__header {
+.login-card__header {
+  padding: 28px 32px 0;
   text-align: center;
-  margin-bottom: 28px;
 }
-.login-view__logo {
+.login-card__logo {
   color: var(--color-accent);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
-.login-view__title {
+.login-card__title {
   font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 700;
   color: var(--color-text-primary);
-  margin: 0 0 6px;
+  margin: 0 0 4px;
 }
-.login-view__subtitle {
+.login-card__subtitle {
   font-size: 14px;
   color: var(--color-text-tertiary);
-  margin: 0;
+  margin: 0 0 24px;
 }
-.login-view__form {
+.login-card__form {
+  padding: 0 32px 28px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
-.login-view__field {
+.login-card__field {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
-.login-view__label {
+.login-card__label {
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
 }
-.login-view__input {
+.login-card__input {
   width: 100%;
   padding: 10px 14px;
   border: 1.5px solid var(--color-border);
@@ -63,17 +67,17 @@
   box-sizing: border-box;
   font-family: var(--font-body);
 }
-.login-view__input:focus {
+.login-card__input:focus {
   border-color: var(--color-accent);
 }
-.login-view__input--error {
+.login-card__input--error {
   border-color: var(--color-danger);
 }
-.login-view__error {
+.login-card__error {
   font-size: 12px;
   color: var(--color-danger);
 }
-.login-view__submit {
+.login-card__submit {
   width: 100%;
   padding: 12px;
   background: var(--color-dark);
@@ -87,24 +91,36 @@
   font-family: var(--font-heading);
   margin-top: 4px;
 }
-.login-view__submit:hover:not(:disabled) {
+.login-card__submit:hover:not(:disabled) {
   opacity: 0.9;
 }
-.login-view__submit:disabled {
+.login-card__submit:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.login-view__toggle {
+.login-card__toggle {
   text-align: center;
   font-size: 13px;
   color: var(--color-text-tertiary);
   margin: 0;
 }
-.login-view__toggle-link {
+.login-card__toggle-link {
   color: var(--color-accent);
   cursor: pointer;
   font-weight: 500;
 }
-.login-view__toggle-link:hover {
+.login-card__toggle-link:hover {
   text-decoration: underline;
+}
+@keyframes loginFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes loginPop {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .login-overlay { animation: none; }
+  .login-card { animation: none; }
 }

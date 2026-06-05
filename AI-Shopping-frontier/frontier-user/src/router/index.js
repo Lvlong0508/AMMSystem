@@ -2,12 +2,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const routes = [
   {
-    path: '/login',
-    name: 'login',
-    component: () => import('../views/Login/LoginView/LoginView.vue'),
-    meta: { public: true }
-  },
-  {
     path: '/',
     redirect: '/chat'
   },
@@ -39,15 +33,6 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.meta.public) {
-    next()
-    return
-  }
-  const token = localStorage.getItem('satoken')
-  if (!token) {
-    next('/login')
-    return
-  }
   next()
 })
 
