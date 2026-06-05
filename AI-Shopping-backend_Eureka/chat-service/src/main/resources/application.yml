@@ -25,19 +25,6 @@ feign:
         connectTimeout: 5000
         readTimeout: 5000
 
-# ========== Sa-Token 配置 ==========
-sa-token:
-  token-name: satoken
-  timeout: 86400
-  active-timeout: 1800
-  is-concurrent: false
-  is-share: false
-  token-style: uuid
-  is-log: true
-  is-read-cookie: false
-  is-read-body: false
-  is-read-header: true
-
 chat:
   memory:
     maxMessages: 10
