@@ -1,0 +1,122 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 250ms ease-out;
+  outline: none;
+  position: relative;
+  overflow: hidden;
+  line-height: 1;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.btn:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-accent, #2563eb);
+}
+
+/* Sizes */
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 12px;
+}
+
+.btn-md {
+  height: 40px;
+  padding: 0 16px;
+  font-size: 14px;
+}
+
+.btn-lg {
+  height: 48px;
+  padding: 0 24px;
+  font-size: 15px;
+}
+
+/* Variants */
+.btn-primary {
+  background: var(--color-dark, #0f172a);
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--color-text-primary, #0f172a);
+  border: 1.5px solid var(--color-border, #e2e8f0);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--color-accent, #2563eb);
+  color: var(--color-accent, #2563eb);
+}
+
+.btn-text {
+  background: transparent;
+  color: var(--color-text-secondary, #475569);
+}
+
+.btn-text:hover:not(:disabled) {
+  background: var(--color-border-light, #f1f5f9);
+  color: var(--color-text-primary, #0f172a);
+}
+
+.btn-danger {
+  background: var(--color-danger, #dc2626);
+  color: #ffffff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.15);
+}
+
+/* Active state */
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Disabled state */
+.btn-disabled,
+.btn:disabled {
+  background: var(--color-border-light, #f1f5f9);
+  color: var(--color-text-tertiary, #94a3b8);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  border-color: transparent;
+}
+
+/* Loading state */
+.btn-loading {
+  cursor: wait;
+}
+
+.btn-spinner {
+  display: inline-flex;
+  animation: btn-spin 600ms linear infinite;
+}
+
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+  .btn-spinner {
+    animation: none;
+  }
+}

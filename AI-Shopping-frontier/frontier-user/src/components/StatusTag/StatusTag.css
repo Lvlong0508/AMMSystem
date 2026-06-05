@@ -1,0 +1,27 @@
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-body);
+}
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.status-pending { background: #fef3c7; color: var(--color-warning); }
+.status-pending .status-dot { background: var(--color-warning); }
+.status-paid { background: #dbeafe; color: var(--color-accent); }
+.status-paid .status-dot { background: var(--color-accent); }
+.status-cancelled { background: #fef2f2; color: var(--color-danger); }
+.status-cancelled .status-dot { background: var(--color-danger); }
+.status-shipped { background: #e0f2fe; color: #0369a1; }
+.status-shipped .status-dot { background: #0369a1; }
+.status-delivered { background: #d1fae5; color: var(--color-success); }
+.status-delivered .status-dot { background: var(--color-success); }
+.status-returned { background: #fef2f2; color: var(--color-danger); }
+.status-returned .status-dot { background: var(--color-danger); }

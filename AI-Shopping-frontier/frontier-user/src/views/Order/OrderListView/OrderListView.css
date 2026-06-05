@@ -1,0 +1,99 @@
+.order-list-view {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: var(--font-body);
+}
+.order-list-view__filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.order-list-view__filter-pill {
+  flex-shrink: 0;
+  padding: 6px 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: #fff;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 250ms ease-out;
+  white-space: nowrap;
+  font-family: var(--font-body);
+}
+.order-list-view__filter-pill--active {
+  background: var(--color-dark);
+  color: #fff;
+  border-color: var(--color-dark);
+}
+.order-list-view__loading {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.order-list-view__skeleton {
+  height: 100px;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+.order-list-view__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  animation: fadeSlideUp 300ms ease-out;
+}
+.order-list-view__empty-icon {
+  color: var(--color-text-tertiary);
+  margin-bottom: 12px;
+}
+.order-list-view__empty-text {
+  font-size: 14px;
+  color: var(--color-text-tertiary);
+  margin: 0 0 16px;
+}
+.order-list-view__empty-cta {
+  padding: 10px 24px;
+  background: var(--color-dark);
+  color: #fff;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: opacity 250ms ease-out;
+}
+.order-list-view__empty-cta:hover {
+  opacity: 0.9;
+}
+.order-list-view__list {
+  display: flex;
+  flex-direction: column;
+}
+.order-list-view__item {
+  animation: slideInUp 300ms ease-out both;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .order-list-view__item { animation: none; }
+  .order-list-view__empty { animation: none; }
+  .order-list-view__skeleton { animation: none; }
+}

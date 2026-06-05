@@ -1,67 +1,58 @@
-<!-- src/components/ProductCard/ProductCard.vue -->
 <template>
-  <div class="product-card rounded-lg overflow-hidden shadow-md border border-gray-200 bg-white transition-transform hover:scale-105">
-    <!-- Header with emoji -->
-    <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 text-center border-b border-gray-100">
-      <span class="text-4xl">{{ T.ICON_PRODUCT }}</span>
+  <div v-if="variant === 'abstract'" class="product-card product-card--abstract" @click="$emit('viewDetail', product)">
+    <div class="product-card__image-wrap">
+      <img class="product-card__image" :src="product.imageUrl" :alt="product.name" />
+      <span class="product-card__price-badge">¥{{ product.price.toFixed(2) }}</span>
     </div>
-
-    <!-- Content -->
-    <div class="p-4">
-      <!-- Product name and ID -->
-      <div class="flex items-center justify-between mb-2">
-        <h3 class="font-semibold text-gray-800 text-sm line-clamp-2">{{ product.name }}</h3>
-        <span class="text-xs text-gray-400 flex-shrink-0 ml-2">{{ T.ID_PREFIX }}{{ product.id }}</span>
+    <div class="product-card__body">
+      <h3 class="product-card__name">{{ product.name }}</h3>
+      <p class="product-card__desc">{{ product.description }}</p>
+      <div class="product-card__tags">
+        <span v-for="tag in parsedTags" :key="tag" class="product-card__tag">{{ tag }}</span>
       </div>
-
-      <!-- Description -->
-      <p class="text-xs text-gray-600 mb-2 line-clamp-2">{{ product.description }}</p>
-
-      <!-- Tags -->
-      <div class="flex flex-wrap gap-1 mb-3">
-        <span
-            v-for="tag in parseTags(product.tags)"
-            :key="tag"
-            class="text-xs px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-medium"
-        >
-          {{ tag }}
-        </span>
+      <div class="product-card__divider"></div>
+      <div class="product-card__footer">
+        <span class="product-card__shop-stock">{{ product.shopName }} · {{ T.STOCK_LABEL }}{{ product.stock }}</span>
+        <span class="product-card__view-link">{{ T.VIEW_DETAIL }}</span>
       </div>
+    </div>
+  </div>
 
-      <!-- Stock info -->
-      <div class="text-xs text-gray-500 mb-2">
-        {{ T.LABEL_STOCK }}<span :class="product.stock > 0 ? 'text-green-600' : 'text-red-600'">{{ product.stock > 0 ? T.STOCK_IN : T.STOCK_OUT }}</span>
+  <div v-else class="product-card product-card--detail">
+    <div class="product-card__image-col">
+      <img class="product-card__detail-img" :src="product.imageUrl" :alt="product.name" />
+    </div>
+    <div class="product-card__info-col">
+      <div class="product-card__tags">
+        <span v-for="tag in parsedTags" :key="tag" class="product-card__tag">{{ tag }}</span>
       </div>
-
-      <!-- Price and button -->
-      <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-        <span class="text-lg font-bold text-red-500">¥{{ product.price.toFixed(2) }}</span>
-        <button
-            @click="handleOrderClick"
-            :disabled="product.stock <= 0"
-            class="px-3 py-1 bg-blue-600 text-white rounded-full text-sm hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
-        >
-          {{ product.stock > 0 ? T.BTN_ORDER : T.BTN_OUT_OF_STOCK }}
-        </button>
+      <h3 class="product-card__detail-name">{{ product.name }}</h3>
+      <div class="product-card__price-row">
+        <span class="product-card__price">¥{{ product.price.toFixed(2) }}</span>
       </div>
+      <p class="product-card__desc">{{ product.description }}</p>
+      <div class="product-card__divider"></div>
+      <div class="product-card__shop-row">
+        <span>{{ product.shopName }}</span>
+        <span>{{ T.STOCK_LABEL }}{{ product.stock }}</span>
+      </div>
+      <button class="product-card__cta" @click="$emit('buyNow', product)">{{ T.BUY_NOW }}</button>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useProductCardLogic } from './useProductCard.js'
-import { PRODUCT_CARD_TEXT as T } from './Text.js'
+import { PRODUCTION_CARD_TEXT as T } from './Text'
+import { useProductCard } from './useProductCard'
 
 const props = defineProps({
-  product: {
-    type: Object,
-    required: true
-  }
+  variant: { type: String, default: 'abstract', validator: v => ['abstract', 'detail'].includes(v) },
+  product: { type: Object, required: true }
 })
 
-const emit = defineEmits(['order', 'showOrderDialog'])
+defineEmits(['viewDetail', 'buyNow'])
 
-const { parseTags, handleOrderClick } = useProductCardLogic(props, emit)
+const { parsedTags } = useProductCard(props)
 </script>
 
 <style scoped>

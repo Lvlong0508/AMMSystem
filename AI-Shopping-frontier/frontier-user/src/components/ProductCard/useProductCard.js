@@ -1,18 +1,10 @@
-import { ref } from 'vue'
+import { computed } from 'vue'
 
-export function useProductCardLogic(props, emit) {
-  const parseTags = (tags) => {
-    if (!tags) return []
-    if (Array.isArray(tags)) return tags
-    return []
-  }
-
-  const handleOrderClick = () => {
-    emit('showOrderDialog', props.product)
-  }
-
-  return {
-    parseTags,
-    handleOrderClick
-  }
+export function useProductCard(props) {
+  const parsedTags = computed(() => {
+    if (!props.product.tags) return []
+    if (Array.isArray(props.product.tags)) return props.product.tags
+    return props.product.tags.split(',').map(t => t.trim()).filter(Boolean)
+  })
+  return { parsedTags }
 }
