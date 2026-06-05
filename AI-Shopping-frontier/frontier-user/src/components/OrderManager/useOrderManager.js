@@ -2,9 +2,10 @@ import { ref, onMounted } from 'vue'
 import {
   getMyOrders,
   cancelOrder,
-  updateOrderStatus
+  payOrder,
+  confirmDelivery,
+  submitReturnRequest
 } from '../../api/order.js'
-import { getContactById } from '../../api/contact.js'
 import { getProductById } from '../../api/product.js'
 import { showSuccess, showError, showConfirm } from '../../utils/swal.js'
 import { ORDER_MESSAGES } from '../../config/messages.js'
@@ -44,13 +45,10 @@ export function useOrderManager() {
             }
             // 加载联系人信息
             if (order.contactId) {
-              try {
-                const contactRes = await getContactById(order.contactId)
-                if (contactRes.data) {
-                  enrichedOrder.contact = contactRes.data
-                }
-              } catch (e) {
-                console.warn('加载联系人信息失败:', e)
+              enrichedOrder.contact = {
+                name: order.contactName,
+                phone: order.contactPhone,
+                address: order.contactAddress
               }
             }
             return enrichedOrder
@@ -167,7 +165,7 @@ export function useOrderManager() {
     if (!result.isConfirmed) return
 
     try {
-      const res = await updateOrderStatus(orderId, ORDER_STATUS.CANCELLED)
+      const res = await cancelOrder(orderId)
       if (res?.message?.includes('成功')) {
         showSuccess(ORDER_MESSAGES.CANCEL_SUCCESS)
         await loadOrders()
@@ -180,10 +178,32 @@ export function useOrderManager() {
     }
   }
 
-  // 更新订单状态
+  // 更新订单状态（兼容旧模板调用，按 status 分发到具体 API）
   const updateStatus = async (orderId, status) => {
+    if (status === ORDER_STATUS.PAID) return handlePayment(orderId)
+    if (status === ORDER_STATUS.DELIVERED) return handleConfirmDelivery(orderId)
+    showError('不支持的状态变更')
+  }
+
+  const handlePayment = async (orderId) => {
     try {
-      const res = await updateOrderStatus(orderId, status)
+      const res = await payOrder(orderId)
+      if (res?.message?.includes('成功')) {
+        showSuccess('支付成功')
+        await loadOrders()
+      } else {
+        showError(res?.message || '支付失败')
+      }
+    } catch (error) {
+      console.error('支付失败:', error)
+      showError('支付失败')
+    }
+  }
+
+  // 确认收货
+  const handleConfirmDelivery = async (orderId) => {
+    try {
+      const res = await confirmDelivery(orderId)
       if (res?.message?.includes('成功')) {
         showSuccess(ORDER_MESSAGES.UPDATE_SUCCESS)
         await loadOrders()
@@ -191,8 +211,24 @@ export function useOrderManager() {
         showError(res?.message || ORDER_MESSAGES.UPDATE_FAILED)
       }
     } catch (error) {
-      console.error('更新订单状态失败:', error)
+      console.error('确认收货失败:', error)
       showError(ORDER_MESSAGES.UPDATE_FAILED)
+    }
+  }
+
+  // 退货申请
+  const handleReturnRequest = async (orderId) => {
+    try {
+      const res = await submitReturnRequest(orderId)
+      if (res?.message?.includes('成功')) {
+        showSuccess('退货申请已提交')
+        await loadOrders()
+      } else {
+        showError(res?.message || '退货申请失败')
+      }
+    } catch (error) {
+      console.error('退货申请失败:', error)
+      showError('退货申请失败')
     }
   }
 
@@ -222,6 +258,8 @@ export function useOrderManager() {
     showOrderDetail,
     closeDetail,
     updateStatus,
+    handleConfirmDelivery,
+    handleReturnRequest,
     confirmCancel,
     confirmDelete,
     confirmReturn

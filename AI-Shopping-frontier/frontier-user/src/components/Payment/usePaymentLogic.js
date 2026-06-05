@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { updateOrderStatus } from '../../api/order.js'
+import { payOrder } from '../../api/order.js'
 import { ORDER_STATUS } from '../../config/orderStatus.js'
 import { showSuccess, showError } from '../../utils/swal.js'
 
@@ -43,7 +43,7 @@ export function usePaymentLogic(props, emit, T) {
     processing.value = true
     try {
       // 调用后端更新订单状态为已支付 (PAID)
-      const res = await updateOrderStatus(props.orderInfo.orderId, ORDER_STATUS.PAID)
+      const res = await payOrder(props.orderInfo.orderId)
       
       if (res?.message?.includes('成功')) {
         emit('success', {

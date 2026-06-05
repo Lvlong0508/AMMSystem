@@ -32,8 +32,7 @@ export function useOrderLogic(props, emit) {
     loadingContacts.value = true
     try {
       const res = await getAllContacts()
-      // 支持不同的返回数据结构
-      const data = res.data?.data || res.data || []
+      const data = res.contacts || []
       contacts.value = Array.isArray(data) ? data : []
       // 如果有地址，默认选择第一个
       if (contacts.value.length > 0 && !selectedContact.value) {
@@ -98,7 +97,7 @@ export function useOrderLogic(props, emit) {
 
     submitting.value = true
     try {
-      const res = await placeOrder(props.product.id, quantity.value, selectedContact.value.id)
+      const res = await placeOrder({ productId: props.product.id, quantity: quantity.value, contactId: selectedContact.value.id })
       if (res?.orderId) {
         emit('order-created', {
           orderId: res.orderId,

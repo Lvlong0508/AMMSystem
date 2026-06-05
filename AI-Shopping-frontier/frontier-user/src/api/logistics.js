@@ -1,29 +1,57 @@
 import { request } from './request'
 
-// 创建物流信息
-// 创建物流信息（商家功能，用户端不可用）
-// export const createLogistics = (logistics) =>
-//     request.post('/api/seller/logistics/create', logistics)
+/**
+ * 物流查询相关接口（用户端只读）
+ *
+ * 端口: 8084
+ * 物流记录由商家在发货/退货时创建，用户端仅可查询
+ */
 
-// 根据ID查询物流信息
-export const getLogisticsById = (id) =>
-    request.get(`/api/user/logistics/get/${id}`)
+/**
+ * 查询某订单的所有物流记录
+ *
+ * @param {string} orderId - 订单ID
+ * @returns {Promise<Array<{id: number, orderId: string, type: string, contactId: number, trackingNumber: string, createdAt: string}>>}
+ *
+ * @example
+ * // 请求
+ * getLogisticsByOrderId('2026052200001ABCDE')
+ * // 响应
+ * // [
+ * //   { id: 1, orderId: "2026052200001ABCDE", type: "DELIVERY", contactId: 1,
+ * //     trackingNumber: "SF1234567890", createdAt: "2026-05-22T12:00:00.000+00:00" }
+ * // ]
+ */
+export const getLogisticsByOrderId = (orderId) =>
+  request.get(`/logistics/order/${orderId}`)
 
-// 查询所有物流信息
-// 查询所有物流信息（商家功能，用户端不可用）
-// export const getAllLogistics = () =>
-//     request.get('/api/seller/logistics/list')
+/**
+ * 查询某订单最新一条指定类型的物流记录
+ *
+ * @param {string} orderId - 订单ID
+ * @param {string} [type='DELIVERY'] - 物流类型: DELIVERY（发货）/ RETURN（退货）
+ * @returns {Promise<{id: number, orderId: string, type: string, contactId: number, trackingNumber: string, createdAt: string}>}
+ *
+ * @example
+ * // 请求
+ * getLatestLogistics('2026052200001ABCDE', 'DELIVERY')
+ * // 响应
+ * // { id: 1, orderId: "2026052200001ABCDE", type: "DELIVERY",
+ * //   contactId: 1, trackingNumber: "SF1234567890",
+ * //   createdAt: "2026-05-22T12:00:00.000+00:00" }
+ */
+export const getLatestLogistics = (orderId, type = 'DELIVERY') =>
+  request.get(`/logistics/order/${orderId}/latest`, { params: { type } })
 
-// 根据快递单号查询物流信息
+/**
+ * 按快递单号搜索物流记录
+ *
+ * @param {string} trackingNumber - 快递单号
+ * @returns {Promise<Array<{id: number, orderId: string, type: string, contactId: number, trackingNumber: string, createdAt: string}>>}
+ *
+ * @example
+ * // 请求
+ * getLogisticsByTrackingNumber('SF1234567890')
+ */
 export const getLogisticsByTrackingNumber = (trackingNumber) =>
-    request.get('/api/user/logistics/search/tracking', { params: { trackingNumber } })
-
-// 更新物流信息
-// 更新物流信息（商家功能，用户端不可用）
-// export const updateLogistics = (logistics) =>
-//     request.put('/api/seller/logistics/${logistics.id}', logistics)
-
-// 删除物流信息
-// 删除物流信息（商家功能，用户端不可用）
-// export const deleteLogistics = (id) =>
-//     request.delete(`/api/seller/logistics/${id}`)
+  request.get('/logistics/search/tracking', { params: { trackingNumber } })

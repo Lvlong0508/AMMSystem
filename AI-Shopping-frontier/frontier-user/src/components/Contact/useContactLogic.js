@@ -3,9 +3,7 @@ import {
   getAllContacts,
   createContact,
   updateContact,
-  deleteContact,
-  searchContactsByName,
-  getContactByPhone
+  deleteContact
 } from '../../api/contact.js'
 import { showSuccess, showError, showConfirm } from '../../utils/swal.js'
 import { CONTACT_MESSAGES } from '../../config/messages.js'
@@ -47,33 +45,26 @@ export function useContactLogic() {
   const loadContacts = async () => {
     try {
       const res = await getAllContacts()
-      contacts.value = res.data || []
+      contacts.value = res.contacts ? [...res.contacts] : (Array.isArray(res) ? res : [])
     } catch (error) {
       console.error('获取联系人失败:', error)
       showError(CONTACT_MESSAGES.LOAD_FAILED)
     }
   }
 
-  // 搜索
+  // 搜索（客户端过滤）
   const handleSearch = async () => {
     if (!searchKeyword.value.trim()) {
       loadContacts()
       return
     }
     try {
-      // 先尝试按姓名搜索
-      const res = await searchContactsByName(searchKeyword.value)
-      if (res.data && res.data.length > 0) {
-        contacts.value = res.data
-      } else {
-        // 如果没有结果，尝试按电话搜索
-        const phoneRes = await getContactByPhone(searchKeyword.value)
-        if (phoneRes.data) {
-          contacts.value = [phoneRes.data]
-        } else {
-          contacts.value = []
-        }
-      }
+      const res = await getAllContacts()
+      const list = res.contacts ? [...res.contacts] : (Array.isArray(res) ? res : [])
+      const keyword = searchKeyword.value.trim().toLowerCase()
+      contacts.value = list.filter(c =>
+        c.name?.toLowerCase().includes(keyword) || c.phone?.includes(keyword)
+      )
     } catch (error) {
       console.error('搜索失败:', error)
       contacts.value = []
