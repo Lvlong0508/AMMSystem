@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Swal from 'sweetalert2'
+import { showLogin } from '../stores/authStore'
 
 export const request = axios.create({
     baseURL: 'http://localhost:8080',
@@ -51,7 +51,7 @@ request.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('satoken')
             localStorage.removeItem('userInfo')
-            window.location.reload()
+            showLogin.value = true
         }
         // 包装错误，保留响应数据
         if (error.response?.data) {

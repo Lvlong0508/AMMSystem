@@ -1,12 +1,12 @@
-import { computed, ref, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import Swal from 'sweetalert2'
 import { userLogout } from '../../api/auth'
+import { showLogin } from '../../stores/authStore'
 import { text } from './Text'
 
 export function useAppLayout() {
   const route = useRoute()
-  const checking = ref(true)
 
   const isLoggedIn = computed(() => {
     return !!localStorage.getItem('satoken')
@@ -32,18 +32,13 @@ export function useAppLayout() {
       } catch (e) {}
       localStorage.removeItem('satoken')
       localStorage.removeItem('userInfo')
-      window.location.reload()
+      showLogin.value = true
     }
   }
-
-  onMounted(() => {
-    checking.value = false
-  })
 
   return {
     isLoggedIn,
     activeRoute,
-    checking,
     handleLogout
   }
 }
