@@ -26,6 +26,7 @@ export function useAppLayout() {
   })
 
   const activeRoute = computed(() => route.path)
+  const isLoginPage = computed(() => route.path === '/login')
 
   const handleLogout = async () => {
     const result = await Swal.fire({
@@ -53,6 +54,7 @@ export function useAppLayout() {
     isLoggedIn,
     userName,
     activeRoute,
+    isLoginPage,
     handleLogout
   }
 }
