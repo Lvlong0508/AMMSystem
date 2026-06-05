@@ -55,7 +55,7 @@
       </main>
     </div>
 
-    <LoginCard v-if="!isLoggedIn && !loading" @logged-in="onLoggedIn" />
+    <LoginCard v-if="!checking && !isLoggedIn" @logged-in="onLoggedIn" />
   </div>
 </template>
 
@@ -64,8 +64,7 @@ import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
 
-const { isLoggedIn, activeRoute, handleLogout } = useAppLayout()
-const loading = false
+const { isLoggedIn, activeRoute, checking, handleLogout } = useAppLayout()
 
 const onLoggedIn = () => {
   window.location.reload()
