@@ -40,9 +40,7 @@
   margin: 0;
 }
 .chat-view__bubble-wrap {
-  display: flex;
-  gap: 8px;
-  max-width: 80%;
+  max-width: 85%;
   animation: fadeSlideUp 300ms ease-out both;
 }
 .chat-view__bubble-wrap--user {
@@ -51,23 +49,6 @@
 }
 .chat-view__bubble-wrap--ai {
   align-self: flex-start;
-}
-.chat-view__avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.chat-view__avatar--ai {
-  background: var(--color-dark);
-  color: #fff;
-}
-.chat-view__avatar--user {
-  background: #dbeafe;
-  color: var(--color-accent);
 }
 .chat-view__bubble {
   padding: 10px 14px;

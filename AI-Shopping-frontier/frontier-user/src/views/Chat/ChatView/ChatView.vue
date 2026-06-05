@@ -16,9 +16,6 @@
         :class="[msg.role === 'user' ? 'chat-view__bubble-wrap--user' : 'chat-view__bubble-wrap--ai']"
         :style="{ animationDelay: `${idx * 0.1}s` }"
       >
-        <div v-if="msg.role === 'ai'" class="chat-view__avatar chat-view__avatar--ai">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/></svg>
-        </div>
         <div class="chat-view__bubble" :class="msg.role === 'user' ? 'chat-view__bubble--user' : 'chat-view__bubble--ai'">
           {{ msg.text }}
           <div v-if="msg.products && msg.products.length" class="chat-view__product-row">
@@ -31,15 +28,9 @@
             />
           </div>
         </div>
-        <div v-if="msg.role === 'user'" class="chat-view__avatar chat-view__avatar--user">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
       </div>
 
       <div v-if="loading" class="chat-view__bubble-wrap chat-view__bubble-wrap--ai">
-        <div class="chat-view__avatar chat-view__avatar--ai">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 1 4 4v2a4 4 0 0 1-8 0V6a4 4 0 0 1 4-4z"/><path d="M16 14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4z"/></svg>
-        </div>
         <div class="chat-view__bubble chat-view__bubble--ai">
           <div class="chat-view__typing">
             <span class="chat-view__dot"></span>
