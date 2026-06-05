@@ -57,14 +57,16 @@
     </div>
 
     <div class="chat-view__input-bar">
-      <input
-        ref="inputRef"
-        v-model="inputText"
-        class="chat-view__input"
-        :placeholder="T.INPUT_PLACEHOLDER"
-        :disabled="loading"
-        @keydown.enter="handleSend"
-      />
+      <div class="chat-view__input-wrap">
+        <input
+          ref="inputRef"
+          v-model="inputText"
+          class="chat-view__input"
+          :placeholder="T.INPUT_PLACEHOLDER"
+          :disabled="loading"
+          @keydown.enter="handleSend"
+        />
+      </div>
       <button
         class="chat-view__send-btn"
         :class="{ 'chat-view__send-btn--active': inputText.trim() }"

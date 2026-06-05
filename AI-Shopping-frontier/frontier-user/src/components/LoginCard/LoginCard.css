@@ -56,19 +56,22 @@
 }
 .login-card__input {
   width: 100%;
-  padding: 10px 14px;
+  padding: 12px 16px;
   border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   font-size: 14px;
   color: var(--color-text-primary);
-  background: #fff;
+  background: #f8fafc;
   outline: none;
-  transition: border-color 250ms ease-out;
+  transition: all 250ms ease-out;
   box-sizing: border-box;
   font-family: var(--font-body);
+  height: 46px;
 }
 .login-card__input:focus {
   border-color: var(--color-accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
 .login-card__input--error {
   border-color: var(--color-danger);
