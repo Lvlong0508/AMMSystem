@@ -1,5 +1,7 @@
 <template>
   <div class="chat-view" :class="{ 'chat-view--empty': messages.length === 0 }">
+    <div class="chat-view__bg" ref="vantaRef"></div>
+
     <div v-if="messages.length > 0" class="chat-view__header">
       <button class="chat-view__new-chat-btn" @click="handleNewChat">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -19,21 +21,21 @@
       </div>
 
       <div
-        v-for="(msg, idx) in messages"
-        :key="idx"
-        class="chat-view__bubble-wrap"
-        :class="[msg.role === 'user' ? 'chat-view__bubble-wrap--user' : 'chat-view__bubble-wrap--ai']"
-        :style="{ animationDelay: `${idx * 0.1}s` }"
+          v-for="(msg, idx) in messages"
+          :key="idx"
+          class="chat-view__bubble-wrap"
+          :class="[msg.role === 'user' ? 'chat-view__bubble-wrap--user' : 'chat-view__bubble-wrap--ai']"
+          :style="{ animationDelay: `${idx * 0.1}s` }"
       >
         <div class="chat-view__bubble" :class="msg.role === 'user' ? 'chat-view__bubble--user' : 'chat-view__bubble--ai'">
           {{ msg.text }}
           <div v-if="msg.products && msg.products.length" class="chat-view__product-row">
             <ProductCard
-              v-for="p in msg.products"
-              :key="p.id"
-              variant="abstract"
-              :product="p"
-              @viewDetail="(prod) => $emit('viewDetail', prod)"
+                v-for="p in msg.products"
+                :key="p.id"
+                variant="abstract"
+                :product="p"
+                @viewDetail="(prod) => $emit('viewDetail', prod)"
             />
           </div>
         </div>
@@ -53,19 +55,19 @@
     <div class="chat-view__input-bar">
       <div class="chat-view__input-wrap">
         <input
-          ref="inputRef"
-          v-model="inputText"
-          class="chat-view__input"
-          :placeholder="T.INPUT_PLACEHOLDER"
-          :disabled="loading"
-          @keydown.enter="handleSend"
+            ref="inputRef"
+            v-model="inputText"
+            class="chat-view__input"
+            :placeholder="T.INPUT_PLACEHOLDER"
+            :disabled="loading"
+            @keydown.enter="handleSend"
         />
       </div>
       <button
-        class="chat-view__send-btn"
-        :class="{ 'chat-view__send-btn--active': inputText.trim() }"
-        :disabled="!inputText.trim() || loading"
-        @click="handleSend"
+          class="chat-view__send-btn"
+          :class="{ 'chat-view__send-btn--active': inputText.trim() }"
+          :disabled="!inputText.trim() || loading"
+          @click="handleSend"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
@@ -78,7 +80,7 @@ import { CHAT_VIEW_TEXT as T } from './Text'
 import { useChatView } from './useChatView'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleNewChat } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, vantaRef, handleSend, handleNewChat } = useChatView()
 </script>
 
 <style scoped>
