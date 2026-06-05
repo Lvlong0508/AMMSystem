@@ -20,35 +20,12 @@
   pointer-events: none; /* 事件穿透，防止挡住用户的滚动和点击 */
 }
 
-/* 现有元素增加 position 和 z-index 确保覆盖在背景之上 */
-.chat-view__header {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  padding: 12px 24px 8px;
-  flex-shrink: 0;
-  animation: fadeSlideDown 200ms ease-out;
-}
-.chat-view__new-chat-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: 1.5px solid #E4ECFC;
-  border-radius: 100px;
-  background: #fff;
-  font-size: 14px;
-  font-weight: 500;
-  color: #64748B;
-  cursor: pointer;
-  transition: all 200ms ease-out;
-  font-family: var(--font-body);
-}
-.chat-view__new-chat-btn:hover {
-  border-color: #2563EB;
-  color: #2563EB;
-  background: #F1F5FD;
+.chat-view__bg canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .chat-view--empty {
@@ -160,9 +137,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 24px 20px;
-  /* 移除原纯白背景或保持原样，因为有这层白底能保证输入框区域整洁 */
-  background: #fff;
-  /* 如果你希望输入区也有动画透出，可以将上一行的 #fff 改为 transparent 或 rgba(255,255,255,0.8) */
+  background: transparent;
 }
 .chat-view--empty .chat-view__input-bar {
   justify-content: center;
@@ -236,10 +211,6 @@
   opacity: 0.4;
 }
 
-@keyframes fadeSlideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
 @keyframes fadeSlideUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }

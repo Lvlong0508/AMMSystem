@@ -1,4 +1,5 @@
-import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
+import { newChatCounter } from '@/stores/chatStore'
 import * as THREE from 'three'
 import NET from 'vanta/dist/vanta.net.min'
 import { sendMessage } from '@/api/chat'
@@ -13,6 +14,10 @@ export function useChatView() {
   const inputText = ref('')
   const inputRef = ref(null)
   const messagesRef = ref(null)
+
+  watch(newChatCounter, () => {
+    messages.value = []
+  })
 
   // Vanta 动画背景的引用和实例
   const vantaRef = ref(null)
@@ -51,10 +56,6 @@ export function useChatView() {
     }
   }
 
-  const handleNewChat = () => {
-    messages.value = []
-  }
-
   onMounted(() => {
     if (inputRef.value) inputRef.value.focus()
 
@@ -87,7 +88,6 @@ export function useChatView() {
     inputRef,
     messagesRef,
     vantaRef,
-    handleSend,
-    handleNewChat
+    handleSend
   }
 }

@@ -14,5 +14,6 @@ export const text = {
     confirm: '确定',
     cancel: '取消'
   },
-  login: '登录'
+  login: '登录',
+  newChatTitle: '新对话'
 }
