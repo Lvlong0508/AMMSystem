@@ -6,6 +6,7 @@ import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.dto.LoginRequest;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.UpdateProfileRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.common.response.ApiResponse;
@@ -70,5 +71,24 @@ public class UserAuthController {
                 exists ? "手机号已被注册" : "手机号可用",
                 Map.of("available", !exists)
         );
+    }
+
+    @GetMapping("/profile")
+    public ApiResponse<Map<String, Object>> getProfile(
+            @RequestHeader("X-User-Id") Long userId) {
+        User user = userAuthService.getUserById(userId);
+        if (user == null) {
+            return ApiResponse.error(400, "用户不存在");
+        }
+        UserInfo userInfo = user.getInfoId() != null ? userInfoService.getUserInfoById(user.getInfoId()) : null;
+        return ApiResponse.success("查询成功", authConverter.toUserInfoMap(user, userInfo));
+    }
+
+    @PutMapping("/profile")
+    public ApiResponse<UpdateProfileRequest> updateProfile(
+            @RequestBody UpdateProfileRequest request,
+            @RequestHeader("X-User-Id") Long userId) {
+        userAuthService.updateProfile(userId, request);
+        return ApiResponse.success("更新成功", request);
     }
 }

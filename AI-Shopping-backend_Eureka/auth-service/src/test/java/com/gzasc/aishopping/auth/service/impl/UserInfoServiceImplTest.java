@@ -81,4 +81,17 @@ class UserInfoServiceImplTest {
         assertThrows(RuntimeException.class, () -> userInfoService.createUserInfo(info));
         verify(userInfoMapper).insert(info);
     }
+
+    @Test
+    @DisplayName("updateUserInfo 应调用 mapper.update")
+    void updateUserInfo_shouldCallMapperUpdate() {
+        UserInfo info = new UserInfo();
+        info.setId(1);
+        info.setNickname("新昵称");
+        info.setAvatar("new.jpg");
+
+        userInfoService.updateUserInfo(info);
+
+        verify(userInfoMapper).update(info);
+    }
 }

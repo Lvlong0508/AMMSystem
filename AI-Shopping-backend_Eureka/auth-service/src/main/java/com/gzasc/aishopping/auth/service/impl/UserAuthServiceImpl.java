@@ -7,6 +7,7 @@ import com.gzasc.aishopping.auth.model.User;
 import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.UpdateProfileRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
@@ -104,5 +105,52 @@ public class UserAuthServiceImpl implements UserAuthService {
     @Override
     public User getUserById(Long id) {
         return userMapper.selectById(id);
+    }
+
+    @Override
+    @Transactional
+    public void updateProfile(Long userId, UpdateProfileRequest request) {
+        User user = userMapper.selectById(userId);
+        if (user == null) {
+            throw new AuthException("用户不存在");
+        }
+
+        if (StringUtils.hasText(request.getNickname()) || StringUtils.hasText(request.getAvatar())) {
+            UserInfo userInfo;
+            if (user.getInfoId() != null) {
+                userInfo = userInfoService.getUserInfoById(user.getInfoId());
+                if (userInfo == null) {
+                    userInfo = new UserInfo();
+                    userInfo.setId(user.getInfoId());
+                }
+            } else {
+                userInfo = new UserInfo();
+            }
+            if (StringUtils.hasText(request.getNickname())) {
+                userInfo.setNickname(request.getNickname());
+            }
+            if (StringUtils.hasText(request.getAvatar())) {
+                userInfo.setAvatar(request.getAvatar());
+            }
+            if (userInfo.getId() != null) {
+                userInfoService.updateUserInfo(userInfo);
+            } else {
+                Integer infoId = userInfoService.createUserInfo(userInfo);
+                user.setInfoId(infoId);
+            }
+        }
+
+        if (StringUtils.hasText(request.getPhone())) {
+            User existingByPhone = userMapper.selectByPhone(request.getPhone());
+            if (existingByPhone != null && !existingByPhone.getId().equals(userId)) {
+                throw new AuthException("手机号已被注册");
+            }
+            user.setPhone(request.getPhone());
+        }
+        if (StringUtils.hasText(request.getEmail())) {
+            user.setEmail(request.getEmail());
+        }
+
+        userMapper.update(user);
     }
 }

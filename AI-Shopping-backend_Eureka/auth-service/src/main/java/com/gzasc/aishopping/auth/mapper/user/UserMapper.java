@@ -56,6 +56,12 @@ public interface UserMapper {
     int countByUsername(String username);
 
     /**
+     * 根据手机号查询用户
+     */
+    @Select("SELECT * FROM t_user WHERE phone = #{phone}")
+    User selectByPhone(String phone);
+
+    /**
      * 检查手机号是否存在
      */
     @Select("SELECT COUNT(*) FROM t_user WHERE phone = #{phone}")

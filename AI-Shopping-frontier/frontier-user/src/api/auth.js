@@ -91,3 +91,36 @@ export const checkUsername = (username) =>
  */
 export const checkPhone = (phone) =>
   request.get('/api/user/auth/check-phone', { params: { phone } })
+
+/**
+ * 查询用户个人信息
+ *
+ * @returns {Promise<{message: string, data: {id: number, username: string, phone: string, email: string, nickname: string, avatar: string}}>}
+ *
+ * @example
+ * // 请求
+ * userGetProfile()
+ * // 响应
+ * // { message: "查询成功", data: { id: 100, username: "user123", phone: "13800138000", nickname: "昵称", avatar: "xxx.jpg" } }
+ */
+export const userGetProfile = () =>
+  request.get('/api/user/auth/profile')
+
+/**
+ * 更新用户个人信息
+ *
+ * @param {Object} data - 更新信息（全部可选）
+ * @param {string} [data.nickname] - 昵称
+ * @param {string} [data.avatar] - 头像URL
+ * @param {string} [data.phone] - 手机号
+ * @param {string} [data.email] - 邮箱
+ * @returns {Promise<{message: string, data: {nickname?: string, avatar?: string, phone?: string, email?: string}}>}
+ *
+ * @example
+ * // 请求
+ * userUpdateProfile({ nickname: '新昵称', phone: '13800138002' })
+ * // 响应
+ * // { message: "更新成功", data: { nickname: "新昵称", phone: "13800138002" } }
+ */
+export const userUpdateProfile = (data) =>
+  request.put('/api/user/auth/profile', data)

@@ -7,4 +7,6 @@ public interface UserInfoService {
     UserInfo getUserInfoById(Integer id);
 
     Integer createUserInfo(UserInfo info);
+
+    void updateUserInfo(UserInfo info);
 }

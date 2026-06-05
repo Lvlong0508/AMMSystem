@@ -3,6 +3,7 @@ package com.gzasc.aishopping.auth.service;
 import com.gzasc.aishopping.auth.model.User;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.dto.RegisterRequest;
+import com.gzasc.aishopping.auth.dto.UpdateProfileRequest;
 
 public interface UserAuthService {
 
@@ -17,4 +18,6 @@ public interface UserAuthService {
     boolean existsByPhone(String phone);
 
     User getUserById(Long id);
+
+    void updateProfile(Long userId, UpdateProfileRequest request);
 }

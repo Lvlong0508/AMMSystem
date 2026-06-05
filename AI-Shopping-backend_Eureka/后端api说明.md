@@ -24,6 +24,8 @@
 | POST | `/api/user/auth/logout` | 用户登出 | - |
 | GET | `/api/user/auth/check-username?username=xxx` | 检查用户名是否可用 | - |
 | GET | `/api/user/auth/check-phone?phone=xxx` | 检查手机号是否可用 | - |
+| GET | `/api/user/auth/profile` | 查询个人信息 | - |
+| PUT | `/api/user/auth/profile` | 更新个人信息 | 见下方 |
 
 #### 请求体:
 ```json
@@ -37,6 +39,50 @@
 
 - 登录/注册成功后返回 `token`，后续请求需在 Header 中携带: `satoken: <token>`
 - 密码使用 BCrypt 加盐加密存储
+
+#### 查询个人信息响应:
+```json
+{
+  "code": 200,
+  "message": "查询成功",
+  "data": {
+    "id": 100,
+    "username": "user123",
+    "phone": "13800138000",
+    "email": "user@example.com",
+    "infoId": 1,
+    "status": 1,
+    "nickname": "昵称",
+    "avatar": "http://example.com/avatar.jpg"
+  }
+}
+```
+
+#### 更新个人信息请求体（全部可选）:
+```json
+{
+  "nickname": "新昵称",
+  "avatar": "http://example.com/avatar.jpg",
+  "phone": "13800138000",
+  "email": "new@example.com"
+}
+```
+
+**Header**: `X-User-Id: <userId>`（由 Gateway 自动注入）
+
+**响应**:
+```json
+{
+  "code": 200,
+  "message": "更新成功",
+  "data": {
+    "nickname": "新昵称",
+    "avatar": "http://example.com/avatar.jpg",
+    "phone": "13800138000",
+    "email": "new@example.com"
+  }
+}
+```
 
 ---
 

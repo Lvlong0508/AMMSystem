@@ -4,6 +4,7 @@ import com.gzasc.aishopping.auth.converter.AuthConverter;
 import com.gzasc.aishopping.auth.dto.LoginResult;
 import com.gzasc.aishopping.auth.exception.AuthException;
 import com.gzasc.aishopping.auth.model.User;
+import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,11 +20,14 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
@@ -294,5 +298,83 @@ class UserAuthControllerTest {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
+    }
+
+    @Test
+    @DisplayName("AU-040 用户个人信息更新成功")
+    void updateProfile_success() throws Exception {
+        doNothing().when(userAuthService).updateProfile(anyLong(), any());
+
+        mockMvc.perform(put("/api/user/auth/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", 100L)
+                        .content("""
+                                {"nickname":"新昵称","phone":"13800138002","email":"new@test.com"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("更新成功"))
+                .andExpect(jsonPath("$.data.nickname").value("新昵称"))
+                .andExpect(jsonPath("$.data.phone").value("13800138002"))
+                .andExpect(jsonPath("$.data.email").value("new@test.com"));
+    }
+
+    @Test
+    @DisplayName("AU-041 用户个人信息更新-用户不存在")
+    void updateProfile_userNotFound() throws Exception {
+        doThrow(new AuthException("用户不存在")).when(userAuthService).updateProfile(anyLong(), any());
+
+        mockMvc.perform(put("/api/user/auth/profile")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", 999L)
+                        .content("""
+                                {"nickname":"新昵称"}
+                                """))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("用户不存在"));
+    }
+
+    @Test
+    @DisplayName("AU-042 用户个人信息查询成功")
+    void getProfile_success() throws Exception {
+        User user = new User();
+        user.setId(100L);
+        user.setUsername("testuser");
+        user.setPhone("13800138000");
+        user.setEmail("test@test.com");
+        user.setInfoId(1);
+        user.setStatus(1);
+
+        UserInfo userInfo = new UserInfo();
+        userInfo.setId(1);
+        userInfo.setNickname("测试昵称");
+        userInfo.setAvatar("avatar.jpg");
+
+        when(userAuthService.getUserById(100L)).thenReturn(user);
+        when(userInfoService.getUserInfoById(1)).thenReturn(userInfo);
+        when(authConverter.toUserInfoMap(user, userInfo)).thenReturn(Map.of(
+                "id", 100L, "username", "testuser", "nickname", "测试昵称", "avatar", "avatar.jpg"
+        ));
+
+        mockMvc.perform(get("/api/user/auth/profile")
+                        .header("X-User-Id", 100L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("查询成功"))
+                .andExpect(jsonPath("$.data.nickname").value("测试昵称"))
+                .andExpect(jsonPath("$.data.avatar").value("avatar.jpg"));
+    }
+
+    @Test
+    @DisplayName("AU-043 用户个人信息查询-用户不存在")
+    void getProfile_userNotFound() throws Exception {
+        when(userAuthService.getUserById(999L)).thenReturn(null);
+
+        mockMvc.perform(get("/api/user/auth/profile")
+                        .header("X-User-Id", 999L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(400))
+                .andExpect(jsonPath("$.message").value("用户不存在"));
     }
 }
