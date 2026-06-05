@@ -9,6 +9,10 @@ const routes = [
   },
   {
     path: '/',
+    redirect: '/chat'
+  },
+  {
+    path: '/chat',
     name: 'chat',
     component: () => import('../views/Chat/ChatView/ChatView.vue')
   },
