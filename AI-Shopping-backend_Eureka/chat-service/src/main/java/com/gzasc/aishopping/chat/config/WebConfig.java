@@ -9,11 +9,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
-    private UserContextInterceptor userContextInterceptor;
+    private AuthInterceptor authInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(userContextInterceptor)
+        registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/chat/**");
     }
 }
