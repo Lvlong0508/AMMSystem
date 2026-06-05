@@ -12,19 +12,6 @@ export function useAppLayout() {
     return !!localStorage.getItem('satoken')
   })
 
-  const userName = computed(() => {
-    const userInfo = localStorage.getItem('userInfo')
-    if (userInfo) {
-      try {
-        const user = JSON.parse(userInfo)
-        return user.nickname || user.username || '用户'
-      } catch (e) {
-        return '用户'
-      }
-    }
-    return '用户'
-  })
-
   const activeRoute = computed(() => route.path)
 
   const handleLogout = async () => {
@@ -51,7 +38,6 @@ export function useAppLayout() {
 
   return {
     isLoggedIn,
-    userName,
     activeRoute,
     handleLogout
   }

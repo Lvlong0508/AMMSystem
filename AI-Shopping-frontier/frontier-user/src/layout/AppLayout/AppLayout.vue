@@ -32,14 +32,11 @@
 
         <div class="sidebar-footer">
           <template v-if="isLoggedIn">
-            <div class="sidebar-user">
-              <div class="sidebar-user-avatar">
-                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M20 21a8 8 0 1 0-16 0" />
-                </svg>
-              </div>
-              <span class="sidebar-user-name">{{ userName }}</span>
+            <div class="sidebar-user-avatar">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M20 21a8 8 0 1 0-16 0" />
+              </svg>
             </div>
             <button class="sidebar-logout" @click="handleLogout">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -67,7 +64,7 @@ import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
 
-const { isLoggedIn, userName, activeRoute, handleLogout } = useAppLayout()
+const { isLoggedIn, activeRoute, handleLogout } = useAppLayout()
 const loading = false
 
 const onLoggedIn = () => {
