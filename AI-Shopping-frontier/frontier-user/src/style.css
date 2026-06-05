@@ -32,6 +32,10 @@ button {
   background: none;
 }
 
+input, textarea, select {
+  font-family: inherit;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
