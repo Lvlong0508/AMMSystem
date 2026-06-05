@@ -10,7 +10,6 @@ export function useChatView() {
   const inputText = ref('')
   const inputRef = ref(null)
   const messagesRef = ref(null)
-  const showQuickActions = ref(true)
 
   const scrollToBottom = async () => {
     await nextTick()
@@ -25,7 +24,6 @@ export function useChatView() {
 
     messages.value.push({ role: 'user', text })
     inputText.value = ''
-    showQuickActions.value = false
     loading.value = true
     await scrollToBottom()
 
@@ -45,9 +43,8 @@ export function useChatView() {
     }
   }
 
-  const sendQuick = (text) => {
-    inputText.value = text
-    handleSend()
+  const handleNewChat = () => {
+    messages.value = []
   }
 
   onMounted(() => {
@@ -60,8 +57,7 @@ export function useChatView() {
     inputText,
     inputRef,
     messagesRef,
-    showQuickActions,
     handleSend,
-    sendQuick
+    handleNewChat
   }
 }

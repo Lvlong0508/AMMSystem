@@ -1,5 +1,14 @@
 <template>
-  <div class="chat-view">
+  <div class="chat-view" :class="{ 'chat-view--empty': messages.length === 0 }">
+    <div v-if="messages.length > 0" class="chat-view__header">
+      <button class="chat-view__new-chat-btn" @click="handleNewChat">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+        <span>{{ T.NEW_CHAT }}</span>
+      </button>
+    </div>
     <div class="chat-view__messages" ref="messagesRef">
       <div v-if="messages.length === 0" class="chat-view__welcome">
         <div class="chat-view__welcome-icon">
@@ -41,12 +50,6 @@
       </div>
     </div>
 
-    <div class="chat-view__quick-actions" v-if="showQuickActions">
-      <button class="chat-view__quick-btn" @click="sendQuick(T.QUERY_STOCK)">{{ T.QUERY_STOCK }}</button>
-      <button class="chat-view__quick-btn" @click="sendQuick(T.QUERY_COMPARE)">{{ T.QUERY_COMPARE }}</button>
-      <button class="chat-view__quick-btn" @click="sendQuick(T.QUERY_CART)">{{ T.QUERY_CART }}</button>
-    </div>
-
     <div class="chat-view__input-bar">
       <div class="chat-view__input-wrap">
         <input
@@ -75,7 +78,7 @@ import { CHAT_VIEW_TEXT as T } from './Text'
 import { useChatView } from './useChatView'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, showQuickActions, handleSend, sendQuick } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleNewChat } = useChatView()
 </script>
 
 <style scoped>

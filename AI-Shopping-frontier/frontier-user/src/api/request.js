@@ -35,12 +35,15 @@ request.interceptors.response.use(
         const body = response.data
         // 解包 ApiResponse: { code, message, data } → 直接返回 data 并带上 message
         if (body && typeof body === 'object' && 'code' in body && 'data' in body) {
-            if (body.code === 200 && body.data !== null && body.data !== undefined) {
-                const data = body.data
-                if (typeof data === 'object' && !Array.isArray(data) && data.message === undefined) {
-                    data.message = body.message
+            if (body.code === 200) {
+                if (body.data !== null && body.data !== undefined) {
+                    const data = body.data
+                    if (typeof data === 'object' && !Array.isArray(data) && data.message === undefined) {
+                        data.message = body.message
+                    }
+                    return data
                 }
-                return data
+                return { message: body.message }
             }
             // 业务错误（code ≠ 200）
             return Promise.reject({ response: { data: { message: body.message || '请求失败' }, status: body.code } })

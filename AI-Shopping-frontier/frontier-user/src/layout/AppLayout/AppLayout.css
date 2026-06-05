@@ -8,7 +8,7 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 200px;
+  width: 240px;
   bottom: 0;
   background: #0f172a;
   display: flex;
@@ -18,33 +18,38 @@
 
 .sidebar-brand {
   font-family: var(--font-heading);
-  font-size: 18px;
+  font-size: 24px;
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.03em;
-  padding: 24px 20px 20px;
+  padding: 28px 24px 24px;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 4px 0 12px;
+  padding: 6px 0 16px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .sidebar-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  margin: 0 10px;
-  border-radius: 8px;
-  font-size: 14px;
+  gap: 12px;
+  padding: 14px 20px;
+  margin: 0 12px;
+  border-radius: 10px;
+  font-size: 18px;
   font-weight: 500;
   color: rgba(255,255,255,0.5);
   text-decoration: none;
   transition: all 250ms ease-out;
+}
+
+.sidebar-item svg {
+  width: 24px;
+  height: 24px;
 }
 
 .sidebar-item:hover {
@@ -58,48 +63,139 @@
 }
 
 .sidebar-footer {
-  padding: 12px;
+  padding: 16px;
   border-top: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 8px;
+  align-items: stretch;
 }
 
 .sidebar-user-avatar {
-  width: 32px;
-  height: 32px;
+  width: 66px;
+  height: 66px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(255,255,255,0.08);
   color: rgba(255,255,255,0.4);
+  flex-shrink: 0;
 }
 
-.sidebar-logout {
+.sidebar-user-avatar svg {
+  width: 60px;
+  height: 60px;
+}
+
+.sidebar-user {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.sidebar-user-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.sidebar-user-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 150px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.sidebar-user-menu__item {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: rgba(255,255,255,0.35);
-  transition: all 250ms ease-out;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: rgba(255,255,255,0.6);
   cursor: pointer;
+  transition: all 200ms ease-out;
+  white-space: nowrap;
 }
 
-.sidebar-logout:hover {
-  background: rgba(239,68,68,0.1);
+.sidebar-user-menu__item:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+}
+
+.sidebar-user-menu__item--danger {
+  color: rgba(248,113,113,0.6);
+}
+
+.sidebar-user-menu__item--danger:hover {
+  background: rgba(239,68,68,0.12);
   color: #fca5a5;
 }
 
+.sidebar-user-menu__divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+  margin: 4px 0;
+}
+
+.menu-fade-enter-active,
+.menu-fade-leave-active {
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.menu-fade-enter-from,
+.menu-fade-leave-to {
+  opacity: 0;
+  transform: translateX(-50%) translateY(4px);
+}
+
+.menu-fade-enter-to,
+.menu-fade-leave-from {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.sidebar-login-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 250ms ease-out;
+}
+
+.sidebar-login-trigger:hover .sidebar-user-avatar {
+  background: rgba(59,130,246,0.2);
+  color: #60a5fa;
+}
+
+.sidebar-login-text {
+  font-size: 14px;
+  color: rgba(255,255,255,0.4);
+  transition: color 250ms ease-out;
+}
+
+.sidebar-login-trigger:hover .sidebar-login-text {
+  color: #60a5fa;
+}
+
 .main-content {
-  margin-left: 200px;
+  margin-left: 240px;
   flex: 1;
   min-height: 100vh;
 }

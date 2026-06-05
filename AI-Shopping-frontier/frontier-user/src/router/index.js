@@ -24,16 +24,17 @@ const routes = [
     path: '/contact',
     name: 'contact',
     component: () => import('../views/Contact/ContactView/ContactView.vue')
+  },
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () => import('../views/Profile/ProfileView/ProfileView.vue')
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
-})
-
-router.beforeEach((to, from, next) => {
-  next()
 })
 
 router.afterEach((to) => {

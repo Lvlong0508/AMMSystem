@@ -6,12 +6,12 @@
   font-family: var(--font-body);
 }
 .order-card--abstract {
-  margin-bottom: 12px;
+  margin-bottom: 20px;
 }
 .order-card__main {
   display: flex;
-  gap: 12px;
-  padding: 16px;
+  gap: 20px;
+  padding: 24px;
   cursor: pointer;
   transition: background 250ms ease-out;
 }
@@ -20,11 +20,15 @@
 }
 .order-card__thumb {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
+  width: 80px;
+  height: 80px;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: #f1f5f9;
+}
+.order-card__thumb svg {
+  width: 80px;
+  height: 80px;
 }
 .order-card__info {
   flex: 1;
@@ -37,7 +41,7 @@
 }
 .order-card__product-name {
   font-family: var(--font-heading);
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -46,7 +50,7 @@
 }
 .order-card__price {
   font-family: var(--font-mono);
-  font-size: 18px;
+  font-size: 28px;
   font-weight: 700;
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -55,14 +59,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin: 2px 0;
-  font-size: 12px;
+  margin: 6px 0;
+  font-size: 18px;
   color: var(--color-text-secondary);
 }
 .order-card__id-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 16px;
   color: var(--color-text-tertiary);
 }
 .order-card__id {
@@ -78,13 +82,13 @@
 .order-card__actions {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding: 10px 16px;
+  gap: 12px;
+  padding: 16px 24px;
 }
 .order-card__action-btn {
-  padding: 6px 14px;
+  padding: 12px 28px;
   border-radius: var(--radius-pill);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 500;
   cursor: pointer;
   transition: all 250ms ease-out;
@@ -93,7 +97,7 @@
 }
 .order-card__action-btn--outline {
   background: transparent;
-  border: 1.5px solid var(--color-border);
+  border: 2px solid var(--color-border);
   color: var(--color-text-secondary);
 }
 .order-card__action-btn--outline:hover {
@@ -115,39 +119,39 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 16px 0;
+  padding: 24px 24px 0;
 }
 .order-card__detail-title {
   font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 .order-card__detail-section {
   display: flex;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 20px;
+  padding: 20px 24px;
 }
 .order-card__detail-product-info {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 .order-card__qty {
-  font-size: 12px;
+  font-size: 18px;
   color: var(--color-text-secondary);
 }
 .order-card__info-grid {
   background: var(--color-bg);
-  padding: 12px 16px;
+  padding: 20px 24px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 14px;
 }
 .order-card__info-item {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: 20px;
 }
 .order-card__info-label {
   color: var(--color-text-tertiary);
@@ -158,31 +162,37 @@
 }
 .order-card__address {
   display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  font-size: 13px;
+  gap: 12px;
+  padding: 20px 24px;
+  font-size: 20px;
   color: var(--color-text-primary);
+}
+.order-card__address svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 .order-card__contact-name {
   font-weight: 600;
-  margin-right: 8px;
+  margin-right: 12px;
 }
 .order-card__contact-phone {
   color: var(--color-text-secondary);
 }
 .order-card__contact-addr {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   color: var(--color-text-secondary);
 }
 .order-card__timeline {
-  padding: 12px 16px;
+  padding: 20px 24px;
   background: var(--color-bg);
 }
 .order-card__timeline-header {
   display: flex;
   justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 12px;
+  font-size: 20px;
+  margin-bottom: 20px;
   color: var(--color-text-primary);
   font-weight: 500;
 }
@@ -202,19 +212,23 @@
   flex-direction: column;
   align-items: center;
   position: relative;
-  gap: 4px;
+  gap: 8px;
 }
 .order-card__step-circle {
-  width: 20px;
-  height: 20px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  border: 2px solid var(--color-border);
+  border: 3px solid var(--color-border);
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--color-surface);
   color: var(--color-text-tertiary);
   transition: all 300ms ease-out;
+}
+.order-card__step-circle svg {
+  width: 16px;
+  height: 16px;
 }
 .order-card__step--done .order-card__step-circle {
   background: var(--color-success);
@@ -227,21 +241,21 @@
   color: var(--color-accent);
 }
 .order-card__step-label {
-  font-size: 11px;
+  font-size: 16px;
   color: var(--color-text-secondary);
   text-align: center;
 }
 .order-card__step-date {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--color-text-tertiary);
   font-family: var(--font-mono);
 }
 .order-card__step-line {
   position: absolute;
-  top: 10px;
-  left: calc(50% + 12px);
-  right: calc(-50% + 12px);
-  height: 2px;
+  top: 15px;
+  left: calc(50% + 18px);
+  right: calc(-50% + 18px);
+  height: 3px;
   background: var(--color-border);
   z-index: 0;
 }

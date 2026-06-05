@@ -23,7 +23,7 @@ import { request } from './request'
  * // ]
  */
 export const getLogisticsByOrderId = (orderId) =>
-  request.get(`/logistics/order/${orderId}`)
+  request.get(`/api/user/logistics/order/${orderId}`)
 
 /**
  * 查询某订单最新一条指定类型的物流记录
@@ -41,7 +41,7 @@ export const getLogisticsByOrderId = (orderId) =>
  * //   createdAt: "2026-05-22T12:00:00.000+00:00" }
  */
 export const getLatestLogistics = (orderId, type = 'DELIVERY') =>
-  request.get(`/logistics/order/${orderId}/latest`, { params: { type } })
+  request.get(`/api/user/logistics/order/${orderId}/latest`, { params: { type } })
 
 /**
  * 按快递单号搜索物流记录
@@ -54,4 +54,4 @@ export const getLatestLogistics = (orderId, type = 'DELIVERY') =>
  * getLogisticsByTrackingNumber('SF1234567890')
  */
 export const getLogisticsByTrackingNumber = (trackingNumber) =>
-  request.get('/logistics/search/tracking', { params: { trackingNumber } })
+  request.get('/api/user/logistics/search/tracking', { params: { trackingNumber } })

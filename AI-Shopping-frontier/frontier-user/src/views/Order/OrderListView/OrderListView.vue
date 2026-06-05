@@ -17,7 +17,7 @@
     </div>
 
     <div v-else-if="filteredOrders.length === 0" class="order-list-view__empty">
-      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="order-list-view__empty-icon"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      <svg width="144" height="144" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" class="order-list-view__empty-icon"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
       <p class="order-list-view__empty-text">{{ T.EMPTY_TEXT }}</p>
       <router-link to="/chat" class="order-list-view__empty-cta">{{ T.EMPTY_CTA }}</router-link>
     </div>

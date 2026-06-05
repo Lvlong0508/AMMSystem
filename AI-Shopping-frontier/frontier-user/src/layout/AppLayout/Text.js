@@ -7,6 +7,7 @@ export const text = {
     address: '地址管理'
   },
   user: {
+    profile: '个人信息',
     logout: '退出登录',
     logoutTitle: '确认登出',
     logoutConfirm: '确定要退出登录吗？',

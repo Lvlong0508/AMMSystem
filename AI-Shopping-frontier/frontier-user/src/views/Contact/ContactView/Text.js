@@ -7,5 +7,19 @@ export const CONTACT_VIEW_TEXT = {
   DELETE_TITLE: '确认删除地址？',
   DELETE_DESC: '此操作不可恢复',
   DELETE_CONFIRM: '确认删除',
-  RETHINK: '再想想'
+  RETHINK: '再想想',
+  ADD_TITLE: '新增地址',
+  FIELD_NAME: '收件人',
+  FIELD_PHONE: '手机号',
+  REGION: '省市区',
+  FIELD_ADDR: '详细地址',
+  PLACEHOLDER_NAME: '请输入收件人姓名',
+  PLACEHOLDER_PHONE: '请输入手机号',
+  PLACEHOLDER_ADDR: '街道、门牌号、楼层等',
+  SELECT_PROVINCE: '请选择省',
+  SELECT_CITY: '请选择市',
+  SELECT_DISTRICT: '请选择区',
+  CANCEL: '取消',
+  SUBMIT: '保存',
+  SUBMITTING: '保存中…'
 }

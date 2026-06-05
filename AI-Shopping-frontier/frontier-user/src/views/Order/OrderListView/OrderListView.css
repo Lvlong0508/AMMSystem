@@ -1,24 +1,24 @@
 .order-list-view {
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 32px;
   font-family: var(--font-body);
 }
 .order-list-view__filters {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   overflow-x: auto;
-  padding-bottom: 12px;
-  margin-bottom: 12px;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
   -webkit-overflow-scrolling: touch;
 }
 .order-list-view__filter-pill {
   flex-shrink: 0;
-  padding: 6px 16px;
-  border: 1.5px solid var(--color-border);
+  padding: 12px 28px;
+  border: 2px solid var(--color-border);
   border-radius: var(--radius-pill);
   background: #fff;
-  font-size: 13px;
+  font-size: 18px;
   color: var(--color-text-secondary);
   cursor: pointer;
   transition: all 250ms ease-out;
@@ -33,10 +33,10 @@
 .order-list-view__loading {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
 }
 .order-list-view__skeleton {
-  height: 100px;
+  height: 180px;
   border-radius: var(--radius-xl);
   background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
   background-size: 200% 100%;
@@ -47,24 +47,28 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 300px;
+  min-height: 500px;
   animation: fadeSlideUp 300ms ease-out;
 }
 .order-list-view__empty-icon {
   color: var(--color-text-tertiary);
-  margin-bottom: 12px;
+  margin-bottom: 40px;
+}
+.order-list-view__empty-icon svg {
+  width: 144px;
+  height: 144px;
 }
 .order-list-view__empty-text {
-  font-size: 14px;
+  font-size: 44px;
   color: var(--color-text-tertiary);
-  margin: 0 0 16px;
+  margin: 0 0 40px;
 }
 .order-list-view__empty-cta {
-  padding: 10px 24px;
+  padding: 16px 40px;
   background: var(--color-dark);
   color: #fff;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;

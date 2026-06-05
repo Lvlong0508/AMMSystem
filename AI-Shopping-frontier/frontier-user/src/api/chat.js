@@ -38,4 +38,4 @@ import { request } from './request'
  * // { message: "您好！有什么可以帮您的吗？", reason: "用户主动打招呼，无具体业务请求", data: null }
  */
 export const sendMessage = (message) =>
-  request.post('/chat/chat', { message })
+  request.post('/api/user/chat/chat', { message })

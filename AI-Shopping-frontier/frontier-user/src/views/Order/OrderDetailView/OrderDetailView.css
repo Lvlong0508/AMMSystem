@@ -1,27 +1,31 @@
 .order-detail-view {
-  max-width: 700px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 16px;
+  padding: 32px;
   font-family: var(--font-body);
 }
 .order-detail-view__back {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 20px;
   color: var(--color-text-secondary);
   cursor: pointer;
-  margin-bottom: 12px;
+  margin-bottom: 20px;
   transition: color 250ms ease-out;
+}
+.order-detail-view__back svg {
+  width: 24px;
+  height: 24px;
 }
 .order-detail-view__back:hover {
   color: var(--color-accent);
 }
 .order-detail-view__loading {
-  padding: 16px 0;
+  padding: 24px 0;
 }
 .order-list-view__skeleton {
-  height: 400px;
+  height: 600px;
   border-radius: var(--radius-xl);
   background: linear-gradient(90deg, #f1f5f9 25%, #f8fafc 50%, #f1f5f9 75%);
   background-size: 200% 100%;
@@ -31,9 +35,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 300px;
   color: var(--color-text-tertiary);
-  font-size: 14px;
+  font-size: 22px;
 }
 
 .action-sheet-overlay {
@@ -48,38 +52,38 @@
 }
 .action-sheet {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   background: #fff;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 24px 20px calc(env(safe-area-inset-bottom) + 16px);
+  padding: 40px 32px calc(env(safe-area-inset-bottom) + 24px);
   animation: slideUp 300ms ease-out;
 }
 .action-sheet__content {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
 }
 .action-sheet__title {
   font-family: var(--font-heading);
-  font-size: 16px;
+  font-size: 26px;
   font-weight: 600;
   color: var(--color-text-primary);
-  margin: 0 0 8px;
+  margin: 0 0 12px;
 }
 .action-sheet__desc {
-  font-size: 13px;
+  font-size: 20px;
   color: var(--color-text-tertiary);
   margin: 0;
 }
 .action-sheet__actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 .action-sheet__btn {
   width: 100%;
-  padding: 12px;
+  padding: 18px;
   border-radius: var(--radius-md);
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 250ms ease-out;
