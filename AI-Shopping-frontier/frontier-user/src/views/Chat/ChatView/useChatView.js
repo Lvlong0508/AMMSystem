@@ -3,6 +3,7 @@ import * as THREE from 'three'
 import NET from 'vanta/dist/vanta.net.min'
 import { sendMessage } from '@/api/chat'
 import { CHAT_VIEW_TEXT } from './Text'
+import { requireLogin } from '@/stores/authStore'
 
 const ERROR_TEXT = CHAT_VIEW_TEXT.ERROR_TEXT
 
@@ -27,6 +28,7 @@ export function useChatView() {
   const handleSend = async () => {
     const text = inputText.value.trim()
     if (!text || loading.value) return
+    if (!requireLogin()) return
 
     messages.value.push({ role: 'user', text })
     inputText.value = ''
