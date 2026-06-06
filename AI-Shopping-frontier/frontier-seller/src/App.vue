@@ -6,10 +6,25 @@
 </template>
 
 <script setup>
+import { onMounted, watch } from 'vue'
 import { useAuthStore } from '@/store/auth'
+import { useShopStore } from '@/store/shop'
 import AppLayout from '@/layout/AppLayout.vue'
 
 const authStore = useAuthStore()
+const shopStore = useShopStore()
+
+onMounted(() => {
+  if (authStore.isLoggedIn && authStore.merchantInfo?.id) {
+    shopStore.initShops(authStore.merchantInfo.id)
+  }
+})
+
+watch(() => authStore.isLoggedIn, (loggedIn) => {
+  if (loggedIn && authStore.merchantInfo?.id) {
+    shopStore.initShops(authStore.merchantInfo.id)
+  }
+})
 </script>
 
 <style>
