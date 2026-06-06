@@ -13,11 +13,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function login(credentials) {
     const res = await merchantLogin(credentials)
-    if (res.token) {
-      token.value = res.token
-      merchantInfo.value = res.merchantInfo
-      localStorage.setItem('satoken', res.token)
-      localStorage.setItem('merchantInfo', JSON.stringify(res.merchantInfo))
+    if (res.data?.token) {
+      token.value = res.data.token
+      merchantInfo.value = res.data.merchantInfo
+      localStorage.setItem('satoken', res.data.token)
+      localStorage.setItem('merchantInfo', JSON.stringify(res.data.merchantInfo))
+      if (res.data?.role) {
+        const roleObj = { role: res.data.role, shopId: null }
+        currentRole.value = roleObj
+        localStorage.setItem('currentRole', JSON.stringify(roleObj))
+      }
     }
     return res
   }
