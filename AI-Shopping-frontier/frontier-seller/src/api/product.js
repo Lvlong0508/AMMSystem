@@ -118,3 +118,18 @@ export const listProduct = (productId) =>
  */
 export const unlistProduct = (productId) =>
   request.post(`${PRODUCT_BASE}/${productId}/unlist`)
+
+/**
+ * 按店铺ID查询商品列表（全部商品，含未上架）
+ *
+ * @param {number} shopId - 店铺ID
+ * @returns {Promise<Array<{id: number, name: string, price: number, tags: string, isSale: boolean, imageId: number, imageUrl: string, shop: {id: string, name: string, description: string, logoUrl: string}}>>}
+ *
+ * @example
+ * // 请求
+ * getProductsByShop(1)
+ * // 响应
+ * // [{ id: 1, name: "商品名称", price: 99.99, tags: "标签1,标签2", isSale: true, imageUrl: "...", shop: {...} }]
+ */
+export const getProductsByShop = (shopId) =>
+  request.get(`${PRODUCT_BASE}/shop/${shopId}`)

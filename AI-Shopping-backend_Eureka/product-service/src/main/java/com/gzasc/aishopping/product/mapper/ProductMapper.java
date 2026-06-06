@@ -60,6 +60,9 @@ public interface ProductMapper {
             "</script>")
     List<Product> selectAbstractProductsByIdsJustMerchant(@Param("ids") List<Long> ids);
 
+    @Select("SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId}")
+    List<Product> selectByShopId(@Param("shopId") Long shopId);
+
     @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
     List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);
 

@@ -159,6 +159,33 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public List<ProductWithImageAbstractDTO> getSalableProductsByShopId(Long shopId) {
+        List<Product> products = productMapper.selectByShopId(shopId)
+            .stream()
+            .filter(Product::isSale)
+            .toList();
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        Set<Long> shopIds = Set.of(shopId);
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
+    public List<ProductWithImageAbstractDTO> getAllProductsByShopId(Long shopId) {
+        List<Product> products = productMapper.selectByShopId(shopId);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        Set<Long> shopIds = Set.of(shopId);
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
     public List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page) {
         if (page < 0) {
             throw new ProductException(400, "页码不能为负数");

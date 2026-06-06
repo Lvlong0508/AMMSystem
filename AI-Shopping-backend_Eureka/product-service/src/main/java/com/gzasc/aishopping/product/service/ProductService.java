@@ -30,6 +30,16 @@ public interface ProductService {
     List<ProductWithImageDetailDTO> getProductsByName(String name);
 
     /**
+     * 根据店铺ID查询商品（用户端：仅返回可售商品）
+     */
+    List<ProductWithImageAbstractDTO> getSalableProductsByShopId(Long shopId);
+
+    /**
+     * 根据店铺ID查询商品（商家端：返回全部商品）
+     */
+    List<ProductWithImageAbstractDTO> getAllProductsByShopId(Long shopId);
+
+    /**
      * 用户端: 根据可售商品ID批量查询抽象信息
      * (id, name, price, tags, imageId)
      */

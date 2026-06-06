@@ -41,6 +41,13 @@ public class ProductSellerController {
         return ApiResponse.success(toDetailVO(product));
     }
 
+    @GetMapping("/shop/{shopId}")
+    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByShop(@PathVariable("shopId") Long shopId) {
+        log.info("商家查询店铺商品列表, shopId={}", shopId);
+        List<ProductWithImageAbstractDTO> products = productService.getAllProductsByShopId(shopId);
+        return ApiResponse.success(products);
+    }
+
     @GetMapping("/batch")
     public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
         log.info("商家批量查询商品, ids={}", ids);

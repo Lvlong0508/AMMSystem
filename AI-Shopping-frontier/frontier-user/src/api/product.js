@@ -78,3 +78,18 @@ export const searchProducts = (name) =>
  */
 export const getProductsByPriceRange = (minPrice = 0, maxPrice = 100, page = 0) =>
   request.get('/api/user/product/price-range', { params: { minPrice, maxPrice, page } })
+
+/**
+ * 按店铺ID查询可售商品列表
+ *
+ * @param {number} shopId - 店铺ID
+ * @returns {Promise<{products: Array<{id: number, name: string, price: number, tags: string, imageId: number, imageUrl: string, shop: {id: string, name: string, description: string, logoUrl: string}}>>}>
+ *
+ * @example
+ * // 请求
+ * getProductsByShop(1)
+ * // 响应
+ * // { products: [{ id: 1, name: "商品名称", price: 99.99, tags: "标签1,标签2", imageId: 1, imageUrl: "...", shop: {...} }] }
+ */
+export const getProductsByShop = (shopId) =>
+  request.get(`/api/user/product/shop/${shopId}`)

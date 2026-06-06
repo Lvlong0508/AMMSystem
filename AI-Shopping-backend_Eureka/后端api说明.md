@@ -264,6 +264,7 @@
 | GET | `/api/user/product/{productId}` | 根据ID查询商品详情 | `productId`（路径参数） |
 | GET | `/api/user/product/search?name=xxx` | 按名称模糊搜索商品 | `name` |
 | GET | `/api/user/product/price-range?minPrice=0&maxPrice=100&page=0` | 按价格区间查询 | `minPrice`, `maxPrice`, `page`（默认0） |
+| GET | `/api/user/product/shop/{shopId}` | 按店铺ID查询可售商品 | `shopId`（路径参数） |
 
 #### 响应示例（列表）:
 ```json
@@ -503,6 +504,7 @@
 | GET | `/api/seller/product/batch?ids=1,2,3` | 批量查询商品抽象信息 |
 | POST | `/api/seller/product/{productId}/list` | 上架商品 |
 | POST | `/api/seller/product/{productId}/unlist` | 下架商品 |
+| GET | `/api/seller/product/shop/{shopId}` | 按店铺ID查询全部商品（含未上架） |
 
 #### 请求体:
 

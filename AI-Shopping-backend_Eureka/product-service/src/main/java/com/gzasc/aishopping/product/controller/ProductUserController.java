@@ -74,6 +74,18 @@ public class ProductUserController {
         }
     }
 
+    @GetMapping("/shop/{shopId}")
+    public ApiResponse<Map<String, Object>> getProductsByShop(@PathVariable("shopId") Long shopId) {
+        try {
+            List<ProductWithImageAbstractDTO> products = productService.getSalableProductsByShopId(shopId);
+            log.info("按店铺查询商品成功, shopId={}, size={}", shopId, products.size());
+            return ApiResponse.success(Map.of("products", toAbstractVOList(products)));
+        } catch (Exception e) {
+            log.error("按店铺查询商品失败: {}", e.getMessage());
+            throw new ProductException(500, "查询错误：" + e.getMessage());
+        }
+    }
+
     @GetMapping("/price-range")
     public ApiResponse<Map<String, Object>> getProductsByPriceRange(
             @RequestParam("minPrice") BigDecimal minPrice,
