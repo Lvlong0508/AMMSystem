@@ -14,10 +14,9 @@ export function useShopList() {
   async function loadShops() {
     loading.value = true
     try {
-      const merchantInfo = localStorage.getItem('merchantInfo')
-      if (!merchantInfo) return
-      const merchant = JSON.parse(merchantInfo)
-      const res = await getShopByMerchant(merchant.id)
+      const merchantId = localStorage.getItem('merchantId')
+      if (!merchantId) return
+      const res = await getShopByMerchant(merchantId)
       const shopIds = res?.data?.shopIds || res?.shopIds || []
       shops.value = shopIds.map(id => ({ id, name: `店铺 ${id}` }))
     } catch (error) {
@@ -59,5 +58,7 @@ export function useShopList() {
 
   onMounted(loadShops)
 
-  return { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, enterShop, loadShops }
+  function goRegister() { window.open('/shop/register', '_blank') }
+
+  return { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, enterShop, loadShops, goRegister }
 }

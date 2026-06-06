@@ -1,65 +1,9 @@
-<template>
-  <div class="shop-employees">
-    <div class="shop-employees__toolbar">
-      <h2 class="shop-employees__title">{{ T.PAGE_TITLE }} <span v-if="shopInfo">- {{ shopInfo.name }}</span></h2>
-      <div>
-        <el-button size="small" @click="loadEmployees">{{ T.BTN_REFRESH }}</el-button>
-        <el-button size="small" type="primary" @click="showAddDialog">{{ T.BTN_ADD }}</el-button>
-      </div>
-    </div>
-
-    <el-card shadow="never">
-      <el-table :data="employees" v-loading="loading" stripe border size="small" style="width: 100%">
-        <el-table-column :label="'头像'" width="60">
-          <template #default="{ row }">
-            <el-avatar :size="32">{{ getAvatarText(row.username) }}</el-avatar>
-          </template>
-        </el-table-column>
-        <el-table-column prop="username" :label="T.LABEL_USERNAME" min-width="120" />
-        <el-table-column prop="name" :label="T.LABEL_NAME" min-width="120" />
-        <el-table-column prop="merchantId" label="ID" width="120" />
-        <el-table-column prop="phone" :label="T.LABEL_PHONE" min-width="130" />
-        <el-table-column :label="T.LABEL_ROLE" width="100">
-          <template #default="{ row }">{{ getRoleText(row.role) }}</template>
-        </el-table-column>
-        <el-table-column :label="'操作'" width="100" fixed="right">
-          <template #default="{ row }">
-            <el-button text type="danger" size="small" @click="handleRemove(row)">{{ T.BTN_REMOVE }}</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-empty v-if="!loading && employees.length === 0" :description="T.EMPTY_TEXT" />
-    </el-card>
-
-    <el-dialog v-model="dialogVisible" :title="T.DIALOG_ADD" width="480px">
-      <el-form label-position="top">
-        <el-form-item :label="T.LABEL_NAME">
-          <el-input v-model="form.name" :maxlength="50" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_PHONE">
-          <el-input v-model="form.phone" :maxlength="20" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_USERNAME">
-          <el-input v-model="form.username" :maxlength="50" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_PASSWORD">
-          <el-input v-model="form.password" type="password" :maxlength="50" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="closeDialog">{{ T.BTN_CANCEL }}</el-button>
-        <el-button type="primary" :loading="submitting" @click="handleSubmit">
-          {{ submitting ? T.BTN_SUBMITTING : T.BTN_SUBMIT }}
-        </el-button>
-      </template>
-    </el-dialog>
-  </div>
+﻿<template>
+  <div class="shop-employees">    <div class="shop-employees__toolbar">      <h2 class="shop-employees__title">{{ T.PAGE_TITLE }} <span v-if="shopInfo">- {{ shopInfo.name }}</span></h2>      <div>        <el-button @click="loadEmployees">{{ T.BTN_REFRESH }}</el-button>        <el-button type="primary" @click="showAddDialog">{{ T.BTN_ADD }}</el-button>      </div>    </div>    <el-card shadow="never">      <el-table :data="employees" v-loading="loading" stripe border style="width: 100%">        <el-table-column :label="'澶村儚'" width="60">          <template #default="{ row }">            <el-avatar :size="32">{{ getAvatarText(row.username) }}</el-avatar>          </template>        </el-table-column>        <el-table-column prop="username" :label="T.LABEL_USERNAME" min-width="120" />        <el-table-column prop="name" :label="T.LABEL_NAME" min-width="120" />        <el-table-column prop="merchantId" label="ID" width="120" />        <el-table-column prop="phone" :label="T.LABEL_PHONE" min-width="130" />        <el-table-column :label="T.LABEL_ROLE" width="100">          <template #default="{ row }">{{ getRoleText(row.role) }}</template>        </el-table-column>        <el-table-column :label="'鎿嶄綔'" width="100" fixed="right">          <template #default="{ row }">            <el-button text type="danger" @click="handleRemove(row)">{{ T.BTN_REMOVE }}</el-button>          </template>        </el-table-column>      </el-table>      <el-empty v-if="!loading && employees.length === 0" :description="T.EMPTY_TEXT" />    </el-card>    <el-dialog v-model="dialogVisible" :title="T.DIALOG_ADD" width="480px">      <el-form label-position="top">        <el-form-item :label="T.LABEL_NAME">          <el-input v-model="form.name" :maxlength="50" />        </el-form-item>        <el-form-item :label="T.LABEL_PHONE">          <el-input v-model="form.phone" :maxlength="20" />        </el-form-item>        <el-form-item :label="T.LABEL_USERNAME">          <el-input v-model="form.username" :maxlength="50" />        </el-form-item>        <el-form-item :label="T.LABEL_PASSWORD">          <el-input v-model="form.password" type="password" :maxlength="50" />        </el-form-item>      </el-form>      <template #footer>        <el-button @click="closeDialog">{{ T.BTN_CANCEL }}</el-button>        <el-button type="primary" :loading="submitting" @click="handleSubmit">          {{ submitting ? T.BTN_SUBMITTING : T.BTN_SUBMIT }}        </el-button>      </template>    </el-dialog>  </div>
 </template>
-
 <script setup>
 import { useShopEmployees } from './ShopEmployees.js'
 const props = useShopEmployees()
 const { T, shopInfo, employees, loading, dialogVisible, submitting, form, getAvatarText, getRoleText, showAddDialog, closeDialog, handleSubmit, handleRemove, loadEmployees } = props
 </script>
-
 <style scoped src="./ShopEmployees.css"></style>

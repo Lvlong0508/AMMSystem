@@ -176,7 +176,7 @@ export function useShip() {
     contacts, contactsLoading,
     detailVisible, detailLoading, selectedOrder, shipVisible, shipForm, shipping,
     ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText,
-    formatPrice, formatDate, getContactText, showOrderDetail, closeDetail,
+    formatPrice, formatDate, showOrderDetail, closeDetail,
     showShipDialog, closeShipDialog, handleShip
   }
 }

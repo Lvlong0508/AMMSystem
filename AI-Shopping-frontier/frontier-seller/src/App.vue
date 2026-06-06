@@ -1,31 +1,10 @@
 <template>
-  <AppLayout v-if="authStore.isLoggedIn">
-    <router-view />
-  </AppLayout>
-  <router-view v-else />
+  <router-view v-slot="{ Component, route: r }">
+    <transition name="el-fade-in-linear" mode="out-in">
+      <component :is="Component" :key="r.path" />
+    </transition>
+  </router-view>
 </template>
-
-<script setup>
-import { onMounted, watch } from 'vue'
-import { useAuthStore } from '@/store/auth'
-import { useShopStore } from '@/store/shop'
-import AppLayout from '@/layout/AppLayout.vue'
-
-const authStore = useAuthStore()
-const shopStore = useShopStore()
-
-onMounted(() => {
-  if (authStore.isLoggedIn && authStore.merchantInfo?.id) {
-    shopStore.initShops(authStore.merchantInfo.id)
-  }
-})
-
-watch(() => authStore.isLoggedIn, (loggedIn) => {
-  if (loggedIn && authStore.merchantInfo?.id) {
-    shopStore.initShops(authStore.merchantInfo.id)
-  }
-})
-</script>
 
 <style>
 :root {
@@ -154,11 +133,15 @@ watch(() => authStore.isLoggedIn, (loggedIn) => {
   --el-pagination-button-bg-color: transparent;
 }
 
-/* 全局过渡 */
-* {
-  transition-property: background-color, border-color, color, opacity, box-shadow;
-  transition-duration: var(--transition-fast);
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+::selection {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
 }
 
 a, button, [role="button"] {

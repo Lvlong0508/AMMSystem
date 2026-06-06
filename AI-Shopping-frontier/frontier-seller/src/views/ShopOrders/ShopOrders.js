@@ -57,5 +57,5 @@ export function useShopOrders() {
 
   onMounted(() => { loadShopInfo(); loadOrders() })
 
-  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, ORDER_STATUS }
+  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, ORDER_STATUS, STATUS_TEXT }
 }

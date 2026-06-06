@@ -4,11 +4,7 @@
       <span class="sidebar__logo">AI-Mart</span>
     </div>
 
-    <div v-if="shop.hasNoShops" class="sidebar__notice sidebar__notice--empty">
-      <p>您还没有店铺</p>
-      <el-button size="small" type="primary" round @click="goRegister">创建店铺</el-button>
-    </div>
-    <div v-else-if="shop.loaded && !shop.currentShopId" class="sidebar__notice">
+    <div v-if="shop.loaded && !shop.currentShopId" class="sidebar__notice">
       请先选择店铺
     </div>
 
@@ -18,10 +14,9 @@
       :collapse="app.sidebarCollapsed"
       class="sidebar__menu"
     >
-      <!-- 订单管理分组（无店铺时不显示） -->
       <el-sub-menu v-if="!shop.hasNoShops" index="order-group">
         <template #title>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
           <span>订单管理</span>
         </template>
         <el-menu-item index="/ship">
@@ -37,14 +32,14 @@
 
       <!-- 商品管理 -->
       <el-menu-item v-if="shop.currentShopId" :index="`/shop/${shop.currentShopId}/products`">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
         <span>商品管理</span>
       </el-menu-item>
 
       <!-- 店铺管理分组（仅店主） -->
       <el-sub-menu v-if="auth.isOwner" index="shop-group">
         <template #title>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
           <span>店铺管理</span>
         </template>
         <el-menu-item v-if="shop.currentShopId" :index="`/shop/${shop.currentShopId}/info`">
@@ -64,20 +59,16 @@
 </template>
 
 <script setup>
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useShopStore } from '@/store/shop'
 import { useAppStore } from '@/store/app'
 
 const route = useRoute()
-const router = useRouter()
 const auth = useAuthStore()
 const shop = useShopStore()
 const app = useAppStore()
 
-function goRegister() {
-  router.push('/shop/register')
-}
 </script>
 
 <style scoped>
@@ -114,10 +105,6 @@ function goRegister() {
   text-align: center;
 }
 
-.sidebar__notice--empty p {
-  margin: 0 0 var(--space-3);
-}
-
 .sidebar__menu {
   flex: 1;
   border-right: none;
@@ -125,11 +112,11 @@ function goRegister() {
 }
 
 .sidebar__menu :deep(.el-menu-item) {
-  height: 40px;
-  line-height: 40px;
-  margin: 1px var(--space-2);
+  height: 44px;
+  line-height: 44px;
+  margin: 2px var(--space-2);
   border-radius: var(--radius-md);
-  font-size: var(--text-sm);
+  font-size: var(--text-base);
 }
 
 .sidebar__menu :deep(.el-menu-item.is-active) {
@@ -144,12 +131,12 @@ function goRegister() {
 }
 
 .sidebar__menu :deep(.el-sub-menu__title) {
-  height: 40px;
-  line-height: 40px;
-  font-size: var(--text-sm);
+  height: 44px;
+  line-height: 44px;
+  font-size: var(--text-base);
   font-weight: 600;
   color: var(--color-text-secondary);
-  margin: 1px var(--space-2);
+  margin: 2px var(--space-2);
   border-radius: var(--radius-md);
 }
 

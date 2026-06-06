@@ -1,0 +1,7 @@
+export const BTN_EDIT = '编辑'
+export const BTN_DELETE = '删除'
+export const BTN_LIST = '上架'
+export const BTN_UNLIST = '下架'
+export const STATUS_ON = '在售'
+export const STATUS_OFF = '已下架'
+export const LABEL_STOCK = '库存'

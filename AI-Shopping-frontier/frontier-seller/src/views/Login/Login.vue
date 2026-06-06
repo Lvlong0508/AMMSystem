@@ -1,6 +1,14 @@
 <template>
   <div class="login-page">
-    <el-card class="login-card" shadow="always">
+    <transition name="el-fade-in-linear">
+      <div v-if="verifying" class="login-verifying">
+        <div class="login-verifying__spinner"></div>
+        <h2 class="login-verifying__title">{{ T.BRAND_NAME }}</h2>
+        <p class="login-verifying__text">{{ T.VERIFYING }}</p>
+      </div>
+    </transition>
+
+    <el-card v-show="!verifying" class="login-card" shadow="always">
       <div class="login-brand">
         <svg class="login-brand__icon" viewBox="0 0 48 48" fill="none">
           <rect width="48" height="48" rx="12" fill="oklch(0.9 0.02 240)"/>
@@ -45,13 +53,17 @@
       </el-form>
 
     </el-card>
+
+    <div class="login-footer">
+      <router-link to="/register" class="login-footer__link">{{ T.LINK_REGISTER }}</router-link>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { useLogin } from './Login.js'
 
-const { T, formRef, form, loading, rules, handleLogin } = useLogin()
+const { T, formRef, form, loading, verifying, rules, handleLogin } = useLogin()
 </script>
 
 <style scoped src="./Login.css"></style>

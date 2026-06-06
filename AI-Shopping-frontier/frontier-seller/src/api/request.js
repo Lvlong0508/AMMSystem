@@ -13,17 +13,9 @@ request.interceptors.request.use(
         if (token) {
             config.headers['satoken'] = token
         }
-        // 优先使用 merchantInfo（商家端）
-        const merchantInfo = localStorage.getItem('merchantInfo')
-        if (merchantInfo) {
-            try {
-                const merchant = JSON.parse(merchantInfo)
-                if (merchant.id) {
-                    config.headers['X-User-Id'] = merchant.id
-                }
-            } catch (e) {
-                // ignore
-            }
+        const merchantId = localStorage.getItem('merchantId')
+        if (merchantId) {
+            config.headers['X-User-Id'] = merchantId
         }
         // 添加角色信息
         const currentRole = localStorage.getItem('currentRole')

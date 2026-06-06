@@ -1,11 +1,13 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/store/auth'
 import { registerShop } from '@/api/shop'
 import * as T from './Text.js'
 
 export function useShopRegister() {
   const router = useRouter()
+  const authStore = useAuthStore()
   const formRef = ref(null)
   const submitting = ref(false)
   const form = reactive({ name: '', description: '' })
@@ -28,11 +30,11 @@ export function useShopRegister() {
     submitting.value = true
     try {
       const res = await registerShop({ name: form.name, description: form.description })
-      if (res?.message?.includes('成功')) {
+      if (res.data?.id) {
         ElMessage.success(T.SUCCESS_MSG)
         router.push('/shop/list')
       } else {
-        ElMessage.error(res?.message || T.ERROR_MSG)
+        ElMessage.error(res.data?.message || T.ERROR_MSG)
       }
     } catch (error) {
       ElMessage.error(error.message || T.ERROR_MSG)
@@ -41,5 +43,10 @@ export function useShopRegister() {
     }
   }
 
-  return { T, formRef, form, submitting, rules, handleSubmit }
+  function handleLogout() {
+    authStore.logout()
+    router.push('/login')
+  }
+
+  return { T, formRef, form, submitting, rules, handleSubmit, handleLogout }
 }

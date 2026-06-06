@@ -1,26 +1,3 @@
-.shop-products__toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-4);
-}
-
-.shop-products__title {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  margin: 0;
-}
-
-.shop-products__filters {
-  margin-bottom: var(--space-4);
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: var(--space-4);
-}
-
 .product-card__abstract {
   display: flex;
   align-items: center;

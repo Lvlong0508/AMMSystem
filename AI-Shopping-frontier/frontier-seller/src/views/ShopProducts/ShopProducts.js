@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getShopDetail } from '@/api/shop'
-import { createProduct, updateProduct, deleteProduct } from '@/api/product'
+import { createProduct, updateProduct, deleteProduct, listProduct, unlistProduct } from '@/api/product'
 import * as T from './Text.js'
 
 export function useShopProducts() {
@@ -120,6 +120,20 @@ export function useShopProducts() {
     }
   }
 
+  async function handleToggleSale(product) {
+    try {
+      if (product.isSale) {
+        await unlistProduct(product.productId)
+      } else {
+        await listProduct(product.productId)
+      }
+      ElMessage.success(product.isSale ? T.UNLIST_SUCCESS : T.LIST_SUCCESS)
+      await loadProducts()
+    } catch (e) {
+      ElMessage.error(T.OPERATION_FAILED)
+    }
+  }
+
   async function handleDelete(product) {
     try {
       await ElMessageBox.confirm(T.CONFIRM_DELETE, { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' })
@@ -139,5 +153,5 @@ export function useShopProducts() {
 
   onMounted(() => { loadShopInfo(); loadProducts() })
 
-  return { T, shopInfo, products, loading, searchKeyword, filteredProducts, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleDelete, loadProducts }
+  return { T, shopInfo, products, loading, searchKeyword, filteredProducts, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts }
 }

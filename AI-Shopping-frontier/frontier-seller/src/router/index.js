@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useShopStore } from '@/store/shop'
+import AppLayout from '@/layout/AppLayout.vue'
 import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
+import Register from '../views/Register/Register.vue'
 import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
 import ShopList from '../views/ShopList/ShopList.vue'
 import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
@@ -20,57 +22,63 @@ const routes = [
     meta: { public: true }
   },
   {
-    path: '/',
-    redirect: '/ship'
-  },
-  {
-    path: '/ship',
-    name: 'ship',
-    component: Ship
+    path: '/register',
+    name: 'register',
+    component: Register,
+    meta: { public: true }
   },
   {
     path: '/shop/register',
     name: 'shop-register',
-    component: ShopRegister
+    component: ShopRegister,
+    meta: { public: true }
   },
   {
-    path: '/shop/list',
-    name: 'shop-list',
-    component: ShopList,
-    meta: { shopOwnerOnly: true }
-  },
-  {
-    path: '/shop/:shopId/products',
-    name: 'shop-products',
-    component: ShopProducts
-  },
-  {
-    path: '/shop/:shopId/orders',
-    name: 'shop-orders',
-    component: ShopOrders
-  },
-  {
-    path: '/shop/:shopId/employees',
-    name: 'shop-employees',
-    component: ShopEmployees,
-    meta: { shopOwnerOnly: true }
-  },
-  {
-    path: '/shop/:shopId/addresses',
-    name: 'shop-addresses',
-    component: ShopAddresses,
-    meta: { shopOwnerOnly: true }
-  },
-  {
-    path: '/shop/:shopId/returns',
-    name: 'shop-returns',
-    component: ShopReturns
-  },
-  {
-    path: '/shop/:shopId/info',
-    name: 'shop-info',
-    component: ShopInfo,
-    meta: { shopOwnerOnly: true }
+    path: '/',
+    component: AppLayout,
+    children: [
+      { path: '', redirect: '/ship' },
+      { path: 'ship', name: 'ship', component: Ship },
+      {
+        path: 'shop/list',
+        name: 'shop-list',
+        component: ShopList,
+        meta: { shopOwnerOnly: true }
+      },
+      {
+        path: 'shop/:shopId/products',
+        name: 'shop-products',
+        component: ShopProducts
+      },
+      {
+        path: 'shop/:shopId/orders',
+        name: 'shop-orders',
+        component: ShopOrders
+      },
+      {
+        path: 'shop/:shopId/employees',
+        name: 'shop-employees',
+        component: ShopEmployees,
+        meta: { shopOwnerOnly: true }
+      },
+      {
+        path: 'shop/:shopId/addresses',
+        name: 'shop-addresses',
+        component: ShopAddresses,
+        meta: { shopOwnerOnly: true }
+      },
+      {
+        path: 'shop/:shopId/returns',
+        name: 'shop-returns',
+        component: ShopReturns
+      },
+      {
+        path: 'shop/:shopId/info',
+        name: 'shop-info',
+        component: ShopInfo,
+        meta: { shopOwnerOnly: true }
+      }
+    ]
   }
 ]
 
@@ -79,7 +87,7 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore()
   const shop = useShopStore()
 
@@ -98,19 +106,13 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // 同步 shopId 路由参数到 store
+  if (auth.merchantId) await shop.initShops(auth.merchantId)
+
   if (to.params.shopId) {
     shop.switchShop(to.params.shopId)
   }
 
   next()
-})
-
-router.afterEach(() => {
-  if (sessionStorage.getItem('needReload') === '1') {
-    sessionStorage.removeItem('needReload')
-    window.location.reload()
-  }
 })
 
 export default router

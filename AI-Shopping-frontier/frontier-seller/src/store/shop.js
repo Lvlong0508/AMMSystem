@@ -17,14 +17,13 @@ export const useShopStore = defineStore('shop', () => {
     try {
       const res = await getShopByMerchant(merchantId)
       const shopIds = res?.data?.shopIds || res?.shopIds || []
-      shops.value = shopIds.map(id => ({ id, name: `店铺 ${id}` }))
-      if (shops.value.length > 0 && !currentShopId.value) {
-        currentShopId.value = String(shops.value[0].id)
-        localStorage.setItem('currentShopId', currentShopId.value)
-      }
-      if (shops.value.length === 1) {
-        currentShopId.value = String(shops.value[0].id)
-        localStorage.setItem('currentShopId', currentShopId.value)
+      shops.value = shopIds.map(id => ({ id: String(id), name: `店铺 ${id}` }))
+      if (shops.value.length > 0) {
+        const exists = shops.value.some(s => String(s.id) === String(currentShopId.value))
+        if (!currentShopId.value || !exists || shops.value.length === 1) {
+          currentShopId.value = String(shops.value[0].id)
+          localStorage.setItem('currentShopId', currentShopId.value)
+        }
       }
     } catch (e) {
       console.error('初始化店铺失败:', e)

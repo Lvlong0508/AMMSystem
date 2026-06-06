@@ -43,6 +43,12 @@
   flex-wrap: wrap;
 }
 
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: var(--space-4);
+}
+
 .detail-section {
   margin-top: var(--space-4);
   padding-top: var(--space-3);
