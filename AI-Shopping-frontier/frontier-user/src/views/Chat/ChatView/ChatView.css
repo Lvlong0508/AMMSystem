@@ -1,50 +1,38 @@
 .chat-view {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  /* 移除原来的 background: #fff; 将背景全权交给底层 vanta 画布 */
+  flex: 1;
+  width: 100%;
+  min-height: 0;
   background: transparent;
   font-family: var(--font-body);
-  position: relative; /* 为绝对定位的背景做参考 */
-  overflow: hidden;
-}
-
-/* 新增：Vanta 背景层样式 */
-.chat-view__bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none; /* 事件穿透，防止挡住用户的滚动和点击 */
-}
-
-.chat-view__bg canvas {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
 }
 
 .chat-view--empty {
   justify-content: center;
 }
+
 .chat-view__messages {
-  position: relative;
-  z-index: 1;
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 20px 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
+.chat-view__messages::-webkit-scrollbar {
+  display: none;
+}
 .chat-view--empty .chat-view__messages {
   flex: 0 0 auto;
   overflow: visible;
   padding-bottom: 24px;
+}
+.chat-view--has-messages .chat-view__messages {
+  padding-bottom: 112px;
 }
 .chat-view__welcome {
   display: flex;
@@ -131,8 +119,6 @@
 }
 
 .chat-view__input-bar {
-  position: relative;
-  z-index: 1;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -142,41 +128,21 @@
 .chat-view--empty .chat-view__input-bar {
   justify-content: center;
 }
+.chat-view--has-messages .chat-view__input-bar {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-width);
+  right: 0;
+  z-index: 100;
+  transition: left 250ms ease-out;
+  animation: inputBarFix 300ms ease-out;
+}
 .chat-view__input-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0 28px;
-  height: 76px;
+  flex: 1;
   max-width: 680px;
-  width: 100%;
-  border: 2px solid #E4ECFC;
-  border-radius: 38px;
-  background: #F1F5FD;
-  transition: all 200ms ease-out;
 }
 .chat-view:not(.chat-view--empty) .chat-view__input-wrap {
   max-width: none;
-}
-.chat-view__input-wrap:focus-within {
-  border-color: #2563EB;
-  background: #fff;
-}
-.chat-view__input {
-  flex: 1;
-  border: none;
-  background: none;
-  font-size: 20px;
-  font-family: var(--font-body);
-  color: #0F172A;
-  outline: none;
-  height: 100%;
-}
-.chat-view__input::placeholder {
-  color: #94a3b8;
-}
-.chat-view__input:disabled {
-  opacity: 0.5;
 }
 .chat-view__send-btn {
   width: 56px;
@@ -209,6 +175,11 @@
 .chat-view__send-btn:disabled {
   cursor: not-allowed;
   opacity: 0.4;
+}
+
+@keyframes inputBarFix {
+  from { opacity: 0.5; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeSlideUp {
