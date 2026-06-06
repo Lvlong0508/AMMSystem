@@ -13,7 +13,7 @@
     </div>
 
     <div class="topbar__right">
-      <el-select v-if="shop.shops.length > 1" v-model="selectedShopId" size="small" @change="onShopChange">
+      <el-select v-if="shop.hasMultipleShops" v-model="selectedShopId" size="small" style="width: 140px">
         <el-option v-for="s in shop.shops" :key="s.id" :label="`店铺 ${s.id}`" :value="s.id" />
       </el-select>
     </div>
@@ -21,7 +21,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from '@/store/app'
 import { useShopStore } from '@/store/shop'
@@ -30,7 +30,10 @@ const route = useRoute()
 const app = useAppStore()
 const shop = useShopStore()
 
-const selectedShopId = ref(shop.currentShopId)
+const selectedShopId = computed({
+  get: () => shop.currentShopId,
+  set: (val) => { if (val) shop.switchShop(val) }
+})
 
 const breadcrumbMap = {
   '/ship': '订单发货',
@@ -51,7 +54,9 @@ const breadcrumbs = computed(() => {
         'products': '商品管理',
         'orders': '订单管理',
         'employees': '员工管理',
-        'addresses': '地址管理'
+        'addresses': '地址管理',
+        'returns': '退货管理',
+        'info': '商店信息'
       }
       const segment = path.split('/').pop()
       if (pageMap[segment]) {
@@ -66,14 +71,6 @@ const breadcrumbs = computed(() => {
 
   return crumbs
 })
-
-watch(() => shop.currentShopId, (val) => {
-  selectedShopId.value = val
-})
-
-function onShopChange() {
-  shop.switchShop(selectedShopId.value)
-}
 </script>
 
 <style scoped>
