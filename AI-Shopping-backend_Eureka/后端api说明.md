@@ -434,6 +434,8 @@
 
 # Merchant API（商家端）
 
+> **关于 ID 类型**：由于使用雪花算法生成 64 位 ID，超出 JS 安全整数范围，所有返回给前端的 Long 类型 ID 均序列化为 **字符串** 而非数字。前端应始终以字符串方式处理 ID。
+
 ## Auth Service（认证服务）
 
 **端口**: 8086
@@ -455,6 +457,28 @@
   "password": "pass123",
   "phone": "13900139000",
   "merchantId": 1
+}
+```
+
+#### 登录/注册响应:
+```json
+{
+  "code": 200,
+  "message": "登录成功",
+  "data": {
+    "token": "xxx",
+    "accountType": "MERCHANT",
+    "merchantInfo": {
+      "id": "2062474586787811328",
+      "username": "seller1",
+      "phone": "13900139001",
+      "email": null,
+      "infoId": null,
+      "status": 1,
+      "nickname": "商家一号",
+      "avatar": null
+    }
+  }
 }
 ```
 
@@ -785,7 +809,7 @@
 {
   "code": 200,
   "message": "成功",
-  "data": { "shopIds": [1, 2, 3] }
+  "data": { "shopIds": ["2062474586787811328", "2062474586787811329", "2062474586787811330"] }
 }
 ```
 

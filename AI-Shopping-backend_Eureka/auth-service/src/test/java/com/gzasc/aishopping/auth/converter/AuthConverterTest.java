@@ -32,7 +32,7 @@ class AuthConverterTest {
 
         Map<String, Object> result = converter.toUserInfoMap(user, userInfo);
 
-        assertEquals(100L, result.get("id"));
+        assertEquals("100", result.get("id"));
         assertEquals("testuser", result.get("username"));
         assertEquals("13800138001", result.get("phone"));
         assertEquals("test@test.com", result.get("email"));
@@ -51,7 +51,7 @@ class AuthConverterTest {
 
         Map<String, Object> result = converter.toUserInfoMap(user, null);
 
-        assertEquals(100L, result.get("id"));
+        assertEquals("100", result.get("id"));
         assertEquals("testuser", result.get("username"));
         assertNull(result.get("nickname"));
         assertNull(result.get("avatar"));
@@ -74,7 +74,7 @@ class AuthConverterTest {
 
         Map<String, Object> result = converter.toMerchantInfoMap(merchant, merchantInfo);
 
-        assertEquals(200L, result.get("id"));
+        assertEquals("200", result.get("id"));
         assertEquals("seller1", result.get("username"));
         assertEquals("13900139001", result.get("phone"));
         assertEquals("seller@shop.com", result.get("email"));
@@ -93,7 +93,7 @@ class AuthConverterTest {
 
         Map<String, Object> result = converter.toMerchantInfoMap(merchant, null);
 
-        assertEquals(200L, result.get("id"));
+        assertEquals("200", result.get("id"));
         assertEquals("seller1", result.get("username"));
         assertNull(result.get("nickname"));
         assertNull(result.get("avatar"));

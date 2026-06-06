@@ -6,6 +6,8 @@ import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
+import com.gzasc.aishopping.shop.service.impl.ShopConverter;
+import com.gzasc.aishopping.shop.vo.ShopVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -34,9 +36,12 @@ class ShopMerchantControllerTest {
     @Mock
     private ShopService shopService;
 
+    @Mock
+    private ShopConverter shopConverter;
+
     @BeforeEach
     void setUp() {
-        var controller = new ShopMerchantController(shopService);
+        var controller = new ShopMerchantController(shopService, shopConverter);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -63,7 +68,7 @@ class ShopMerchantControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("创建店铺成功"))
-                .andExpect(jsonPath("$.data.id").value(10001));
+                .andExpect(jsonPath("$.data.id").value("10001"));
     }
 
     @Test
@@ -332,9 +337,9 @@ class ShopMerchantControllerTest {
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shopIds[0]").value(1))
-                .andExpect(jsonPath("$.data.shopIds[1]").value(2))
-                .andExpect(jsonPath("$.data.shopIds[2]").value(3));
+                .andExpect(jsonPath("$.data.shopIds[0]").value("1"))
+                .andExpect(jsonPath("$.data.shopIds[1]").value("2"))
+                .andExpect(jsonPath("$.data.shopIds[2]").value("3"));
     }
 
     @Test
@@ -342,13 +347,15 @@ class ShopMerchantControllerTest {
     void getShop_success() throws Exception {
         Shop shop = new Shop(1L, 1001L, 10L, 1, null, null);
         when(shopService.getShopWithAccessCheck(1L, 1001L)).thenReturn(shop);
+        when(shopConverter.toShopVO(any())).thenReturn(new ShopVO("1", "1001", "10", 1, null, null));
 
         mockMvc.perform(get("/api/seller/shop/1")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shop.id").value(1))
-                .andExpect(jsonPath("$.data.shop.merchantId").value(1001))
+                .andExpect(jsonPath("$.data.shop.id").value("1"))
+                .andExpect(jsonPath("$.data.shop.merchantId").value("1001"))
+                .andExpect(jsonPath("$.data.shop.shopInfoId").value("10"))
                 .andExpect(jsonPath("$.data.shop.status").value(1));
     }
 

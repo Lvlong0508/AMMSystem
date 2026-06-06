@@ -1,7 +1,11 @@
 package com.gzasc.aishopping.shop.controller;
 
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
+import com.gzasc.aishopping.shop.service.impl.ShopConverter;
+import com.gzasc.aishopping.shop.vo.ShopInfoVO;
+import com.gzasc.aishopping.shop.vo.ShopVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -30,9 +35,12 @@ class ShopUserControllerTest {
     @Mock
     private ShopService shopService;
 
+    @Mock
+    private ShopConverter shopConverter;
+
     @BeforeEach
     void setUp() {
-        var controller = new ShopUserController(shopService);
+        var controller = new ShopUserController(shopService, shopConverter);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -103,16 +111,17 @@ class ShopUserControllerTest {
     @DisplayName("SH-033 查询店铺详情 - 活跃店铺")
     void getShopDetail_active() throws Exception {
         Shop shop = new Shop(1L, 1001L, 10L, 1, null, null);
-        Map<String, Object> detailData = Map.of("shop", shop, "shopInfo", Map.of(
-                "id", 10, "name", "测试店铺", "description", "描述", "logourl", "logo"
-        ));
+        Map<String, Object> detailData = new HashMap<>(Map.of("shop", shop, "shopInfo", new ShopInfoDTO(10L, "测试店铺", "描述", "logo")));
         when(shopService.getActiveShopById(1L)).thenReturn(detailData);
+        when(shopConverter.toShopVO(any())).thenReturn(new ShopVO("1", "1001", "10", 1, null, null));
+        when(shopConverter.toShopInfoVO(any())).thenReturn(new ShopInfoVO("10", "测试店铺", "描述", "logo"));
 
         mockMvc.perform(get("/api/user/shop/1")
                         .header("X-User-Id", 2001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shop.id").value(1))
+                .andExpect(jsonPath("$.data.shop.id").value("1"))
+                .andExpect(jsonPath("$.data.shop.merchantId").value("1001"))
                 .andExpect(jsonPath("$.data.shopInfo.name").value("测试店铺"));
     }
 

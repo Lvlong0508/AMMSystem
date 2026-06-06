@@ -276,7 +276,7 @@ class ProductSellerControllerTest {
         mockMvc.perform(get("/api/seller/product/4001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(4001));
+                .andExpect(jsonPath("$.data.id").value("4001"));
     }
 
     @Test

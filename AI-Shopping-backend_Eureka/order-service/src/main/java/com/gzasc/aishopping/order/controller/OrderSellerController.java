@@ -9,7 +9,9 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/seller/order")
@@ -26,11 +28,11 @@ public class OrderSellerController {
     }
 
     @GetMapping("/shop/{shopId}/{orderId}")
-    public ApiResponse<OrderDetailDTO> getShopOrderDetail(
+    public ApiResponse<Map<String, Object>> getShopOrderDetail(
             @PathVariable("shopId") String shopId,
             @PathVariable("orderId") String orderId) {
         OrderDetailDTO detail = orderService.getOrderDetailByShop(shopId, orderId);
-        return ApiResponse.success(detail);
+        return ApiResponse.success(toOrderVO(detail));
     }
 
     @PutMapping("/{orderId}/ship")
@@ -56,5 +58,23 @@ public class OrderSellerController {
             @RequestParam("shopId") String shopId) {
         orderService.confirmReturn(shopId, orderId);
         return ApiResponse.success("退货已确认", null);
+    }
+
+    private Map<String, Object> toOrderVO(OrderDetailDTO dto) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("orderId", dto.getOrderId());
+        map.put("userId", String.valueOf(dto.getUserId()));
+        map.put("shopId", dto.getShopId());
+        map.put("productId", dto.getProductId());
+        map.put("quantity", dto.getQuantity());
+        map.put("totalPrice", dto.getTotalPrice());
+        map.put("orderStatus", dto.getOrderStatus());
+        map.put("orderDate", dto.getOrderDate());
+        map.put("contactId", dto.getContactId());
+        map.put("contactName", dto.getContactName());
+        map.put("contactPhone", dto.getContactPhone());
+        map.put("contactAddress", dto.getContactAddress());
+        map.put("trackingNumber", dto.getTrackingNumber());
+        return map;
     }
 }

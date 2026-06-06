@@ -73,7 +73,7 @@ class ProductUserControllerTest {
         mockMvc.perform(get("/api/user/product/1001"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(1001));
+                .andExpect(jsonPath("$.data.id").value("1001"));
     }
 
     @Test
@@ -162,7 +162,7 @@ class ProductUserControllerTest {
         mockMvc.perform(get("/api/user/product/1002"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.id").value(1002));
+                .andExpect(jsonPath("$.data.id").value("1002"));
     }
 
     @Test

@@ -165,10 +165,10 @@ public class ShopServiceImpl implements ShopService {
         List<Map<String, Object>> employeeList = new ArrayList<>();
         for (MerchantRole mr : employees) {
             Map<String, Object> emp = new HashMap<>();
-            emp.put("merchantId", mr.getMerchantId());
-            emp.put("shopId", mr.getShopId());
+            emp.put("merchantId", String.valueOf(mr.getMerchantId()));
+            emp.put("shopId", String.valueOf(mr.getShopId()));
             emp.put("role", mr.getRole());
-            emp.put("assignedBy", mr.getAssignedBy());
+            emp.put("assignedBy", String.valueOf(mr.getAssignedBy()));
             employeeList.add(emp);
         }
         Map<String, Object> result = new HashMap<>();

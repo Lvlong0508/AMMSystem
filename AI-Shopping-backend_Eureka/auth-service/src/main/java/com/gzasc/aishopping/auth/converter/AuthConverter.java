@@ -14,7 +14,7 @@ public class AuthConverter {
 
     public Map<String, Object> toUserInfoMap(User user, UserInfo userInfo) {
         Map<String, Object> info = new HashMap<>();
-        info.put("id", user.getId());
+        info.put("id", String.valueOf(user.getId()));
         info.put("username", user.getUsername());
         info.put("phone", user.getPhone());
         info.put("email", user.getEmail());
@@ -29,7 +29,7 @@ public class AuthConverter {
 
     public Map<String, Object> toMerchantInfoMap(Merchant merchant, MerchantInfo merchantInfo) {
         Map<String, Object> info = new HashMap<>();
-        info.put("id", merchant.getId());
+        info.put("id", String.valueOf(merchant.getId()));
         info.put("username", merchant.getUsername());
         info.put("phone", merchant.getPhone());
         info.put("email", merchant.getEmail());
