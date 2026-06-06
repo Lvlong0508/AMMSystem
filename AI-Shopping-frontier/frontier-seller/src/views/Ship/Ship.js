@@ -2,18 +2,16 @@ import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { shipOrder, getOrderListByShop, getOrderDetail } from '@/api/order'
 import { getShipDefaultAddress } from '@/api/contact'
-import { getShopByMerchant } from '@/api/shop'
+import { useShopStore } from '@/store/shop'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 import * as T from './Text.js'
 
 export function useShip() {
+  const shopStore = useShopStore()
   const orders = ref([])
   const loading = ref(false)
   const filterStatus = ref('')
   const searchCustomer = ref('')
-
-  const shops = ref([])
-  const currentShopId = ref(null)
 
   const contacts = ref([])
   const contactsLoading = ref(false)
@@ -35,38 +33,14 @@ export function useShip() {
     orders.value.filter(o => o.orderStatus === ORDER_STATUS.PAID).length
   )
 
-  const hasMultipleShops = computed(() => shops.value.length > 1)
-
-  async function loadShops() {
-    try {
-      const merchantInfo = localStorage.getItem('merchantInfo')
-      if (!merchantInfo) return
-      const merchant = JSON.parse(merchantInfo)
-      const res = await getShopByMerchant(merchant.id)
-      const shopIds = res?.data?.shopIds || res?.shopIds || []
-      shops.value = shopIds.map(id => ({ id }))
-      if (shops.value.length > 0 && !currentShopId.value) {
-        currentShopId.value = shops.value[0].id
-        loadOrders()
-      }
-    } catch (error) {
-      console.error('加载店铺列表失败:', error)
-    }
-  }
-
-  function switchShop(shopId) {
-    currentShopId.value = shopId
-    loadOrders()
-  }
-
   async function loadOrders() {
-    if (!currentShopId.value) {
+    if (!shopStore.currentShopId) {
       orders.value = []
       return
     }
     loading.value = true
     try {
-      const res = await getOrderListByShop(currentShopId.value)
+      const res = await getOrderListByShop(shopStore.currentShopId)
       let orderList = res?.data || res?.orders || []
       if (filterStatus.value) {
         orderList = orderList.filter(o => o.orderStatus === filterStatus.value)
@@ -130,10 +104,10 @@ export function useShip() {
   async function showOrderDetail(order) {
     selectedOrder.value = order
     detailVisible.value = true
-    if (currentShopId.value) {
+    if (shopStore.currentShopId) {
       detailLoading.value = true
       try {
-        const res = await getOrderDetail(currentShopId.value, order.orderId)
+        const res = await getOrderDetail(shopStore.currentShopId, order.orderId)
         if (res?.data) selectedOrder.value = { ...order, ...res.data }
       } catch (error) {
         console.error('获取订单详情失败:', error)
@@ -194,15 +168,14 @@ export function useShip() {
   }
 
   onMounted(async () => {
-    await loadShops()
-    if (currentShopId.value) await loadOrders()
+    if (shopStore.currentShopId) await loadOrders()
   })
 
   return {
     T, orders, loading, filterStatus, searchCustomer, pendingShipCount,
-    shops, currentShopId, hasMultipleShops, contacts, contactsLoading,
+    contacts, contactsLoading,
     detailVisible, detailLoading, selectedOrder, shipVisible, shipForm, shipping,
-    ORDER_STATUS, switchShop, loadOrders, handleSearch, getStatusType, getStatusText,
+    ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText,
     formatPrice, formatDate, getContactText, showOrderDetail, closeDetail,
     showShipDialog, closeShipDialog, handleShip
   }

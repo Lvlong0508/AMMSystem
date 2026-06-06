@@ -6,20 +6,7 @@
         <el-tag v-if="pendingShipCount > 0" type="warning" size="small" class="ship-page__badge">
           {{ pendingShipCount }} 笔待发货
         </el-tag>
-        <el-select
-          v-if="hasMultipleShops"
-          v-model="currentShopId"
-          size="small"
-          style="width: 140px"
-          @change="switchShop"
-        >
-          <el-option
-            v-for="shop in shops"
-            :key="shop.id"
-            :label="`店铺 ${shop.id}`"
-            :value="shop.id"
-          />
-        </el-select>
+
       </div>
       <div class="ship-page__toolbar-right">
         <el-button size="small" :loading="loading" @click="loadOrders">
@@ -237,9 +224,9 @@ import { useShip } from './Ship.js'
 
 const {
   T, orders, loading, filterStatus, searchCustomer, pendingShipCount,
-  shops, currentShopId, hasMultipleShops, contacts, contactsLoading,
+  contacts, contactsLoading,
   detailVisible, detailLoading, selectedOrder, shipVisible, shipForm, shipping,
-  ORDER_STATUS, switchShop, loadOrders, handleSearch, getStatusType, getStatusText,
+  ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText,
   formatPrice, formatDate, getContactText, showOrderDetail, closeDetail,
   showShipDialog, closeShipDialog, handleShip
 } = useShip()
