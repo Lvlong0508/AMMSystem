@@ -1,7 +1,5 @@
 <template>
-  <div class="chat-view" :class="{ 'chat-view--empty': messages.length === 0 }">
-    <div class="chat-view__bg" ref="vantaRef"></div>
-
+  <div class="chat-view" :class="{ 'chat-view--empty': messages.length === 0, 'chat-view--has-messages': messages.length > 0 }">
     <div class="chat-view__messages" ref="messagesRef">
       <div v-if="messages.length === 0" class="chat-view__welcome">
         <div class="chat-view__welcome-icon">
@@ -45,10 +43,9 @@
 
     <div class="chat-view__input-bar">
       <div class="chat-view__input-wrap">
-        <input
+        <IInput
             ref="inputRef"
             v-model="inputText"
-            class="chat-view__input"
             :placeholder="T.INPUT_PLACEHOLDER"
             :disabled="loading"
             @keydown.enter="handleSend"
@@ -70,8 +67,9 @@
 import { CHAT_VIEW_TEXT as T } from './Text'
 import { useChatView } from './useChatView'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
+import IInput from '@/components/IInput/IInput.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, vantaRef, handleSend } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend } = useChatView()
 </script>
 
 <style scoped>

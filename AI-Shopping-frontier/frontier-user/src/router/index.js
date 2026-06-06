@@ -34,7 +34,7 @@ const routes = [
     name: 'profile',
     meta: { transition: 'scale' },
     component: () => import('../views/Profile/ProfileView/ProfileView.vue')
-  }
+  },
 ]
 
 const router = createRouter({

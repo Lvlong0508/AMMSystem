@@ -1,7 +1,5 @@
-import { ref, nextTick, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, nextTick, watch, onMounted } from 'vue'
 import { newChatCounter } from '@/stores/chatStore'
-import * as THREE from 'three'
-import NET from 'vanta/dist/vanta.net.min'
 import { sendMessage } from '@/api/chat'
 import { CHAT_VIEW_TEXT } from './Text'
 import { requireLogin } from '@/stores/authStore'
@@ -18,10 +16,6 @@ export function useChatView() {
   watch(newChatCounter, () => {
     messages.value = []
   })
-
-  // Vanta 动画背景的引用和实例
-  const vantaRef = ref(null)
-  let vantaEffect = null
 
   const scrollToBottom = async () => {
     await nextTick()
@@ -57,28 +51,7 @@ export function useChatView() {
   }
 
   onMounted(() => {
-    if (inputRef.value) inputRef.value.focus()
-
-    // 初始化 Vanta 动画
-    if (vantaRef.value) {
-      vantaEffect = NET({
-        el: vantaRef.value,
-        THREE: THREE,
-        color: 0xcbd5e1,          // 淡淡的蓝灰色线条，与你的边框颜色呼应
-        backgroundColor: 0xffffff, // 纯白色背景
-        points: 10.00,
-        maxDistance: 22.00,
-        spacing: 18.00,
-        showDots: true
-      })
-    }
-  })
-
-  // 必须在组件卸载时销毁实例，防止内存泄漏
-  onBeforeUnmount(() => {
-    if (vantaEffect) {
-      vantaEffect.destroy()
-    }
+    if (inputRef.value?.inputEl) inputRef.value.inputEl.focus()
   })
 
   return {
@@ -87,7 +60,6 @@ export function useChatView() {
     inputText,
     inputRef,
     messagesRef,
-    vantaRef,
     handleSend
   }
 }

@@ -1,3 +1,6 @@
+import animate from "tailwindcss-animate"
+import { setupInspiraUI } from "@inspira-ui/plugins"
+
 export default {
     content: [
         "./index.html",
@@ -6,5 +9,5 @@ export default {
     theme: {
         extend: {},
     },
-    plugins: [],
+    plugins: [animate, setupInspiraUI],
 }
