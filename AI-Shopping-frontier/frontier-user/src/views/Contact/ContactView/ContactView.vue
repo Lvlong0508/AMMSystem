@@ -177,15 +177,6 @@ const districtOptions = computed(() => {
   return c ? c.children : []
 })
 
-const onProvinceChange = () => {
-  selectedCity.value = ''
-  selectedDistrict.value = ''
-}
-
-const onCityChange = () => {
-  selectedDistrict.value = ''
-}
-
 function getLabel(options, value) {
   const found = options.find(r => r.value === value)
   return found ? found.label : ''
