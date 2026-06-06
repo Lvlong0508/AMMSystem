@@ -453,31 +453,6 @@
   color: #94A3B8;
 }
 
-.form-modal__textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1.5px solid #E4ECFC;
-  border-radius: 8px;
-  font-size: 15px;
-  color: #0F172A;
-  background: #F8FAFC;
-  outline: none;
-  transition: border-color 200ms ease-out, background 200ms ease-out;
-  font-family: var(--font-body);
-  resize: none;
-  line-height: 1.5;
-}
-
-.form-modal__textarea:focus {
-  border-color: #2563EB;
-  background: #fff;
-}
-
-.form-modal__textarea::placeholder {
-  color: #94A3B8;
-}
-
 .form-modal__error {
   font-size: 13px;
   color: #EF4444;
