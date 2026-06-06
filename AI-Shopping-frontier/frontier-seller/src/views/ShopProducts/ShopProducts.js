@@ -2,7 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getShopDetail } from '@/api/shop'
-import { createProduct, updateProduct, deleteProduct, listProduct, unlistProduct } from '@/api/product'
+import { getProductsByShop, createProduct, updateProduct, deleteProduct, listProduct, unlistProduct, getProductById } from '@/api/product'
 import * as T from './Text.js'
 
 export function useShopProducts() {
@@ -17,6 +17,9 @@ export function useShopProducts() {
   const isEdit = ref(false)
   const submitting = ref(false)
   const editingProductId = ref(null)
+
+  const detailVisible = ref(false)
+  const selectedProduct = ref(null)
 
   const form = ref({
     name: '', description: '', price: '', stock: '', image: null
@@ -38,15 +41,44 @@ export function useShopProducts() {
   async function loadProducts() {
     loading.value = true
     try {
-      const res = await getShopDetail(shopId.value)
-      if (res?.data) shopInfo.value = res.data
-      products.value = []
+      const res = await getProductsByShop(shopId.value)
+      products.value = res?.data || []
     } catch (e) {
       ElMessage.error('加载失败')
       products.value = []
     } finally {
       loading.value = false
     }
+  }
+
+  async function showDetail(product) {
+    try {
+      const res = await getProductById(product.id || product.productId)
+      selectedProduct.value = res?.data || product
+    } catch {
+      selectedProduct.value = product
+    }
+    detailVisible.value = true
+  }
+
+  function closeDetail() {
+    detailVisible.value = false
+    selectedProduct.value = null
+  }
+
+  async function handleEditFromDetail(product) {
+    closeDetail()
+    showEditDialog(product)
+  }
+
+  async function handleToggleSaleFromDetail(product) {
+    closeDetail()
+    await handleToggleSale(product)
+  }
+
+  async function handleDeleteFromDetail(product) {
+    closeDetail()
+    await handleDelete(product)
   }
 
   function showAddDialog() {
@@ -58,7 +90,7 @@ export function useShopProducts() {
 
   function showEditDialog(product) {
     isEdit.value = true
-    editingProductId.value = product.productId || product.id
+    editingProductId.value = product.id || product.productId
     form.value = {
       name: product.name || '',
       description: product.description || '',
@@ -88,21 +120,24 @@ export function useShopProducts() {
     try {
       let res
       if (isEdit.value) {
-        res = await updateProduct(editingProductId.value, {
+        const fd = new FormData()
+        fd.append('product', new Blob([JSON.stringify({
           name: form.value.name.trim(),
           description: form.value.description.trim(),
           price: parseFloat(form.value.price),
           stock: parseInt(form.value.stock)
-        })
+        })], { type: 'application/json' }))
+        if (form.value.image) fd.append('image', form.value.image)
+        res = await updateProduct(editingProductId.value, fd)
       } else {
         const fd = new FormData()
-        fd.append('product', JSON.stringify({
+        fd.append('product', new Blob([JSON.stringify({
           name: form.value.name.trim(),
           description: form.value.description.trim(),
           price: parseFloat(form.value.price),
           stock: parseInt(form.value.stock),
-          shopId: Number(shopId.value)
-        }))
+          shopId: shopId.value
+        })], { type: 'application/json' }))
         if (form.value.image) fd.append('image', form.value.image)
         res = await createProduct(fd)
       }
@@ -123,9 +158,9 @@ export function useShopProducts() {
   async function handleToggleSale(product) {
     try {
       if (product.isSale) {
-        await unlistProduct(product.productId)
+        await unlistProduct(product.id || product.productId)
       } else {
-        await listProduct(product.productId)
+        await listProduct(product.id || product.productId)
       }
       ElMessage.success(product.isSale ? T.UNLIST_SUCCESS : T.LIST_SUCCESS)
       await loadProducts()
@@ -139,7 +174,7 @@ export function useShopProducts() {
       await ElMessageBox.confirm(T.CONFIRM_DELETE, { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' })
     } catch { return }
     try {
-      const res = await deleteProduct(product.productId || product.id)
+      const res = await deleteProduct(product.id || product.productId)
       if (res?.message?.includes('成功')) {
         ElMessage.success(T.SUCCESS_DELETE)
         await loadProducts()
@@ -153,5 +188,12 @@ export function useShopProducts() {
 
   onMounted(() => { loadShopInfo(); loadProducts() })
 
-  return { T, shopInfo, products, loading, searchKeyword, filteredProducts, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts }
+  return {
+    T, shopInfo, products, loading, searchKeyword, filteredProducts,
+    detailVisible, selectedProduct,
+    dialogVisible, isEdit, submitting, form,
+    showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit,
+    handleToggleSale, handleDelete, loadProducts,
+    showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail
+  }
 }

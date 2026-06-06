@@ -28,27 +28,27 @@ const PRODUCT_BASE = '/api/seller/product'
  * // { id: 1, message: "创建商品成功" }
  */
 export const createProduct = (formData) =>
-  request.post(`${PRODUCT_BASE}/create`, formData, {
-    headers: { 'Content-Type': 'multipart/form-data' }
-  })
+  request.post(`${PRODUCT_BASE}/create`, formData)
 
 /**
- * 更新商品（全部可选，以 multipart/form-data 提交）
+ * 更新商品（以 multipart/form-data 提交）
+ *
+ * 请求方式: multipart/form-data
+ * `product` 字段为 JSON 字符串，`image` 字段为可选的图片文件（仅支持 JPG/PNG，最大 10MB）
  *
  * @param {number} productId - 商品ID
- * @param {Object} product - 更新信息
- * @param {string} [product.name] - 新名称
- * @param {string} [product.description] - 新描述
- * @param {number} [product.price] - 新价格
- * @param {number} [product.stock] - 新库存
+ * @param {FormData} formData - 包含 product(JSON) 和可选的 image(File) 的 FormData
  * @returns {Promise<{message: string}>}
  *
  * @example
  * // 请求
- * updateProduct(1, { name: '新名称', price: 199.99 })
+ * const fd = new FormData()
+ * fd.append('product', JSON.stringify({ name: '新名称', description: '新描述', price: 199.99, stock: 50 }))
+ * if (fileInput.files[0]) fd.append('image', fileInput.files[0])
+ * updateProduct(1, fd)
  */
-export const updateProduct = (productId, product) =>
-  request.put(`${PRODUCT_BASE}/${productId}`, product)
+export const updateProduct = (productId, formData) =>
+  request.put(`${PRODUCT_BASE}/${productId}`, formData)
 
 /**
  * 删除商品
