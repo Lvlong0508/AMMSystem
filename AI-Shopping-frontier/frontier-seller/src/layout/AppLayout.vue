@@ -19,7 +19,6 @@ import AppTopBar from './AppTopBar.vue'
 .app-layout {
   display: flex;
   height: 100vh;
-  width: 100vw;
   overflow: hidden;
 }
 
@@ -29,6 +28,7 @@ import AppTopBar from './AppTopBar.vue'
   flex-direction: column;
   min-width: 0;
   padding: 0;
+  overflow: hidden;
   background: var(--color-bg);
 }
 
