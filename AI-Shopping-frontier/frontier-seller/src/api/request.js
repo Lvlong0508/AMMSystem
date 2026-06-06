@@ -1,5 +1,5 @@
 import axios from 'axios'
-import Swal from 'sweetalert2'
+import { ElMessageBox } from 'element-plus'
 
 export const request = axios.create({
     baseURL: 'http://localhost:8080',
@@ -53,14 +53,11 @@ request.interceptors.response.use(
             // Token 无效或过期，显示弹窗后跳转到登录页
             localStorage.removeItem('satoken')
             localStorage.removeItem('merchantInfo')
-            Swal.fire({
-                title: '未登录',
-                text: '请先登录',
-                icon: 'warning',
+            ElMessageBox.alert('请先登录', '未登录', {
                 confirmButtonText: '去登录',
-                allowOutsideClick: false
-            }).then(() => {
-                window.location.href = '/login'
+                type: 'warning',
+                closeOnClickModal: false,
+                callback: () => { window.location.href = '/login' }
             })
         }
         return Promise.reject(error)

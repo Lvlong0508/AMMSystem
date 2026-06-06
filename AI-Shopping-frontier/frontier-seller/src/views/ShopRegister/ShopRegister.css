@@ -1,0 +1,17 @@
+.shop-register {
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.shop-register__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+}
+
+.shop-register__title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  margin: 0;
+}

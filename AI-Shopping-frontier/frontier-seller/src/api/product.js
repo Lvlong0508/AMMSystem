@@ -1,18 +1,26 @@
 import { request } from './request'
 
-// 根据商品ID获取商品详情
+const PRODUCT_BASE = '/api/seller/product'
+
 export const getProductById = (productId) =>
-    request.get(`/api/seller/product/${productId}`)
+  request.get(`${PRODUCT_BASE}/${productId}`)
 
-// 创建商品
-export const createProduct = (product) =>
-    request.post('/api/seller/product/create', product)
+export const batchGetProducts = (ids) =>
+  request.get(`${PRODUCT_BASE}/batch`, { params: { ids: ids.join(',') } })
 
-// 更新商品
+export const createProduct = (formData) =>
+  request.post(`${PRODUCT_BASE}/create`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+
 export const updateProduct = (productId, product) =>
-    request.put(`/api/seller/product/${productId}`, product)
+  request.put(`${PRODUCT_BASE}/${productId}`, product)
 
-// 删除商品
 export const deleteProduct = (productId) =>
-    request.delete(`/api/seller/product/${productId}`)
+  request.delete(`${PRODUCT_BASE}/${productId}`)
 
+export const listProduct = (productId) =>
+  request.post(`${PRODUCT_BASE}/${productId}/list`)
+
+export const unlistProduct = (productId) =>
+  request.post(`${PRODUCT_BASE}/${productId}/unlist`)

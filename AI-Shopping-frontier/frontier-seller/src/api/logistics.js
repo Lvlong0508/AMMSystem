@@ -1,25 +1,21 @@
 import { request } from './request'
 
-// 创建物流信息
-export const createLogistics = (logistics) =>
-    request.post('/api/seller/logistics/create', logistics)
+const LOGISTICS_BASE = '/logistics'
 
-// 根据ID查询物流信息
-export const getLogisticsById = (id) =>
-    request.get(`/api/seller/logistics/get/${id}`)
+export const createLogistics = (data) =>
+  request.post(`${LOGISTICS_BASE}/create`, data)
 
-// 查询所有物流信息
 export const getAllLogistics = () =>
-    request.get('/api/seller/logistics/list')
+  request.get(`${LOGISTICS_BASE}/list`)
 
-// 根据快递单号查询物流信息
 export const getLogisticsByTrackingNumber = (trackingNumber) =>
-    request.get('/api/seller/logistics/search/tracking', { params: { trackingNumber } })
+  request.get(`${LOGISTICS_BASE}/search/tracking`, { params: { trackingNumber } })
 
-// 更新物流信息
-export const updateLogistics = (logistics) =>
-    request.put('/api/seller/logistics/update', logistics)
-
-// 删除物流信息
 export const deleteLogistics = (id) =>
-    request.delete(`/api/seller/logistics/delete/${id}`)
+  request.delete(`${LOGISTICS_BASE}/delete/${id}`)
+
+export const getLogisticsByOrder = (orderId) =>
+  request.get(`${LOGISTICS_BASE}/order/${orderId}`)
+
+export const getLatestLogisticsByOrder = (orderId, type = 'DELIVERY') =>
+  request.get(`${LOGISTICS_BASE}/order/${orderId}/latest`, { params: { type } })

@@ -1,17 +1,18 @@
 import { request } from './request'
 
-// 根据订单ID查询订单（需要shopId验证）
-export const getOrderById = (orderId) =>
-    request.get(`/api/seller/order/${orderId}`)
+const ORDER_BASE = '/api/seller/order'
 
-// 更新订单状态
-export const updateOrderStatus = (orderId, status) =>
-    request.put(`/api/seller/order/${orderId}/status`, null, { params: { status } })
+export const getOrderListByShop = (shopId) =>
+  request.get(`${ORDER_BASE}/shop/${shopId}/list`)
 
-// 发货（创建物流信息）
-export const shipOrder = (orderId, trackingNumber, contactId, shippingDate) =>
-    request.put(`/api/seller/order/${orderId}/ship`, {
-        trackingNumber,
-        contactId,
-        shippingDate
-    })
+export const getOrderDetail = (shopId, orderId) =>
+  request.get(`${ORDER_BASE}/shop/${shopId}/${orderId}`)
+
+export const shipOrder = (orderId, data) =>
+  request.put(`${ORDER_BASE}/${orderId}/ship`, data)
+
+export const approveReturn = (orderId, shopId) =>
+  request.put(`${ORDER_BASE}/${orderId}/approve-return`, null, { params: { shopId } })
+
+export const confirmReturn = (orderId, shopId) =>
+  request.put(`${ORDER_BASE}/${orderId}/confirm-return`, null, { params: { shopId } })

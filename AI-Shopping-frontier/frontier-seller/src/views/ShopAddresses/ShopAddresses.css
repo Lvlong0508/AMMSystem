@@ -1,0 +1,9 @@
+.shop-addresses__toolbar {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-4);
+}
+.shop-addresses__title {
+  font-size: var(--text-lg); font-weight: 600; margin: 0;
+}
+.shop-addresses__tabs {
+  margin-bottom: var(--space-4);
+}

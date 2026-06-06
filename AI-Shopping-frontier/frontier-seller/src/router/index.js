@@ -1,14 +1,13 @@
-// src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-import Swal from 'sweetalert2'
-import MerchantShip from '../merchant/MerchantShip/MerchantShip.vue'
+import { useAuthStore } from '@/store/auth'
+import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
-import ShopRegister from '../views/shop/ShopRegister.vue'
-import ShopList from '../views/shop/ShopList.vue'
-import ShopProducts from '../views/shop/ShopProducts.vue'
-import ShopOrders from '../views/shop/ShopOrders.vue'
-import ShopEmployees from '../views/shop/ShopEmployees.vue'
-import ShopAddresses from '../views/shop/ShopAddresses.vue'
+import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
+import ShopList from '../views/ShopList/ShopList.vue'
+import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
+import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
+import ShopEmployees from '../views/ShopEmployees/ShopEmployees.vue'
+import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
 
 const routes = [
   {
@@ -24,7 +23,7 @@ const routes = [
   {
     path: '/ship',
     name: 'ship',
-    component: MerchantShip
+    component: Ship
   },
   {
     path: '/shop/register',
@@ -68,52 +67,21 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  const auth = useAuthStore()
+
   if (to.meta.public) {
     next()
     return
   }
-  const token = localStorage.getItem('satoken')
-  if (!token) {
+
+  if (!auth.isLoggedIn) {
     next('/login')
     return
   }
 
-  // 店铺管理相关页面需要店长权限
-  if (to.meta.shopOwnerOnly) {
-    const currentRole = localStorage.getItem('currentRole')
-    if (!currentRole) {
-      Swal.fire({
-        icon: 'warning',
-        title: '无权限',
-        text: '只有店长才能访问此页面',
-        confirmButtonText: '确定'
-      })
-      next('/ship')
-      return
-    }
-
-    try {
-      const role = JSON.parse(currentRole)
-      if (role.role !== '1') {
-        Swal.fire({
-          icon: 'warning',
-          title: '无权限',
-          text: '只有店长才能访问此页面',
-          confirmButtonText: '确定'
-        })
-        next('/ship')
-        return
-      }
-    } catch (e) {
-      Swal.fire({
-        icon: 'warning',
-        title: '无权限',
-        text: '只有店长才能访问此页面',
-        confirmButtonText: '确定'
-      })
-      next('/ship')
-      return
-    }
+  if (to.meta.shopOwnerOnly && !auth.isOwner) {
+    next('/ship')
+    return
   }
 
   next()
