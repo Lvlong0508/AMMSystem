@@ -188,6 +188,7 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .chat-view__bubble-wrap,
-  .chat-view__welcome { animation: none; }
-  .chat-view__dot { animation: none; }
+  .chat-view__welcome,
+  .chat-view__dot,
+  .chat-view--has-messages .chat-view__input-bar { animation: none; }
 }
