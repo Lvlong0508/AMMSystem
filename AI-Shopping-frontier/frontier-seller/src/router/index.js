@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
+import { useShopStore } from '@/store/shop'
 import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
 import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
@@ -8,6 +9,8 @@ import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
 import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
 import ShopEmployees from '../views/ShopEmployees/ShopEmployees.vue'
 import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
+import ShopReturns from '../views/ReturnManagement/ReturnManagement.vue'
+import ShopInfo from '../views/ShopInfo/ShopInfo.vue'
 
 const routes = [
   {
@@ -58,6 +61,17 @@ const routes = [
     name: 'shop-addresses',
     component: ShopAddresses,
     meta: { shopOwnerOnly: true }
+  },
+  {
+    path: '/shop/:shopId/returns',
+    name: 'shop-returns',
+    component: ShopReturns
+  },
+  {
+    path: '/shop/:shopId/info',
+    name: 'shop-info',
+    component: ShopInfo,
+    meta: { shopOwnerOnly: true }
   }
 ]
 
@@ -68,6 +82,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const auth = useAuthStore()
+  const shop = useShopStore()
 
   if (to.meta.public) {
     next()
@@ -82,6 +97,11 @@ router.beforeEach((to, from, next) => {
   if (to.meta.shopOwnerOnly && !auth.isOwner) {
     next('/ship')
     return
+  }
+
+  // 同步 shopId 路由参数到 store
+  if (to.params.shopId) {
+    shop.switchShop(to.params.shopId)
   }
 
   next()
