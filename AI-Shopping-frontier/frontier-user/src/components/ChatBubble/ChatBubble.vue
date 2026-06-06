@@ -18,8 +18,6 @@
 </template>
 
 <script setup>
-import { useChatBubble } from './useChatBubble.js'
-
 defineProps({
   role: {
     type: String,
@@ -29,8 +27,6 @@ defineProps({
   message: { type: String, required: true },
   time: { type: String, default: '' },
 })
-
-const {} = useChatBubble({ role: 'ai' })
 </script>
 
 <style scoped>
