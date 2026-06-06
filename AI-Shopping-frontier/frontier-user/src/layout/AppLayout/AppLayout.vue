@@ -1,6 +1,7 @@
 <template>
   <div class="app-shell">
-    <div class="app-layout">
+    <div class="app-bg" ref="vantaRef"></div>
+    <div class="app-layout" :class="{ 'app-layout--sidebar-collapsed': sidebarCollapsed }" :style="{ '--sidebar-width': sidebarCollapsed ? '72px' : '240px' }">
       <aside class="sidebar" :class="{ 'sidebar--collapsed': sidebarCollapsed }">
         <div class="sidebar-brand">
           <span>{{ sidebarCollapsed ? 'AS' : text.brand }}</span>
@@ -116,7 +117,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import * as THREE from 'three'
+import NET from 'vanta/dist/vanta.net.min'
 import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
@@ -128,6 +131,39 @@ const { isLoggedIn, activeRoute, handleLogout } = useAppLayout()
 const router = useRouter()
 const showUserMenu = ref(false)
 const sidebarCollapsed = ref(false)
+
+// Vanta 背景动画
+const vantaRef = ref(null)
+let vantaEffect = null
+let resizeObserver = null
+
+onMounted(() => {
+  if (vantaRef.value) {
+    vantaEffect = NET({
+      el: vantaRef.value,
+      THREE: THREE,
+      color: 0xcbd5e1,
+      backgroundColor: 0xffffff,
+      points: 10.00,
+      maxDistance: 22.00,
+      spacing: 18.00,
+      showDots: true
+    })
+    resizeObserver = new ResizeObserver(() => {
+      if (vantaEffect?.resize) {
+        vantaEffect.resize()
+      } else {
+        window.dispatchEvent(new Event('resize'))
+      }
+    })
+    resizeObserver.observe(vantaRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) resizeObserver.disconnect()
+  if (vantaEffect) vantaEffect.destroy()
+})
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
 }
