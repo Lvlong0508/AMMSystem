@@ -13,9 +13,7 @@
     </div>
 
     <div class="topbar__right">
-      <el-select v-if="shop.hasMultipleShops" v-model="selectedShopId" style="width: 160px">
-        <el-option v-for="s in shop.shops" :key="s.id" :label="`店铺 ${s.id}`" :value="s.id" />
-      </el-select>
+
       <div class="topbar__user">
         <el-avatar :size="34">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
         <span class="topbar__user-name">{{ auth.merchantName }}</span>
@@ -45,17 +43,6 @@ async function handleLogout() {
   await auth.logout()
   router.push('/login')
 }
-
-const selectedShopId = computed({
-  get: () => shop.currentShopId,
-  set: (val) => {
-    if (val) {
-      const sid = String(val)
-      shop.switchShop(sid)
-      router.push(`/shop/${sid}/products`)
-    }
-  }
-})
 
 const breadcrumbMap = {
   '/ship': '订单发货',

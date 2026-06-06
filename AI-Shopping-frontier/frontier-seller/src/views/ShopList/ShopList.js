@@ -2,7 +2,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useShopStore } from '@/store/shop'
-import { getShopByMerchant, getShopDetail } from '@/api/shop'
+import { getShopByMerchant } from '@/api/shop'
 import * as T from './Text.js'
 
 export function useShopList() {
@@ -27,38 +27,19 @@ export function useShopList() {
     }
   }
 
-  function getStatusText(status) {
-    if (status === 1) return T.STATUS_ACTIVE
-    if (status === 0) return T.STATUS_INACTIVE
-    if (status === -1) return T.STATUS_CLOSED
-    return T.STATUS_INACTIVE
-  }
-
-  function getStatusType(status) {
-    if (status === 1) return 'success'
-    if (status === 0) return 'info'
-    if (status === -1) return 'danger'
-    return 'info'
-  }
-
   function formatDate(dateStr) {
     if (!dateStr) return '-'
     return new Date(dateStr).toLocaleDateString('zh-CN')
   }
 
-  function goToProducts(shopId) { router.push(`/shop/${shopId}/products`) }
-  function goToOrders(shopId) { router.push(`/shop/${shopId}/orders`) }
-  function goToEmployees(shopId) { router.push(`/shop/${shopId}/employees`) }
-  function goToAddresses(shopId) { router.push(`/shop/${shopId}/addresses`) }
-
   function enterShop(shopId) {
     shopStore.switchShop(shopId)
-    router.push('/ship')
+    router.push(`/shop/${shopId}/products`)
   }
 
   onMounted(loadShops)
 
   function goRegister() { window.open('/shop/register', '_blank') }
 
-  return { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, enterShop, loadShops, goRegister }
+  return { shops, loading, T, formatDate, enterShop, loadShops, goRegister }
 }

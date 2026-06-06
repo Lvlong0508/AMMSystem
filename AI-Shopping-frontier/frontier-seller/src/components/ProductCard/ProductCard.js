@@ -1,31 +1,17 @@
-import { ref } from 'vue'
+import { computed } from 'vue'
 import * as T from './Text.js'
 
-export function useProductCard(props, emit) {
-  const expanded = ref(false)
+export function useProductCard(props) {
+  const parsedTags = computed(() => {
+    if (!props.product?.tags) return []
+    if (Array.isArray(props.product.tags)) return props.product.tags
+    return String(props.product.tags).split(',').map(t => t.trim()).filter(Boolean)
+  })
 
-  function toggle() {
-    expanded.value = !expanded.value
+  function formatDate(dateStr) {
+    if (!dateStr) return '-'
+    return new Date(dateStr).toLocaleString('zh-CN')
   }
 
-  function handleEdit() {
-    emit('edit', props.product)
-  }
-
-  function handleToggleSale() {
-    emit('toggle-sale', props.product)
-  }
-
-  function handleDelete() {
-    emit('delete', props.product)
-  }
-
-  return {
-    T,
-    expanded,
-    toggle,
-    handleEdit,
-    handleToggleSale,
-    handleDelete
-  }
+  return { T, parsedTags, formatDate }
 }

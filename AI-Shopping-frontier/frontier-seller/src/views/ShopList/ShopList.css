@@ -2,11 +2,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
+  margin-bottom: var(--space-6);
 }
 
 .shop-list__title {
-  font-size: var(--text-lg);
+  font-size: var(--text-xl);
   font-weight: 600;
   margin: 0;
   display: flex;
@@ -16,50 +16,50 @@
 
 .shop-list__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: var(--space-4);
 }
 
 .shop-card {
-  cursor: default;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.shop-card:hover {
+  transform: translateY(-2px);
 }
 
 .shop-card__header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.shop-card__avatar {
+  background: var(--color-primary-bg);
+  color: var(--color-primary);
+}
+
+.shop-card__info {
+  flex: 1;
+  min-width: 0;
 }
 
 .shop-card__name {
   font-size: var(--text-base);
   font-weight: 600;
-  margin: 0;
+  margin: 0 0 var(--space-1);
+  color: var(--color-text);
 }
 
-.shop-card__desc {
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  margin: var(--space-1) 0 0;
+.shop-card__id {
+  font-size: var(--text-xs);
+  color: var(--color-text-tertiary);
+  font-family: var(--font-mono);
 }
 
-.shop-card__details {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: var(--space-1) var(--space-3);
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
-}
-
-.shop-card__label {
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-}
-
-.shop-card__actions {
+.shop-card__footer {
   display: flex;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-3);
+  justify-content: flex-end;
 }

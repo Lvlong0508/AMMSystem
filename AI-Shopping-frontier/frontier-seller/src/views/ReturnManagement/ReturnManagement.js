@@ -12,16 +12,12 @@ export function useReturnManagement() {
   const loading = ref(false)
   const detailVisible = ref(false)
   const selectedOrder = ref(null)
-  const filterStatus = ref('')
 
   async function loadOrders() {
     loading.value = true
     try {
       const res = await getOrderListByShop(shopId)
       let list = res?.data || res?.orders || []
-      if (filterStatus.value) {
-        list = list.filter(o => o.orderStatus === filterStatus.value)
-      }
       orders.value = list.filter(o =>
         o.orderStatus === ORDER_STATUS.RETURNED ||
         o.orderStatus === 'RETURN_REQUESTED' ||
@@ -35,10 +31,26 @@ export function useReturnManagement() {
     }
   }
 
+  async function showDetail(order) {
+    try {
+      const res = await getOrderDetail(shopId, order.orderId)
+      selectedOrder.value = res?.data || order
+    } catch {
+      selectedOrder.value = order
+    }
+    detailVisible.value = true
+  }
+
+  function closeDetail() {
+    detailVisible.value = false
+    selectedOrder.value = null
+  }
+
   async function handleApprove(order) {
     try {
       const res = await approveReturn(order.orderId, shopId)
       ElMessage.success(res?.message || '审核通过')
+      closeDetail()
       await loadOrders()
     } catch (e) {
       ElMessage.error('操作失败')
@@ -49,19 +61,10 @@ export function useReturnManagement() {
     try {
       const res = await confirmReturn(order.orderId, shopId)
       ElMessage.success(res?.message || '确认成功')
+      closeDetail()
       await loadOrders()
     } catch (e) {
       ElMessage.error('操作失败')
-    }
-  }
-
-  async function showDetail(order) {
-    try {
-      const res = await getOrderDetail(shopId, order.orderId)
-      selectedOrder.value = res?.data || order
-      detailVisible.value = true
-    } catch (e) {
-      ElMessage.error('获取详情失败')
     }
   }
 
@@ -81,8 +84,8 @@ export function useReturnManagement() {
   onMounted(loadOrders)
 
   return {
-    T, orders, loading, detailVisible, selectedOrder, filterStatus,
-    loadOrders, handleApprove, handleConfirm, showDetail,
+    T, orders, loading, detailVisible, selectedOrder,
+    loadOrders, handleApprove, handleConfirm, showDetail, closeDetail,
     getStatusType, getStatusText, formatDate, formatPrice
   }
 }

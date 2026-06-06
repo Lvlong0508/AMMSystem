@@ -45,8 +45,8 @@
         v-for="order in orders"
         :key="order.orderId"
         :order="order"
-        @detail="showOrderDetail"
-        @ship="showShipDialog"
+        variant="abstract"
+        @click="showOrderDetail"
       />
 
       <el-empty v-if="!loading && orders.length === 0" :description="T.EMPTY_TEXT" />

@@ -1,13 +1,14 @@
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getOrderListByShop } from '@/api/order'
+import { getOrderListByShop, getOrderDetail } from '@/api/order'
 import { getShopDetail } from '@/api/shop'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 import * as T from './Text.js'
 
 export function useShopOrders() {
   const route = useRoute()
+  const router = useRouter()
   const shopId = computed(() => route.params.shopId)
   const shopInfo = ref(null)
   const orders = ref([])
@@ -43,6 +44,25 @@ export function useShopOrders() {
     } finally { loading.value = false }
   }
 
+  async function showDetail(order) {
+    try {
+      const res = await getOrderDetail(shopId.value, order.orderId)
+      selectedOrder.value = res?.data || order
+    } catch {
+      selectedOrder.value = order
+    }
+    detailVisible.value = true
+  }
+
+  function closeDetail() {
+    detailVisible.value = false
+    selectedOrder.value = null
+  }
+
+  function handleShip(order) {
+    router.push({ path: '/ship', query: { orderId: order.orderId } })
+  }
+
   function getStatusType(status) {
     const m = { PENDING: 'info', PAID: 'warning', SHIPPED: 'primary', DELIVERED: 'success', CANCELLED: 'danger', RETURNED: 'danger' }
     return m[status] || 'info'
@@ -52,10 +72,7 @@ export function useShopOrders() {
   function formatDate(d) { return d ? new Date(d).toLocaleString('zh-CN') : '-' }
   function formatPrice(p) { return p != null ? `¥${Number(p).toFixed(2)}` : '-' }
 
-  function showDetail(order) { selectedOrder.value = order; detailVisible.value = true }
-  function closeDetail() { detailVisible.value = false; selectedOrder.value = null }
-
   onMounted(() => { loadShopInfo(); loadOrders() })
 
-  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, ORDER_STATUS, STATUS_TEXT }
+  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, ORDER_STATUS, STATUS_TEXT }
 }

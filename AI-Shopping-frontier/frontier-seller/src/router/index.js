@@ -37,13 +37,12 @@ const routes = [
     path: '/',
     component: AppLayout,
     children: [
-      { path: '', redirect: '/ship' },
+      { path: '', name: 'home', component: Ship },
       { path: 'ship', name: 'ship', component: Ship },
       {
         path: 'shop/list',
         name: 'shop-list',
-        component: ShopList,
-        meta: { shopOwnerOnly: true }
+        component: ShopList
       },
       {
         path: 'shop/:shopId/products',
@@ -107,6 +106,23 @@ router.beforeEach(async (to, from, next) => {
   }
 
   if (auth.merchantId) await shop.initShops(auth.merchantId)
+
+  if (to.name === 'home') {
+    if (shop.hasNoShops) {
+      next()
+      return
+    }
+    if (shop.shops.length === 1) {
+      next(`/shop/${shop.currentShopId}/products`)
+      return
+    }
+    if (shop.shops.length > 1) {
+      next('/shop/list')
+      return
+    }
+    next()
+    return
+  }
 
   if (to.params.shopId) {
     shop.switchShop(to.params.shopId)

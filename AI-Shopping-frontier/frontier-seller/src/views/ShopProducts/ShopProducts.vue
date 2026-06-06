@@ -15,15 +15,25 @@
     <div v-loading="loading" class="product-grid">
       <ProductCard
         v-for="product in filteredProducts"
-        :key="product.productId"
+        :key="product.id || product.productId"
         :product="product"
-        @edit="showEditDialog"
-        @toggle-sale="handleToggleSale"
-        @delete="handleDelete"
+        variant="abstract"
+        @click="showDetail"
       />
     </div>
 
     <el-empty v-if="!loading && filteredProducts.length === 0" :description="T.EMPTY_TEXT" />
+
+    <el-dialog v-model="detailVisible" :title="T.DIALOG_DETAIL" width="680px" destroy-on-close>
+      <ProductCard
+        v-if="selectedProduct"
+        :product="selectedProduct"
+        variant="detail"
+        @edit="handleEditFromDetail"
+        @toggle-sale="handleToggleSaleFromDetail"
+        @delete="handleDeleteFromDetail"
+      />
+    </el-dialog>
 
     <el-dialog v-model="dialogVisible" :title="isEdit ? T.DIALOG_EDIT : T.DIALOG_ADD" width="600px">
       <el-form label-position="top">
@@ -54,13 +64,15 @@
         <el-button type="primary" :loading="submitting" @click="handleSubmit">
           {{ submitting ? (isEdit ? T.BTN_SAVING : T.BTN_ADD_SUBMITTING) : (isEdit ? T.BTN_SAVE : T.BTN_ADD_SUBMIT) }}
         </el-button>
-</template>
+      </template>
     </el-dialog>
   </div>
 </template>
+
 <script setup>
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { useShopProducts } from './ShopProducts.js'
-const { T, shopInfo, products, loading, searchKeyword, filteredProducts, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts } = useShopProducts()
+const { T, shopInfo, products, loading, searchKeyword, filteredProducts, detailVisible, selectedProduct, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts, showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail } = useShopProducts()
 </script>
+
 <style scoped src="./ShopProducts.css"></style>

@@ -87,7 +87,7 @@ export function useShip() {
       if (res?.data) {
         contacts.value = Array.isArray(res.data) ? res.data : [res.data]
         if (contacts.value.length > 0 && !shipForm.value.selectedContactId) {
-          shipForm.value.selectedContactId = contacts.value[0].id
+          shipForm.value.selectedContactId = String(contacts.value[0].id)
         }
       } else {
         contacts.value = []
@@ -124,7 +124,7 @@ export function useShip() {
 
   async function showShipDialog(order) {
     shipForm.value = {
-      orderId: order.orderId,
+      orderId: String(order.orderId),
       trackingNumber: '',
       shippingDate: new Date().toISOString().slice(0, 16),
       selectedContactId: null

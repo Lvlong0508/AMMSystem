@@ -42,7 +42,12 @@ export function useShopProducts() {
     loading.value = true
     try {
       const res = await getProductsByShop(shopId.value)
-      products.value = res?.data || []
+      products.value = (res?.data || []).map(p => ({
+        ...p,
+        id: String(p.id),
+        productId: String(p.productId || p.id),
+        shopId: String(p.shopId)
+      }))
     } catch (e) {
       ElMessage.error('加载失败')
       products.value = []
@@ -53,8 +58,13 @@ export function useShopProducts() {
 
   async function showDetail(product) {
     try {
-      const res = await getProductById(product.id || product.productId)
-      selectedProduct.value = res?.data || product
+      const res = await getProductById(String(product.id || product.productId))
+      const detail = res?.data
+      if (detail) {
+        detail.id = String(detail.id)
+        if (detail.shopId) detail.shopId = String(detail.shopId)
+      }
+      selectedProduct.value = detail || product
     } catch {
       selectedProduct.value = product
     }
@@ -90,7 +100,7 @@ export function useShopProducts() {
 
   function showEditDialog(product) {
     isEdit.value = true
-    editingProductId.value = product.id || product.productId
+    editingProductId.value = String(String(product.id || product.productId))
     form.value = {
       name: product.name || '',
       description: product.description || '',
@@ -136,7 +146,7 @@ export function useShopProducts() {
           description: form.value.description.trim(),
           price: parseFloat(form.value.price),
           stock: parseInt(form.value.stock),
-          shopId: shopId.value
+          shopId: String(shopId.value)
         })], { type: 'application/json' }))
         if (form.value.image) fd.append('image', form.value.image)
         res = await createProduct(fd)
@@ -158,9 +168,9 @@ export function useShopProducts() {
   async function handleToggleSale(product) {
     try {
       if (product.isSale) {
-        await unlistProduct(product.id || product.productId)
+        await unlistProduct(String(product.id || product.productId))
       } else {
-        await listProduct(product.id || product.productId)
+        await listProduct(String(product.id || product.productId))
       }
       ElMessage.success(product.isSale ? T.UNLIST_SUCCESS : T.LIST_SUCCESS)
       await loadProducts()
@@ -174,7 +184,7 @@ export function useShopProducts() {
       await ElMessageBox.confirm(T.CONFIRM_DELETE, { type: 'warning', confirmButtonText: '删除', cancelButtonText: '取消' })
     } catch { return }
     try {
-      const res = await deleteProduct(product.id || product.productId)
+      const res = await deleteProduct(String(product.id || product.productId))
       if (res?.message?.includes('成功')) {
         ElMessage.success(T.SUCCESS_DELETE)
         await loadProducts()
