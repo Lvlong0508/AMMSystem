@@ -1,11 +1,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useShopStore } from '@/store/shop'
 import { getShopByMerchant, getShopDetail } from '@/api/shop'
 import * as T from './Text.js'
 
 export function useShopList() {
   const router = useRouter()
+  const shopStore = useShopStore()
   const shops = ref([])
   const loading = ref(false)
 
@@ -50,7 +52,12 @@ export function useShopList() {
   function goToEmployees(shopId) { router.push(`/shop/${shopId}/employees`) }
   function goToAddresses(shopId) { router.push(`/shop/${shopId}/addresses`) }
 
+  function enterShop(shopId) {
+    shopStore.switchShop(shopId)
+    router.push('/ship')
+  }
+
   onMounted(loadShops)
 
-  return { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, loadShops }
+  return { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, enterShop, loadShops }
 }

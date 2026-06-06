@@ -41,6 +41,7 @@
           <el-button size="small" @click="goToOrders(shop.id)">{{ T.BTN_ORDERS }}</el-button>
           <el-button size="small" @click="goToEmployees(shop.id)">{{ T.BTN_EMPLOYEES }}</el-button>
           <el-button size="small" @click="goToAddresses(shop.id)">{{ T.BTN_ADDRESSES }}</el-button>
+          <el-button size="small" type="primary" @click="enterShop(shop.id)">进入管理</el-button>
         </div>
       </el-card>
     </div>
@@ -56,7 +57,7 @@
 <script setup>
 import { useShopList } from './ShopList.js'
 
-const { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, loadShops } = useShopList()
+const { shops, loading, T, getStatusText, getStatusType, formatDate, goToProducts, goToOrders, goToEmployees, goToAddresses, enterShop, loadShops } = useShopList()
 </script>
 
 <style scoped src="./ShopList.css"></style>
