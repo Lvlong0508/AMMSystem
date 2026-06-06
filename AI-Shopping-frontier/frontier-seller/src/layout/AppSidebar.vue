@@ -6,7 +6,7 @@
 
     <div v-if="shop.hasNoShops" class="sidebar__notice sidebar__notice--empty">
       <p>您还没有店铺</p>
-      <el-button size="small" type="primary" round @click="router.push('/shop/register')">创建店铺</el-button>
+      <el-button size="small" type="primary" round @click="goRegister">创建店铺</el-button>
     </div>
     <div v-else-if="shop.loaded && !shop.currentShopId" class="sidebar__notice">
       请先选择店铺
@@ -83,6 +83,10 @@ const router = useRouter()
 const auth = useAuthStore()
 const shop = useShopStore()
 const app = useAppStore()
+
+function goRegister() {
+  router.push('/shop/register')
+}
 
 async function handleLogout() {
   await auth.logout()

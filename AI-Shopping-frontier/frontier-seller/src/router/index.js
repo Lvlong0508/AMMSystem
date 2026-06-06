@@ -31,8 +31,7 @@ const routes = [
   {
     path: '/shop/register',
     name: 'shop-register',
-    component: ShopRegister,
-    meta: { shopOwnerOnly: true }
+    component: ShopRegister
   },
   {
     path: '/shop/list',
