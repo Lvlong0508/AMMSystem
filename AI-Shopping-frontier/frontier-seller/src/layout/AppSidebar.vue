@@ -18,8 +18,8 @@
       :collapse="app.sidebarCollapsed"
       class="sidebar__menu"
     >
-      <!-- 订单管理分组 -->
-      <el-sub-menu index="order-group">
+      <!-- 订单管理分组（无店铺时不显示） -->
+      <el-sub-menu v-if="!shop.hasNoShops" index="order-group">
         <template #title>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
           <span>订单管理</span>
@@ -59,16 +59,7 @@
       </el-sub-menu>
     </el-menu>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <el-avatar :size="28">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
-        <span v-show="!app.sidebarCollapsed" class="sidebar__user-name">{{ auth.merchantName }}</span>
-      </div>
-      <el-button text type="danger" size="small" @click="handleLogout">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-        <span v-show="!app.sidebarCollapsed">退出</span>
-      </el-button>
-    </div>
+    
   </div>
 </template>
 
@@ -86,11 +77,6 @@ const app = useAppStore()
 
 function goRegister() {
   router.push('/shop/register')
-}
-
-async function handleLogout() {
-  await auth.logout()
-  router.push('/login')
 }
 </script>
 
@@ -167,27 +153,5 @@ async function handleLogout() {
   border-radius: var(--radius-md);
 }
 
-.sidebar__footer {
-  padding: var(--space-3) var(--space-4);
-  border-top: 1px solid var(--color-border-light);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--color-card);
-}
 
-.sidebar__user {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  min-width: 0;
-}
-
-.sidebar__user-name {
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 </style>

@@ -16,19 +16,35 @@
       <el-select v-if="shop.hasMultipleShops" v-model="selectedShopId" size="small" style="width: 140px">
         <el-option v-for="s in shop.shops" :key="s.id" :label="`店铺 ${s.id}`" :value="s.id" />
       </el-select>
+      <div class="topbar__user">
+        <el-avatar :size="28">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
+        <span class="topbar__user-name">{{ auth.merchantName }}</span>
+        <el-button text type="danger" size="small" @click="handleLogout">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          <span>退出</span>
+        </el-button>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/store/auth'
 import { useAppStore } from '@/store/app'
 import { useShopStore } from '@/store/shop'
 
 const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
 const app = useAppStore()
 const shop = useShopStore()
+
+async function handleLogout() {
+  await auth.logout()
+  router.push('/login')
+}
 
 const selectedShopId = computed({
   get: () => shop.currentShopId,
@@ -93,5 +109,17 @@ const breadcrumbs = computed(() => {
 .topbar__right {
   display: flex;
   align-items: center;
+  gap: var(--space-3);
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.topbar__user-name {
+  font-size: var(--text-sm);
+  color: var(--color-text);
 }
 </style>
