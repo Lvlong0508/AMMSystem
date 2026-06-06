@@ -9,6 +9,7 @@ export const useShopStore = defineStore('shop', () => {
 
   const currentShop = computed(() => shops.value.find(s => String(s.id) === String(currentShopId.value)))
   const hasMultipleShops = computed(() => shops.value.length > 1)
+  const hasNoShops = computed(() => loaded.value && shops.value.length === 0)
 
   async function initShops(merchantId) {
     if (!merchantId) return
@@ -37,5 +38,5 @@ export const useShopStore = defineStore('shop', () => {
     localStorage.setItem('currentShopId', String(shopId))
   }
 
-  return { currentShopId, shops, loaded, currentShop, hasMultipleShops, initShops, switchShop }
+  return { currentShopId, shops, loaded, currentShop, hasMultipleShops, hasNoShops, initShops, switchShop }
 })

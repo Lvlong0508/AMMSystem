@@ -4,7 +4,11 @@
       <span class="sidebar__logo">AI-Mart</span>
     </div>
 
-    <div v-if="!shop.currentShopId" class="sidebar__notice">
+    <div v-if="shop.hasNoShops" class="sidebar__notice sidebar__notice--empty">
+      <p>您还没有店铺</p>
+      <el-button size="small" type="primary" round @click="router.push('/shop/register')">创建店铺</el-button>
+    </div>
+    <div v-else-if="shop.loaded && !shop.currentShopId" class="sidebar__notice">
       请先选择店铺
     </div>
 
@@ -118,6 +122,10 @@ async function handleLogout() {
   font-size: var(--text-sm);
   color: var(--color-text-tertiary);
   text-align: center;
+}
+
+.sidebar__notice--empty p {
+  margin: 0 0 var(--space-3);
 }
 
 .sidebar__menu {
