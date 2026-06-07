@@ -47,6 +47,7 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.removeItem('merchantId')
       localStorage.removeItem('currentRole')
       localStorage.removeItem('merchantRoles')
+      localStorage.removeItem('currentShopId')
     }
   }
 
