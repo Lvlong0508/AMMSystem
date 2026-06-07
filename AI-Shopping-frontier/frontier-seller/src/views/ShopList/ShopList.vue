@@ -2,12 +2,12 @@
   <div class="shop-select-page">
     <div class="shop-select-page__header">
       <div class="shop-select-page__user">
-        <el-avatar :size="40">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
+        <el-avatar :size="36">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
         <span class="shop-select-page__username">{{ auth.merchantName }}</span>
       </div>
       <div class="shop-select-page__actions">
-        <el-button type="primary" size="large" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
-        <el-button size="large" @click="handleLogout">{{ T.BTN_LOGOUT }}</el-button>
+        <el-button size="default" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
+        <el-button size="default" @click="handleLogout">{{ T.BTN_LOGOUT }}</el-button>
       </div>
     </div>
 
@@ -22,13 +22,22 @@
           class="shop-card"
           @click="showShopDetail(shop)"
         >
-          <div class="shop-card__header">
-            <el-avatar :size="56" class="shop-card__avatar">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-            </el-avatar>
+          <div class="shop-card__inner">
+            <div class="shop-card__avatar">
+              <el-avatar :size="56" shape="square">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <rect x="2" y="3" width="20" height="14" rx="2"/>
+                  <path d="M8 21h8"/>
+                  <path d="M12 17v4"/>
+                </svg>
+              </el-avatar>
+            </div>
             <div class="shop-card__info">
               <h3 class="shop-card__name">{{ shop.name || `店铺 ${shop.id}` }}</h3>
               <span class="shop-card__id">ID: {{ shop.id }}</span>
+            </div>
+            <div class="shop-card__action">
+              <el-button type="primary" size="large" @click.stop="enterShop(shop.id)">{{ T.BTN_ENTER }}</el-button>
             </div>
           </div>
         </el-card>
@@ -42,7 +51,7 @@
     <el-dialog
       v-model="detailVisible"
       :title="selectedShop?.name || '店铺详情'"
-      width="500px"
+      width="480px"
       :close-on-click-modal="true"
       destroy-on-close
     >
