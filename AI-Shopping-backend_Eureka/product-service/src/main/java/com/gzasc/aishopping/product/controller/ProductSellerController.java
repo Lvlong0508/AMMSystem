@@ -1,6 +1,5 @@
 package com.gzasc.aishopping.product.controller;
 
-import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
@@ -9,7 +8,6 @@ import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.service.ProductService;
-import com.gzasc.aishopping.product.vo.ShopInfoVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +29,13 @@ public class ProductSellerController {
     private final ProductService productService;
 
     @GetMapping("/{productId}")
-    public ApiResponse<Map<String, Object>> getProductDetail(@PathVariable("productId") Long productId) {
+    public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") Long productId) {
         log.info("商家查询商品详情, productId={}", productId);
         ProductWithImageDetailDTO product = productService.getProductById(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在");
         }
-        return ApiResponse.success(toDetailVO(product));
+        return ApiResponse.success(product);
     }
 
     @GetMapping("/shop/{shopId}")
@@ -142,27 +139,5 @@ public class ProductSellerController {
             throw new ProductException(404, "商品不存在或下架失败");
         }
         return ApiResponse.success("下架成功", null);
-    }
-
-    private ShopInfoVO shopInfoToVO(ShopInfoDTO dto) {
-        if (dto == null) return null;
-        return new ShopInfoVO(String.valueOf(dto.getId()), dto.getName(), dto.getDescription(), dto.getLogoUrl());
-    }
-
-    private Map<String, Object> toDetailVO(ProductWithImageDetailDTO dto) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("id", String.valueOf(dto.getId()));
-        map.put("name", dto.getName());
-        map.put("price", dto.getPrice());
-        map.put("tags", dto.getTags());
-        map.put("description", dto.getDescription());
-        map.put("stock", dto.getStock());
-        map.put("isSale", dto.isSale());
-        map.put("imageId", dto.getImageId());
-        map.put("imageUrl", dto.getImageUrl());
-        map.put("shop", dto.getShop() != null ? shopInfoToVO(dto.getShop()) : null);
-        map.put("createdAt", dto.getCreatedAt());
-        map.put("updatedAt", dto.getUpdatedAt());
-        return map;
     }
 }

@@ -87,14 +87,14 @@ export function useShip() {
       if (res?.data) {
         contacts.value = Array.isArray(res.data) ? res.data : [res.data]
         if (contacts.value.length > 0 && !shipForm.value.selectedContactId) {
-          shipForm.value.selectedContactId = String(contacts.value[0].id)
+          shipForm.value.selectedContactId = contacts.value[0].id
         }
       } else {
         contacts.value = []
       }
     } catch (error) {
-      console.error('加载联系人失败:', error)
-      ElMessage.error('加载联系人失败')
+      console.error('加载联系人失�?', error)
+      ElMessage.error('加载联系人失�?)
       contacts.value = []
     } finally {
       contactsLoading.value = false
@@ -124,7 +124,7 @@ export function useShip() {
 
   async function showShipDialog(order) {
     shipForm.value = {
-      orderId: String(order.orderId),
+      orderId: order.orderId,
       trackingNumber: '',
       shippingDate: new Date().toISOString().slice(0, 16),
       selectedContactId: null
@@ -138,7 +138,7 @@ export function useShip() {
 
   async function handleShip() {
     if (!shipForm.value.trackingNumber.trim()) {
-      ElMessage.warning('请输入物流单号')
+      ElMessage.warning('请输入物流单�?)
       return
     }
     if (!shipForm.value.selectedContactId) {

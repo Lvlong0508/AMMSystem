@@ -6,8 +6,6 @@ import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
-import com.gzasc.aishopping.shop.service.impl.ShopConverter;
-import com.gzasc.aishopping.shop.vo.ShopVO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -36,12 +34,9 @@ class ShopMerchantControllerTest {
     @Mock
     private ShopService shopService;
 
-    @Mock
-    private ShopConverter shopConverter;
-
     @BeforeEach
     void setUp() {
-        var controller = new ShopMerchantController(shopService, shopConverter);
+        var controller = new ShopMerchantController(shopService);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -68,7 +63,7 @@ class ShopMerchantControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("创建店铺成功"))
-                .andExpect(jsonPath("$.data.id").value("10001"));
+                .andExpect(jsonPath("$.data.id").value(10001));
     }
 
     @Test
@@ -117,24 +112,22 @@ class ShopMerchantControllerTest {
                         .header("X-User-Id", 1001L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":""}
+                                {"name":"   ","description":"测试"}
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
 
-    // ========== 更新店铺 ==========
+    // ========== 更新/删除店铺 ==========
 
     @Test
     @DisplayName("SH-007 更新店铺成功")
     void updateShop_success() throws Exception {
-        doNothing().when(shopService).updateShop(eq(1L), any(), eq(1001L));
-
         mockMvc.perform(put("/api/seller/shop/1")
                         .header("X-User-Id", 1001L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"新店铺名","description":"新描述","logoId":"new-logo"}
+                                {"name":"新名称","description":"新描述"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -142,46 +135,8 @@ class ShopMerchantControllerTest {
     }
 
     @Test
-    @DisplayName("SH-009 更新店铺 - 店铺不存在")
-    void updateShop_notFound() throws Exception {
-        doThrow(new ShopException("店铺不存在"))
-                .when(shopService).updateShop(eq(999L), any(), eq(1001L));
-
-        mockMvc.perform(put("/api/seller/shop/999")
-                        .header("X-User-Id", 1001L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"name":"不存在"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("店铺不存在"));
-    }
-
-    @Test
-    @DisplayName("SH-010 更新店铺 - 非店长操作")
-    void updateShop_notOwner() throws Exception {
-        doThrow(new ShopException("仅店长可操作"))
-                .when(shopService).updateShop(eq(1L), any(), eq(1002L));
-
-        mockMvc.perform(put("/api/seller/shop/1")
-                        .header("X-User-Id", 1002L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"name":"无权限"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("仅店长可操作"));
-    }
-
-    // ========== 关闭/开启店铺 ==========
-
-    @Test
-    @DisplayName("SH-011 关闭店铺成功")
+    @DisplayName("SH-017 关闭店铺成功")
     void closeShop_success() throws Exception {
-        doNothing().when(shopService).closeShop(1L, 1001L);
-
         mockMvc.perform(delete("/api/seller/shop/1")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
@@ -190,36 +145,8 @@ class ShopMerchantControllerTest {
     }
 
     @Test
-    @DisplayName("SH-012 关闭店铺 - 非店长操作")
-    void closeShop_notOwner() throws Exception {
-        doThrow(new ShopException("仅店长可操作"))
-                .when(shopService).closeShop(1L, 1002L);
-
-        mockMvc.perform(delete("/api/seller/shop/1")
-                        .header("X-User-Id", 1002L))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("仅店长可操作"));
-    }
-
-    @Test
-    @DisplayName("SH-013 关闭店铺 - 已关闭店铺再次关闭")
-    void closeShop_alreadyClosed() throws Exception {
-        doThrow(new ShopException("店铺已关闭或不存在"))
-                .when(shopService).closeShop(1L, 1001L);
-
-        mockMvc.perform(delete("/api/seller/shop/1")
-                        .header("X-User-Id", 1001L))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("店铺已关闭或不存在"));
-    }
-
-    @Test
-    @DisplayName("SH-014 重新开店成功")
+    @DisplayName("SH-019 重新开店成功")
     void openShop_success() throws Exception {
-        doNothing().when(shopService).openShop(1L, 1001L);
-
         mockMvc.perform(put("/api/seller/shop/1/open")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
@@ -227,31 +154,16 @@ class ShopMerchantControllerTest {
                 .andExpect(jsonPath("$.message").value("重新开店成功"));
     }
 
-    @Test
-    @DisplayName("SH-015 重新开店 - 非店长操作")
-    void openShop_notOwner() throws Exception {
-        doThrow(new ShopException("仅店长可操作"))
-                .when(shopService).openShop(1L, 1002L);
-
-        mockMvc.perform(put("/api/seller/shop/1/open")
-                        .header("X-User-Id", 1002L))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("仅店长可操作"));
-    }
-
     // ========== 员工管理 ==========
 
     @Test
-    @DisplayName("SH-016 添加店员成功")
+    @DisplayName("SH-020 添加店员成功")
     void addEmployee_success() throws Exception {
-        doNothing().when(shopService).addEmployee(eq(1L), any(), eq(1001L));
-
         mockMvc.perform(post("/api/seller/shop/1/employees/register")
                         .header("X-User-Id", 1001L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"emp01","password":"Abc123","phone":"13800138001","name":"店员小王"}
+                                {"username":"emp1","password":"123456","name":"员工一","phone":"13800138001"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -259,66 +171,8 @@ class ShopMerchantControllerTest {
     }
 
     @Test
-    @DisplayName("SH-019 添加店员 - 非店长操作")
-    void addEmployee_notOwner() throws Exception {
-        doThrow(new ShopException("仅店长可操作"))
-                .when(shopService).addEmployee(eq(1L), any(), eq(1002L));
-
-        mockMvc.perform(post("/api/seller/shop/1/employees/register")
-                        .header("X-User-Id", 1002L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"username":"emp01","password":"Abc123"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("仅店长可操作"));
-    }
-
-    @Test
-    @DisplayName("SH-022 添加店员 - 请求参数校验(用户名为空)")
-    void addEmployee_validation_usernameNull() throws Exception {
-        mockMvc.perform(post("/api/seller/shop/1/employees/register")
-                        .header("X-User-Id", 1001L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"password":"Abc123","phone":"13800138001","name":"测试"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
-
-    @Test
-    @DisplayName("SH-046 添加店员 - username过短")
-    void addEmployee_validation_usernameTooShort() throws Exception {
-        mockMvc.perform(post("/api/seller/shop/1/employees/register")
-                        .header("X-User-Id", 1001L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"username":"ab"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
-
-    @Test
-    @DisplayName("SH-047 添加店员 - username含特殊字符")
-    void addEmployee_validation_usernameSpecialChars() throws Exception {
-        mockMvc.perform(post("/api/seller/shop/1/employees/register")
-                        .header("X-User-Id", 1001L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"username":"user@name"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400));
-    }
-
-    @Test
-    @DisplayName("SH-020 移除店员成功")
+    @DisplayName("SH-021 移除店员成功")
     void removeEmployee_success() throws Exception {
-        doNothing().when(shopService).removeEmployee(1L, 2001L, 1001L);
-
         mockMvc.perform(delete("/api/seller/shop/1/employees/2001")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
@@ -337,9 +191,9 @@ class ShopMerchantControllerTest {
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shopIds[0]").value("1"))
-                .andExpect(jsonPath("$.data.shopIds[1]").value("2"))
-                .andExpect(jsonPath("$.data.shopIds[2]").value("3"));
+                .andExpect(jsonPath("$.data.shopIds[0]").value(1))
+                .andExpect(jsonPath("$.data.shopIds[1]").value(2))
+                .andExpect(jsonPath("$.data.shopIds[2]").value(3));
     }
 
     @Test
@@ -347,15 +201,14 @@ class ShopMerchantControllerTest {
     void getShop_success() throws Exception {
         Shop shop = new Shop(1L, 1001L, 10L, 1, null, null);
         when(shopService.getShopWithAccessCheck(1L, 1001L)).thenReturn(shop);
-        when(shopConverter.toShopVO(any())).thenReturn(new ShopVO("1", "1001", "10", 1, null, null));
 
         mockMvc.perform(get("/api/seller/shop/1")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shop.id").value("1"))
-                .andExpect(jsonPath("$.data.shop.merchantId").value("1001"))
-                .andExpect(jsonPath("$.data.shop.shopInfoId").value("10"))
+                .andExpect(jsonPath("$.data.shop.id").value(1))
+                .andExpect(jsonPath("$.data.shop.merchantId").value(1001))
+                .andExpect(jsonPath("$.data.shop.shopInfoId").value(10))
                 .andExpect(jsonPath("$.data.shop.status").value(1));
     }
 

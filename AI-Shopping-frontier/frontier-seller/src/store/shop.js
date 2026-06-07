@@ -1,41 +1,58 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { getShopByMerchant } from '@/api/shop'
+﻿import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { getShopByMerchant } from "@/api/shop";
 
-export const useShopStore = defineStore('shop', () => {
-  const currentShopId = ref(localStorage.getItem('currentShopId') || null)
-  const shops = ref([])
-  const loaded = ref(false)
+export const useShopStore = defineStore("shop", () => {
+  const currentShopId = ref(
+    localStorage.getItem("currentShopId") || null
+  );
+  const shops = ref([]);
+  const loaded = ref(false);
 
-  const currentShop = computed(() => shops.value.find(s => String(s.id) === String(currentShopId.value)))
-  const hasMultipleShops = computed(() => shops.value.length > 1)
-  const hasNoShops = computed(() => loaded.value && shops.value.length === 0)
+  const currentShop = computed(() =>
+    shops.value.find((s) => s.id === currentShopId.value)
+  );
+  const hasMultipleShops = computed(() => shops.value.length > 1);
+  const hasNoShops = computed(
+    () => loaded.value && shops.value.length === 0
+  );
 
   async function initShops(merchantId) {
-    if (!merchantId) return
-    loaded.value = false
+    if (!merchantId) return;
+    loaded.value = false;
     try {
-      const res = await getShopByMerchant(merchantId)
-      const shopIds = res?.data?.shopIds || res?.shopIds || []
-      shops.value = shopIds.map(id => ({ id: String(id), name: `店铺 ${id}` }))
+      const res = await getShopByMerchant(merchantId);
+      const shopIds = res?.data?.shopIds || res?.shopIds || [];
+      shops.value = shopIds.map((id) => ({ id, name: `店铺 ${id}` }));
       if (shops.value.length > 0) {
-        const exists = shops.value.some(s => String(s.id) === String(currentShopId.value))
+        const exists = shops.value.some(
+          (s) => s.id === currentShopId.value
+        );
         if (!currentShopId.value || !exists || shops.value.length === 1) {
-          currentShopId.value = String(shops.value[0].id)
-          localStorage.setItem('currentShopId', currentShopId.value)
+          currentShopId.value = shops.value[0].id;
+          localStorage.setItem("currentShopId", currentShopId.value);
         }
       }
     } catch (e) {
-      console.error('初始化店铺失败:', e)
+      console.error("初始化店铺失败:", e);
     } finally {
-      loaded.value = true
+      loaded.value = true;
     }
   }
 
   function switchShop(shopId) {
-    currentShopId.value = String(shopId)
-    localStorage.setItem('currentShopId', String(shopId))
+    currentShopId.value = shopId;
+    localStorage.setItem("currentShopId", shopId);
   }
 
-  return { currentShopId, shops, loaded, currentShop, hasMultipleShops, hasNoShops, initShops, switchShop }
-})
+  return {
+    currentShopId,
+    shops,
+    loaded,
+    currentShop,
+    hasMultipleShops,
+    hasNoShops,
+    initShops,
+    switchShop,
+  };
+});

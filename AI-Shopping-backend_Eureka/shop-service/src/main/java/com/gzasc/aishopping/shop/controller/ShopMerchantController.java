@@ -7,8 +7,6 @@ import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
-import com.gzasc.aishopping.shop.service.impl.ShopConverter;
-import com.gzasc.aishopping.shop.vo.ShopVO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +20,6 @@ import java.util.Map;
 public class ShopMerchantController {
 
     private final ShopService shopService;
-    private final ShopConverter shopConverter;
 
     @GetMapping("/merchant/{merchantId}")
     public ApiResponse<Map<String, Object>> getShopsByMerchant(
@@ -32,17 +29,14 @@ public class ShopMerchantController {
             throw new ShopException("无权限查看该商户的店铺列表");
         }
         List<Long> shopIds = shopService.getShopIdsByMerchantId(merchantId);
-        List<String> shopIdStrs = shopIds.stream().map(String::valueOf).toList();
-        return ApiResponse.success(Map.of("shopIds", shopIdStrs));
+        return ApiResponse.success(Map.of("shopIds", shopIds));
     }
 
     @GetMapping("/{shopId}")
     public ApiResponse<Map<String, Object>> getShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        Shop shop = shopService.getShopWithAccessCheck(shopId, userId);
-        ShopVO vo = shopConverter.toShopVO(shop);
-        return ApiResponse.success(Map.of("shop", vo));
+        return ApiResponse.success(Map.of("shop", shopService.getShopWithAccessCheck(shopId, userId)));
     }
 
     @GetMapping("/{shopId}/employees")
@@ -57,7 +51,7 @@ public class ShopMerchantController {
             @RequestBody @Valid CreateShopRequest request,
             @RequestHeader("X-User-Id") Long userId) {
         Shop shop = shopService.createShop(request, userId);
-        return ApiResponse.success("创建店铺成功", Map.of("id", String.valueOf(shop.getId())));
+        return ApiResponse.success("创建店铺成功", Map.of("id", shop.getId()));
     }
 
     @PutMapping("/{shopId}")
