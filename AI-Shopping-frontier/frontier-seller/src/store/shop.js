@@ -24,20 +24,23 @@ export const useShopStore = defineStore("shop", () => {
       const res = await getShopByMerchant(merchantId);
       const shopIds = res?.data?.shopIds || res?.shopIds || [];
       shops.value = shopIds.map((id) => ({ id, name: `店铺 ${id}` }));
-      if (shops.value.length > 0) {
-        const exists = shops.value.some(
-          (s) => s.id === currentShopId.value
-        );
-        if (!currentShopId.value || !exists || shops.value.length === 1) {
-          currentShopId.value = shops.value[0].id;
-          localStorage.setItem("currentShopId", currentShopId.value);
-        }
+      if (shops.value.length === 1) {
+        currentShopId.value = shops.value[0].id;
+        localStorage.setItem("currentShopId", currentShopId.value);
+      } else if (shops.value.length === 0) {
+        currentShopId.value = null;
+        localStorage.removeItem("currentShopId");
       }
     } catch (e) {
       console.error("初始化店铺失败:", e);
     } finally {
       loaded.value = true;
     }
+  }
+
+  function clearCurrentShop() {
+    currentShopId.value = null;
+    localStorage.removeItem("currentShopId");
   }
 
   function switchShop(shopId) {
@@ -53,6 +56,7 @@ export const useShopStore = defineStore("shop", () => {
     hasMultipleShops,
     hasNoShops,
     initShops,
+    clearCurrentShop,
     switchShop,
   };
 });
