@@ -6,6 +6,7 @@ import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import com.gzasc.aishopping.product.converter.ProductConverter;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
@@ -247,6 +248,37 @@ public class ProductServiceImpl implements ProductService {
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
         return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
+
+    @Override
+    public List<SellerProductAbstractDTO> getSellerProductsByShopId(Long shopId) {
+        List<Product> products = productMapper.selectByShopId(shopId);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        Set<Long> shopIds = Set.of(shopId);
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toSellerAbstractDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
+    public List<SellerProductAbstractDTO> getSellerProductsAbstract(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return List.of();
+        }
+        List<Product> products = productMapper.selectAbstractProductsByIdsJustMerchant(ids);
+        if (products.isEmpty()) {
+            return List.of();
+        }
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        Set<Long> shopIds = products.stream()
+            .map(Product::getShopId)
+            .filter(id -> id != null)
+            .collect(Collectors.toSet());
+        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
+        return productConverter.toSellerAbstractDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
 
     @Override
     @Transactional

@@ -2,6 +2,7 @@ package com.gzasc.aishopping.product.converter;
 
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import org.springframework.stereotype.Component;
@@ -100,6 +101,39 @@ public class ProductConverter {
                     shop = shopInfoMap.get(p.getShopId());
                 }
                 return toDetailWithImageDTO(p, url, shop);
+            })
+            .collect(Collectors.toList());
+    }
+
+    // ==================== 商家端抽象 DTO 转换（含上下架状态） ====================
+
+    public SellerProductAbstractDTO toSellerAbstractDTO(Product product, String imageUrl, ShopInfoDTO shop) {
+        if (product == null) return null;
+        return new SellerProductAbstractDTO(
+            product.getId(),
+            product.getName(),
+            product.getPrice(),
+            product.getTags(),
+            product.getImageId(),
+            imageUrl,
+            product.isSale(),
+            shop
+        );
+    }
+
+    public List<SellerProductAbstractDTO> toSellerAbstractDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
+        if (products == null) return List.of();
+        return products.stream()
+            .map(p -> {
+                String url = null;
+                if (p.getImageId() != null && imageUrlMap != null) {
+                    url = imageUrlMap.get(p.getImageId());
+                }
+                ShopInfoDTO shop = null;
+                if (shopInfoMap != null && p.getShopId() != null) {
+                    shop = shopInfoMap.get(p.getShopId());
+                }
+                return toSellerAbstractDTO(p, url, shop);
             })
             .collect(Collectors.toList());
     }

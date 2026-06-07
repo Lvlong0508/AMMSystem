@@ -4,6 +4,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { getShopDetail } from '@/api/shop'
 import { getProductsByShop, createProduct, updateProduct, deleteProduct, listProduct, unlistProduct, getProductById } from '@/api/product'
 import * as T from './Text.js'
+import { TAG_LIBRARY } from './tagLibrary.js'
 
 export function useShopProducts() {
   const route = useRoute()
@@ -22,7 +23,7 @@ export function useShopProducts() {
   const selectedProduct = ref(null)
 
   const form = ref({
-    name: '', description: '', price: '', stock: '', image: null
+    name: '', description: '', price: '', stock: '', image: null, tags: ''
   })
 
   const filteredProducts = computed(() => {
@@ -94,7 +95,7 @@ export function useShopProducts() {
   function showAddDialog() {
     isEdit.value = false
     editingProductId.value = null
-    form.value = { name: '', description: '', price: '', stock: '', image: null }
+    form.value = { name: '', description: '', price: '', stock: '', image: null, tags: '' }
     dialogVisible.value = true
   }
 
@@ -106,7 +107,8 @@ export function useShopProducts() {
       description: product.description || '',
       price: product.price || '',
       stock: product.stock || 0,
-      image: null
+      image: null,
+      tags: product.tags || ''
     }
     dialogVisible.value = true
   }
@@ -131,23 +133,27 @@ export function useShopProducts() {
       let res
       if (isEdit.value) {
         const fd = new FormData()
-        fd.append('product', new Blob([JSON.stringify({
-          name: form.value.name.trim(),
-          description: form.value.description.trim(),
-          price: parseFloat(form.value.price),
-          stock: parseInt(form.value.stock)
-        })], { type: 'application/json' }))
-        if (form.value.image) fd.append('image', form.value.image)
-        res = await updateProduct(editingProductId.value, fd)
-      } else {
-        const fd = new FormData()
-        fd.append('product', new Blob([JSON.stringify({
+        const productData = {
           name: form.value.name.trim(),
           description: form.value.description.trim(),
           price: parseFloat(form.value.price),
           stock: parseInt(form.value.stock),
+          tags: form.value.tags
+        }
+        fd.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }))
+        if (form.value.image) fd.append('image', form.value.image)
+        res = await updateProduct(editingProductId.value, fd)
+      } else {
+        const fd = new FormData()
+        const productData = {
+          name: form.value.name.trim(),
+          description: form.value.description.trim(),
+          price: parseFloat(form.value.price),
+          stock: parseInt(form.value.stock),
+          tags: form.value.tags,
           shopId: shopId.value
-        })], { type: 'application/json' }))
+        }
+        fd.append('product', new Blob([JSON.stringify(productData)], { type: 'application/json' }))
         if (form.value.image) fd.append('image', form.value.image)
         res = await createProduct(fd)
       }
@@ -199,7 +205,7 @@ export function useShopProducts() {
   onMounted(() => { loadShopInfo(); loadProducts() })
 
   return {
-    T, shopInfo, products, loading, searchKeyword, filteredProducts,
+    TAG_LIBRARY, T, shopInfo, products, loading, searchKeyword, filteredProducts,
     detailVisible, selectedProduct,
     dialogVisible, isEdit, submitting, form,
     showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit,

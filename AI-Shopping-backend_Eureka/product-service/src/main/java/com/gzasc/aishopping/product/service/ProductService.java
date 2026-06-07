@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.product.service;
 
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.model.Product;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +63,16 @@ public interface ProductService {
      * (id, name, price, tags, isSale, imageId)
      */
     List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<Long> ids);
+    /**
+     * 商家端: 根据店铺ID查询所有商品（含上下架状态）
+     */
+    List<SellerProductAbstractDTO> getSellerProductsByShopId(Long shopId);
+
+    /**
+     * 商家端: 根据商品ID批量查询（含上下架状态）
+     */
+    List<SellerProductAbstractDTO> getSellerProductsAbstract(List<Long> ids);
+
 
 
     // ==================== 库存管理 ====================

@@ -2,6 +2,7 @@ package com.gzasc.aishopping.product.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
+import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
@@ -293,8 +294,8 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-030 - GET /api/seller/product/batch - 批量查询")
     void testBatchQuery() throws Exception {
-        when(productService.getAbstractProductsForMerchant(List.of(1001L, 1002L, 1003L)))
-                .thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
+        when(productService.getSellerProductsAbstract(List.of(1001L, 1002L, 1003L)))
+                .thenReturn(List.of(new SellerProductAbstractDTO(), new SellerProductAbstractDTO(), new SellerProductAbstractDTO()));
 
         mockMvc.perform(get("/api/seller/product/batch").param("ids", "1001,1002,1003"))
                 .andExpect(status().isOk())

@@ -43,6 +43,16 @@
         <el-form-item :label="T.LABEL_DESC">
           <el-input v-model="form.description" type="textarea" :rows="3" :maxlength="500" />
         </el-form-item>
+        <el-form-item :label="T.LABEL_TAGS">
+          <el-cascader
+            v-model="form.tags"
+            :options="TAG_LIBRARY"
+            :props="{ expandTrigger: 'hover', emitPath: false }"
+            placeholder="选择商品分类标签"
+            clearable
+            style="width: 100%"
+          />
+        </el-form-item>
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item :label="T.LABEL_PRICE">
@@ -72,7 +82,7 @@
 <script setup>
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { useShopProducts } from './ShopProducts.js'
-const { T, shopInfo, products, loading, searchKeyword, filteredProducts, detailVisible, selectedProduct, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts, showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail } = useShopProducts()
+const { TAG_LIBRARY, T, shopInfo, products, loading, searchKeyword, filteredProducts, detailVisible, selectedProduct, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts, showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail } = useShopProducts()
 </script>
 
 <style scoped src="./ShopProducts.css"></style>

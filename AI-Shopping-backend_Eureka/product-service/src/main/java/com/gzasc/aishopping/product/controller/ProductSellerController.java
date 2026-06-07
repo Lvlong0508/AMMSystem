@@ -3,6 +3,7 @@ package com.gzasc.aishopping.product.controller;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
+import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
@@ -39,19 +40,19 @@ public class ProductSellerController {
     }
 
     @GetMapping("/shop/{shopId}")
-    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByShop(@PathVariable("shopId") Long shopId) {
+    public ApiResponse<List<SellerProductAbstractDTO>> getProductsByShop(@PathVariable("shopId") Long shopId) {
         log.info("商家查询店铺商品列表, shopId={}", shopId);
-        List<ProductWithImageAbstractDTO> products = productService.getAllProductsByShopId(shopId);
+        List<SellerProductAbstractDTO> products = productService.getSellerProductsByShopId(shopId);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/batch")
-    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
+    public ApiResponse<List<SellerProductAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
         log.info("商家批量查询商品, ids={}", ids);
         List<Long> idList = Arrays.stream(ids.split(","))
                 .map(Long::valueOf)
                 .toList();
-        List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForMerchant(idList);
+        List<SellerProductAbstractDTO> products = productService.getSellerProductsAbstract(idList);
         return ApiResponse.success(products);
     }
 
