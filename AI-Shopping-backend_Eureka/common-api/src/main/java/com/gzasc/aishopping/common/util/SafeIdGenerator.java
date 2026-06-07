@@ -13,11 +13,6 @@ package com.gzasc.aishopping.common.util;
  *   <li>序列号：每毫秒最多 4096 个 ID，支持高并发</li>
  * </ul>
  *
- * <pre>{@code
- * // 调用方式与 SnowflakeIdGenerator 完全一致：
- * entity.setId(SafeIdGenerator.nextId());          // long
- * entity.setId(Long.valueOf(SafeIdGenerator.nextIdStr()));  // String → long
- * }</pre>
  */
 public class SafeIdGenerator {
 
