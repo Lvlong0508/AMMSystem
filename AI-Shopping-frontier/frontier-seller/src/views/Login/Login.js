@@ -39,6 +39,7 @@ export function useLogin() {
       })
       ElMessage.success(res.message || '登录成功')
       const shopStore = useShopStore()
+      shopStore.clearCurrentShop()
       verifying.value = true
       if (authStore.merchantId) await shopStore.initShops(authStore.merchantId)
       router.push('/')
