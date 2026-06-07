@@ -1,14 +1,15 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '@/store/auth'
 import { useShopStore } from '@/store/shop'
-import { getShopByMerchant } from '@/api/shop'
 import * as T from './Text.js'
 
 export function useShopList() {
   const router = useRouter()
+  const auth = useAuthStore()
   const shopStore = useShopStore()
-  const shops = ref([])
+  const shops = ref(shopStore.shops)
   const loading = ref(false)
 
   async function loadShops() {
@@ -16,6 +17,7 @@ export function useShopList() {
     try {
       const merchantId = localStorage.getItem('merchantId')
       if (!merchantId) return
+      const { getShopByMerchant } = await import('@/api/shop')
       const res = await getShopByMerchant(merchantId)
       const shopIds = res?.data?.shopIds || res?.shopIds || []
       shops.value = shopIds.map(id => ({ id, name: `店铺 ${id}` }))
@@ -27,19 +29,27 @@ export function useShopList() {
     }
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return '-'
-    return new Date(dateStr).toLocaleDateString('zh-CN')
-  }
+  onMounted(() => {
+    if (shopStore.shops.length > 0) {
+      shops.value = shopStore.shops
+    } else {
+      loadShops()
+    }
+  })
 
   function enterShop(shopId) {
     shopStore.switchShop(shopId)
     router.push(`/shop/${shopId}/products`)
   }
 
-  onMounted(loadShops)
+  function goRegister() {
+    window.open('/shop/register', '_blank')
+  }
 
-  function goRegister() { window.open('/shop/register', '_blank') }
+  async function handleLogout() {
+    await auth.logout()
+    router.push('/login')
+  }
 
-  return { shops, loading, T, formatDate, enterShop, loadShops, goRegister }
+  return { shops, loading, T, enterShop, goRegister, handleLogout, auth }
 }
