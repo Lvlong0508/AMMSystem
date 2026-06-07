@@ -6,7 +6,7 @@ import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
 import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
-import ShopSelectPage from '@/views/ShopList/ShopList.vue'
+import ShopSelectPage from '../views/ShopList/ShopList.vue'
 import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
 import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
 import ShopEmployees from '../views/ShopEmployees/ShopEmployees.vue'
@@ -87,7 +87,7 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore()
   const shop = useShopStore()
 
@@ -113,7 +113,7 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
-  if (to.params.shopId && to.params.shopId !== shop.currentShopId) {
+  if (shop.loaded && to.params.shopId && to.params.shopId !== shop.currentShopId) {
     next('/shop/select')
     return
   }
