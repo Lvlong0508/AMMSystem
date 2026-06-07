@@ -32,7 +32,7 @@ export function useShopRegister() {
       const res = await registerShop({ name: form.name, description: form.description })
       if (res.data?.id) {
         ElMessage.success(T.SUCCESS_MSG)
-        router.push('/shop/list')
+        router.push('/shop/select')
       } else {
         ElMessage.error(res.data?.message || T.ERROR_MSG)
       }

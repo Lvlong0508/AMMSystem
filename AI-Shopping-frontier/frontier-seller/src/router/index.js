@@ -106,7 +106,7 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  if (auth.merchantId) await shop.initShops(auth.merchantId)
+  if (auth.merchantId && !shop.loaded) await shop.initShops(auth.merchantId)
 
   if (!shop.currentShopId && shop.loaded && !shop.hasNoShops) {
     next('/shop/select')

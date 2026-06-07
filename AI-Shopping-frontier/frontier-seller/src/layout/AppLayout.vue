@@ -80,30 +80,3 @@ function goRegister() {
 
 </style>
 
-<style>
-.no-shop-dialog__body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: var(--space-4) 0;
-}
-
-.no-shop-dialog__icon {
-  color: var(--color-text-tertiary);
-  margin-bottom: var(--space-5);
-}
-
-.no-shop-dialog__title {
-  font-size: var(--text-xl);
-  font-weight: 600;
-  margin: 0 0 var(--space-2);
-  color: var(--color-text);
-}
-
-.no-shop-dialog__desc {
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-</style>
