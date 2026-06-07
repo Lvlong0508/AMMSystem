@@ -42,7 +42,7 @@ export function useLogin() {
       shopStore.clearCurrentShop()
       verifying.value = true
       if (authStore.merchantId) await shopStore.initShops(authStore.merchantId)
-      router.push('/')
+      router.push('/shop/select')
     } catch (err) {
       const msg = err.response?.data?.message || err.message || '登录失败，请重试'
       ElMessage.error(msg)

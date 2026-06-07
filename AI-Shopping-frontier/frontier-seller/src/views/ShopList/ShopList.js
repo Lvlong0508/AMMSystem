@@ -22,6 +22,9 @@ export function useShopList() {
       await shopStore.initShops(auth.merchantId)
       loading.value = false
     }
+    if (shopStore.shops.length === 1 && shopStore.currentShopId) {
+      router.replace(`/shop/${shopStore.currentShopId}/products`)
+    }
   })
 
   async function showShopDetail(shop) {
