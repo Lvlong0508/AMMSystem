@@ -51,6 +51,11 @@
   text-align: center;
 }
 
+.shop-select-page__toolbar {
+  width: 320px;
+  margin-bottom: 16px;
+}
+
 .shop-select-page__grid {
   display: flex;
   flex-direction: column;

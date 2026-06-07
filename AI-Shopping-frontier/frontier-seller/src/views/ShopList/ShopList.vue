@@ -6,13 +6,16 @@
         <span class="shop-select-page__username">{{ auth.merchantName }}</span>
       </div>
       <div class="shop-select-page__actions">
-        <el-button size="default" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
         <el-button size="default" @click="handleLogout">{{ T.BTN_LOGOUT }}</el-button>
       </div>
     </div>
 
     <div class="shop-select-page__body">
       <h1 class="shop-select-page__title">{{ T.SELECT_TITLE }}</h1>
+
+      <div class="shop-select-page__toolbar">
+        <el-button type="primary" size="large" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
+      </div>
 
       <div v-loading="loading" class="shop-select-page__grid">
         <el-card
