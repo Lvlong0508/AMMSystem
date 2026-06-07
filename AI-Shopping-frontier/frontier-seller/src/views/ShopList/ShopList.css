@@ -52,23 +52,32 @@
 }
 
 .shop-select-page__grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
   width: 100%;
 }
 
 .shop-card {
-  margin-bottom: 16px;
+  width: 320px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .shop-card :deep(.el-card__body) {
-  padding: 16px 20px;
+  padding: 28px 24px 20px;
 }
 
 .shop-card__inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 0;
+}
+
+.shop-card__avatar {
+  margin-bottom: 16px;
 }
 
 .shop-card__avatar :deep(.el-avatar) {
@@ -77,15 +86,15 @@
 }
 
 .shop-card__info {
-  flex: 1;
-  min-width: 0;
+  text-align: center;
+  margin-bottom: 20px;
 }
 
 .shop-card__name {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--el-text-color-primary);
-  margin: 0 0 2px;
+  margin: 0 0 4px;
   line-height: 1.4;
 }
 
@@ -94,8 +103,8 @@
   color: var(--el-text-color-secondary);
 }
 
-.shop-card__action {
-  flex-shrink: 0;
+.shop-card__btn {
+  width: 100%;
 }
 
 .shop-detail {

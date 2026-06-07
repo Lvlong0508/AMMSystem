@@ -24,8 +24,8 @@
         >
           <div class="shop-card__inner">
             <div class="shop-card__avatar">
-              <el-avatar :size="56" shape="square">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <el-avatar :size="64" shape="square">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <rect x="2" y="3" width="20" height="14" rx="2"/>
                   <path d="M8 21h8"/>
                   <path d="M12 17v4"/>
@@ -36,9 +36,9 @@
               <h3 class="shop-card__name">{{ shop.name || `店铺 ${shop.id}` }}</h3>
               <span class="shop-card__id">ID: {{ shop.id }}</span>
             </div>
-            <div class="shop-card__action">
-              <el-button type="primary" size="large" @click.stop="enterShop(shop.id)">{{ T.BTN_ENTER }}</el-button>
-            </div>
+            <el-button type="primary" size="large" class="shop-card__btn" @click.stop="enterShop(shop.id)">
+              {{ T.BTN_ENTER }}
+            </el-button>
           </div>
         </el-card>
       </div>
