@@ -51,12 +51,17 @@
 
 .shop-select-page__grid {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-4);
   width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
 }
 
 .shop-card {
+  width: 320px;
+  flex-shrink: 0;
   cursor: pointer;
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
   padding: var(--space-1);
