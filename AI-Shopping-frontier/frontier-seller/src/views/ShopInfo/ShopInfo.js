@@ -24,7 +24,9 @@ export function useShopInfo() {
     loading.value = true
     try {
       const res = await getShopDetail(shopId)
-      const shop = res?.data?.shop || res?.shop || res || {}
+      const shopData = res?.data?.shop || res?.shop || {}
+      const shopInfo = res?.data?.shopInfo || res?.shopInfo || {}
+      const shop = { ...shopData, ...shopInfo }
       form.name = shop.name || ''
       form.description = shop.description || ''
       form.phone = shop.phone || ''

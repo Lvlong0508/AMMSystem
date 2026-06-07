@@ -33,7 +33,9 @@ export function useShopList() {
     detailLoading.value = true
     try {
       const res = await getShopDetail(shop.id)
-      shopDetail.value = res?.data?.shop || res?.shop || res || null
+      const shopData = res?.data?.shop || res?.shop || {}
+      const shopInfo = res?.data?.shopInfo || res?.shopInfo || {}
+      shopDetail.value = { ...shopData, ...shopInfo }
     } catch (e) {
       console.error('加载店铺详情失败:', e)
       shopDetail.value = null
