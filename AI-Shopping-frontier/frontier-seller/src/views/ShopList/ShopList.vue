@@ -10,9 +10,9 @@
     <div class="shop-select-page__body">
       <h1 class="shop-select-page__title">{{ T.SELECT_TITLE }}</h1>
 
-      <div v-loading="loading" class="shop-list__grid">
+      <div v-loading="loading" class="shop-select-page__grid">
         <el-card
-          v-for="shop in shops"
+          v-for="shop in shopStore.shops"
           :key="shop.id"
           shadow="hover"
           class="shop-card"
@@ -35,7 +35,7 @@
         </el-card>
       </div>
 
-      <el-empty v-if="!loading && shops.length === 0" :description="T.EMPTY_TEXT">
+      <el-empty v-if="!loading && shopStore.shops.length === 0" :description="T.EMPTY_TEXT">
         <el-button type="primary" @click="goRegister">{{ T.BTN_CREATE_NOW }}</el-button>
       </el-empty>
     </div>
@@ -49,7 +49,7 @@
 
 <script setup>
 import { useShopList } from './ShopList.js'
-const { shops, loading, T, enterShop, goRegister, handleLogout, auth } = useShopList()
+const { loading, T, enterShop, goRegister, handleLogout, auth, shopStore } = useShopList()
 </script>
 
 <style scoped src="./ShopList.css"></style>
