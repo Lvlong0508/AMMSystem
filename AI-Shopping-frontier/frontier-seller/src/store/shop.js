@@ -22,8 +22,7 @@ export const useShopStore = defineStore("shop", () => {
     loaded.value = false;
     try {
       const res = await getShopByMerchant(merchantId);
-      const shopIds = res?.data?.shopIds || res?.shopIds || [];
-      shops.value = res?.shops || shopIds.map((id) => ({ id, name: `店铺 ${id}` }));
+      shops.value = res?.data?.shops || res?.shops || [];
       if (shops.value.length === 1) {
         currentShopId.value = shops.value[0].id;
         localStorage.setItem("currentShopId", currentShopId.value);
