@@ -13,7 +13,7 @@
     <div class="shop-select-page__body">
       <h1 class="shop-select-page__title">{{ T.SELECT_TITLE }}</h1>
 
-      <div class="shop-select-page__toolbar">
+      <div v-if="shopStore.shops.length > 0" class="shop-select-page__toolbar">
         <el-button type="primary" size="large" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
       </div>
 
