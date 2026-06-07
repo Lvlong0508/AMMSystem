@@ -17,7 +17,7 @@ export function useShopList() {
   const shopDetail = ref(null)
 
   onMounted(async () => {
-    if (!shopStore.loaded && auth.merchantId) {
+    if (auth.merchantId) {
       loading.value = true
       await shopStore.initShops(auth.merchantId)
       loading.value = false
@@ -33,7 +33,7 @@ export function useShopList() {
     detailLoading.value = true
     try {
       const res = await getShopDetail(shop.id)
-      shopDetail.value = res?.shop || res || null
+      shopDetail.value = res?.data?.shop || res?.shop || res || null
     } catch (e) {
       console.error('加载店铺详情失败:', e)
       shopDetail.value = null
