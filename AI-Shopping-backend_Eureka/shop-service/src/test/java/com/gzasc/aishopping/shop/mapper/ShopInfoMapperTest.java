@@ -24,13 +24,8 @@ class ShopInfoMapperTest {
     @Autowired
     private ShopInfoMapper shopInfoMapper;
 
-    private static long uniqueId() {
-        return System.nanoTime();
-    }
-
-    private static ShopInfo createShopInfo(long id, String name) {
+    private static ShopInfo createShopInfo(String name) {
         ShopInfo si = new ShopInfo();
-        si.setId(id);
         si.setName(name);
         si.setDescription("测试描述");
         si.setLogoUrl("https://example.com/logo.png");
@@ -46,11 +41,12 @@ class ShopInfoMapperTest {
         @Test
         @DisplayName("插入新店铺信息后可通过ID查询")
         void insert_shouldInsertAndBeQueryable() {
-            ShopInfo si = createShopInfo(uniqueId(), "测试店铺");
+            ShopInfo si = createShopInfo("测试店铺");
 
             int affected = shopInfoMapper.insert(si);
 
             assertThat(affected).isEqualTo(1);
+            assertThat(si.getId()).isNotNull();
             ShopInfo found = shopInfoMapper.selectById(si.getId());
             assertThat(found).isNotNull();
             assertThat(found.getName()).isEqualTo("测试店铺");
@@ -64,7 +60,7 @@ class ShopInfoMapperTest {
         @Test
         @DisplayName("根据ID查询已存在的店铺信息")
         void selectById_shouldReturnShopInfo() {
-            ShopInfo si = createShopInfo(uniqueId(), "测试店铺");
+            ShopInfo si = createShopInfo("测试店铺");
             shopInfoMapper.insert(si);
 
             ShopInfo found = shopInfoMapper.selectById(si.getId());
@@ -83,12 +79,12 @@ class ShopInfoMapperTest {
         @Test
         @DisplayName("批量查询店铺信息")
         void selectBatch_shouldReturnList() {
-            long id1 = uniqueId();
-            long id2 = uniqueId();
-            shopInfoMapper.insert(createShopInfo(id1, "店铺A"));
-            shopInfoMapper.insert(createShopInfo(id2, "店铺B"));
+            ShopInfo si1 = createShopInfo("店铺A");
+            ShopInfo si2 = createShopInfo("店铺B");
+            shopInfoMapper.insert(si1);
+            shopInfoMapper.insert(si2);
 
-            List<ShopInfo> list = shopInfoMapper.selectBatch(Arrays.asList(id1, id2));
+            List<ShopInfo> list = shopInfoMapper.selectBatch(Arrays.asList(si1.getId(), si2.getId()));
 
             assertThat(list).hasSize(2);
         }
@@ -103,10 +99,10 @@ class ShopInfoMapperTest {
         @Test
         @DisplayName("批量查询部分匹配")
         void selectBatch_partialMatch() {
-            long existingId = uniqueId();
-            shopInfoMapper.insert(createShopInfo(existingId, "存在"));
+            ShopInfo inserted = createShopInfo("存在");
+            shopInfoMapper.insert(inserted);
 
-            List<ShopInfo> list = shopInfoMapper.selectBatch(Arrays.asList(existingId, 999999999L));
+            List<ShopInfo> list = shopInfoMapper.selectBatch(Arrays.asList(inserted.getId(), 999999999L));
 
             assertThat(list).hasSize(1);
             assertThat(list.get(0).getName()).isEqualTo("存在");
@@ -120,7 +116,7 @@ class ShopInfoMapperTest {
         @Test
         @DisplayName("更新店铺信息")
         void update_shouldUpdateFields() {
-            ShopInfo si = createShopInfo(uniqueId(), "旧名称");
+            ShopInfo si = createShopInfo("旧名称");
             shopInfoMapper.insert(si);
 
             si.setName("新名称");

@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS shops (
 
 -- 店铺展示信息表
 CREATE TABLE IF NOT EXISTS shop_info (
-    id BIGINT PRIMARY KEY COMMENT 'ShopInfo ID（雪花算法生成）',
+    id BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT 'ShopInfo ID（数据库自增）',
     name VARCHAR(100) NOT NULL COMMENT '店铺名称',
     description VARCHAR(500) COMMENT '店铺描述',
     logourl VARCHAR(256) COMMENT '店铺Logo URL',

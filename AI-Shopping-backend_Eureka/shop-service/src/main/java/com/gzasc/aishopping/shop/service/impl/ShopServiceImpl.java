@@ -43,7 +43,6 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public Shop createShop(CreateShopRequest request, Long userId) {
         ShopInfo shopInfo = new ShopInfo();
-        shopInfo.setId(SafeIdGenerator.nextId());
         shopInfo.setName(request.getName());
         shopInfo.setDescription(request.getDescription());
         shopInfo.setLogoUrl(request.getLogoId());

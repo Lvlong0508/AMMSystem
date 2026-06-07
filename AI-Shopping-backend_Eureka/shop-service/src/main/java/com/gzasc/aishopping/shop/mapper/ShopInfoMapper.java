@@ -19,8 +19,9 @@ public interface ShopInfoMapper {
             "</script>")
     List<ShopInfo> selectBatch(@Param("ids") List<Long> ids);
 
-    @Insert("INSERT INTO shop_info (id, name, description, logourl, address, phone) " +
-            "VALUES (#{id}, #{name}, #{description}, #{logoUrl}, #{address}, #{phone})")
+    @Options(useGeneratedKeys = true, keyProperty = "id")
+    @Insert("INSERT INTO shop_info (name, description, logourl, address, phone) " +
+            "VALUES (#{name}, #{description}, #{logoUrl}, #{address}, #{phone})")
     int insert(ShopInfo shopInfo);
 
     @Update("UPDATE shop_info SET name = #{name}, description = #{description}, " +
