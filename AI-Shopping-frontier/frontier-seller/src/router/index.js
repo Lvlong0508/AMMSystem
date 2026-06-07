@@ -6,7 +6,7 @@ import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
 import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
-import ShopList from '../views/ShopList/ShopList.vue'
+import ShopSelectPage from '@/views/ShopList/ShopList.vue'
 import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
 import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
 import ShopEmployees from '../views/ShopEmployees/ShopEmployees.vue'
@@ -34,16 +34,17 @@ const routes = [
     meta: { public: true }
   },
   {
+    path: '/shop/select',
+    name: 'shop-select',
+    component: ShopSelectPage,
+    meta: { public: true }
+  },
+  {
     path: '/',
     component: AppLayout,
     children: [
       { path: '', name: 'home', component: Ship },
       { path: 'ship', name: 'ship', component: Ship },
-      {
-        path: 'shop/list',
-        name: 'shop-list',
-        component: ShopList
-      },
       {
         path: 'shop/:shopId/products',
         name: 'shop-products',
@@ -107,20 +108,26 @@ router.beforeEach(async (to, from, next) => {
 
   if (auth.merchantId) await shop.initShops(auth.merchantId)
 
+  if (!shop.currentShopId && shop.loaded && !shop.hasNoShops) {
+    next('/shop/select')
+    return
+  }
+
+  if (to.params.shopId && to.params.shopId !== shop.currentShopId) {
+    next('/shop/select')
+    return
+  }
+
   if (to.name === 'home') {
     if (shop.hasNoShops) {
       next()
       return
     }
-    if (shop.shops.length === 1) {
+    if (shop.currentShopId) {
       next(`/shop/${shop.currentShopId}/products`)
       return
     }
-    if (shop.shops.length > 1) {
-      next('/shop/list')
-      return
-    }
-    next()
+    next('/shop/select')
     return
   }
 
