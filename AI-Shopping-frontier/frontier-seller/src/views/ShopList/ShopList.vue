@@ -23,9 +23,8 @@
           :key="shop.id"
           shadow="hover"
           class="shop-card"
-          @click="showShopDetail(shop)"
         >
-          <div class="shop-card__inner">
+          <div class="shop-card__inner" @click="showShopDetail(shop)">
             <div class="shop-card__avatar">
               <el-avatar :size="64" shape="square">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
