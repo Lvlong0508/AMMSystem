@@ -11,7 +11,7 @@ import com.gzasc.aishopping.auth.dto.RegisterRequest;
 import com.gzasc.aishopping.auth.service.MerchantAuthService;
 import com.gzasc.aishopping.auth.service.MerchantInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,7 +50,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
         // 4. 创建商家账号
         Merchant merchant = new Merchant();
-        merchant.setId(SnowflakeIdGenerator.nextId());
+        merchant.setId(SafeIdGenerator.nextId());
         merchant.setUsername(request.getUsername());
         merchant.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         merchant.setPhone(request.getPhone());
@@ -123,7 +123,7 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
         // 4. 创建店员账号
         Merchant employee = new Merchant();
-        employee.setId(SnowflakeIdGenerator.nextId());
+        employee.setId(SafeIdGenerator.nextId());
         employee.setUsername(request.getUsername());
         employee.setPhone(request.getPhone());
         employee.setStatus(1);

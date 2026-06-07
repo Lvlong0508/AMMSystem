@@ -11,7 +11,7 @@ import com.gzasc.aishopping.auth.model.Merchant;
 import com.gzasc.aishopping.auth.model.MerchantInfo;
 import com.gzasc.aishopping.auth.service.MerchantInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,11 +61,11 @@ class MerchantAuthServiceImplTest {
 
         SaSession mockSession = mock(SaSession.class);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class);
              MockedStatic<StpUtil> stp = mockStatic(StpUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(200L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(200L);
             bc.when(() -> BCryptUtil.hashPassword("Seller123")).thenReturn("$2a$12$merchantHash");
             stp.when(() -> StpUtil.login(200L)).then(invocation -> null);
             stp.when(StpUtil::getTokenSession).thenReturn(mockSession);
@@ -233,10 +233,10 @@ class MerchantAuthServiceImplTest {
         merchantInfo.setId(2);
         when(merchantInfoService.createMerchantInfo(any())).thenReturn(2);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(300L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(300L);
             bc.when(() -> BCryptUtil.hashPassword("Emp123")).thenReturn("$2a$12$empHash");
 
             Long result = merchantAuthService.registerEmployee(request);
@@ -269,10 +269,10 @@ class MerchantAuthServiceImplTest {
         info.setId(3);
         when(merchantInfoService.createMerchantInfo(any())).thenReturn(3);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(301L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(301L);
             bc.when(() -> BCryptUtil.hashPassword("123456")).thenReturn("$2a$12$defaultHash");
 
             merchantAuthService.registerEmployee(request);
@@ -291,10 +291,10 @@ class MerchantAuthServiceImplTest {
 
         when(merchantMapper.countByUsername("emp03")).thenReturn(0);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(302L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(302L);
             bc.when(() -> BCryptUtil.hashPassword("Emp123")).thenReturn("$2a$12$hash");
 
             merchantAuthService.registerEmployee(request);

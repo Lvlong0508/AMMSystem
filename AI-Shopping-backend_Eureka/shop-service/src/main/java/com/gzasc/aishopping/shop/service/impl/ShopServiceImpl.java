@@ -3,7 +3,7 @@ package com.gzasc.aishopping.shop.service.impl;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.auth.AuthFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
@@ -43,14 +43,14 @@ public class ShopServiceImpl implements ShopService {
     @Transactional
     public Shop createShop(CreateShopRequest request, Long userId) {
         ShopInfo shopInfo = new ShopInfo();
-        shopInfo.setId(SnowflakeIdGenerator.nextId());
+        shopInfo.setId(SafeIdGenerator.nextId());
         shopInfo.setName(request.getName());
         shopInfo.setDescription(request.getDescription());
         shopInfo.setLogoUrl(request.getLogoId());
         shopInfoService.insert(shopInfo);
 
         Shop shop = new Shop();
-        shop.setId(SnowflakeIdGenerator.nextId());
+        shop.setId(SafeIdGenerator.nextId());
         shop.setMerchantId(userId);
         shop.setShopInfoId(shopInfo.getId());
         shop.setStatus(1);

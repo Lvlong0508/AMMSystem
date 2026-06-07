@@ -3,7 +3,7 @@ package com.gzasc.aishopping.product.service.impl;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import com.gzasc.aishopping.product.converter.ProductConverter;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
@@ -296,7 +296,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public int createProductWithImage(Product product, MultipartFile imageFile) {
-        long productId = SnowflakeIdGenerator.nextId();
+        long productId = SafeIdGenerator.nextId();
         product.setId(productId);
 
         String relativePath = imageStorageService.saveImage(productId, imageFile);

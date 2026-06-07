@@ -11,7 +11,7 @@ import com.gzasc.aishopping.auth.model.User;
 import com.gzasc.aishopping.auth.model.UserInfo;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -61,11 +61,11 @@ class UserAuthServiceImplTest {
 
         SaSession mockSession = mock(SaSession.class);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class);
              MockedStatic<StpUtil> stp = mockStatic(StpUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(100L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(100L);
             bc.when(() -> BCryptUtil.hashPassword("Abc123")).thenReturn("$2a$12$hashed");
             stp.when(() -> StpUtil.login(100L)).then(invocation -> null);
             stp.when(StpUtil::getTokenSession).thenReturn(mockSession);
@@ -112,11 +112,11 @@ class UserAuthServiceImplTest {
 
         SaSession mockSession = mock(SaSession.class);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class);
              MockedStatic<StpUtil> stp = mockStatic(StpUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(101L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(101L);
             bc.when(() -> BCryptUtil.hashPassword("Abc123")).thenReturn("$2a$12$hashed");
             stp.when(() -> StpUtil.login(101L)).then(invocation -> null);
             stp.when(StpUtil::getTokenSession).thenReturn(mockSession);
@@ -172,11 +172,11 @@ class UserAuthServiceImplTest {
 
         SaSession mockSession = mock(SaSession.class);
 
-        try (MockedStatic<SnowflakeIdGenerator> sf = mockStatic(SnowflakeIdGenerator.class);
+        try (MockedStatic<SafeIdGenerator> sf = mockStatic(SafeIdGenerator.class);
              MockedStatic<BCryptUtil> bc = mockStatic(BCryptUtil.class);
              MockedStatic<StpUtil> stp = mockStatic(StpUtil.class)) {
 
-            sf.when(SnowflakeIdGenerator::nextId).thenReturn(102L);
+            sf.when(SafeIdGenerator::nextId).thenReturn(102L);
             bc.when(() -> BCryptUtil.hashPassword("Abc123")).thenReturn("$2a$12$hashed");
             stp.when(() -> StpUtil.login(102L)).then(invocation -> null);
             stp.when(StpUtil::getTokenSession).thenReturn(mockSession);

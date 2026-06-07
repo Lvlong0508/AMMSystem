@@ -11,7 +11,7 @@ import com.gzasc.aishopping.auth.dto.UpdateProfileRequest;
 import com.gzasc.aishopping.auth.service.UserAuthService;
 import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.auth.util.BCryptUtil;
-import com.gzasc.aishopping.common.util.SnowflakeIdGenerator;
+import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +44,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         }
 
         User user = new User();
-        user.setId(SnowflakeIdGenerator.nextId());
+        user.setId(SafeIdGenerator.nextId());
         user.setUsername(request.getUsername());
         user.setPassword(BCryptUtil.hashPassword(request.getPassword()));
         user.setPhone(request.getPhone());
