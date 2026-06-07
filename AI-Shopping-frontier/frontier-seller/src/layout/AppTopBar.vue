@@ -13,6 +13,10 @@
     </div>
 
     <div class="topbar__right">
+      <el-button text @click="switchShop">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+        <span>切换店铺</span>
+      </el-button>
 
       <div class="topbar__user">
         <el-avatar :size="34">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
@@ -44,38 +48,34 @@ async function handleLogout() {
   router.push('/login')
 }
 
+function switchShop() {
+  shop.clearCurrentShop()
+  router.push('/shop/select')
+}
+
 const breadcrumbMap = {
-  '/ship': '订单发货',
-  '/shop/list': '店铺列表',
-  '/shop/register': '创建店铺'
+  '/ship': '订单发货'
 }
 
 const breadcrumbs = computed(() => {
   const path = route.path
   const crumbs = []
 
-  if (path.startsWith('/shop/')) {
-    crumbs.push({ label: '店铺管理', path: '/shop/list' })
-
-    const shopId = route.params.shopId
-    if (shopId) {
-      const pageMap = {
-        'products': '商品管理',
-        'orders': '订单管理',
-        'employees': '员工管理',
-        'addresses': '地址管理',
-        'returns': '退货管理',
-        'info': '商店信息'
-      }
-      const segment = path.split('/').pop()
-      if (pageMap[segment]) {
-        crumbs.push({ label: pageMap[segment], path: '' })
-      }
-    } else if (breadcrumbMap[path]) {
-      crumbs.push({ label: breadcrumbMap[path], path: '' })
-    }
-  } else if (breadcrumbMap[path]) {
+  if (breadcrumbMap[path]) {
     crumbs.push({ label: breadcrumbMap[path], path: '' })
+  } else if (path.startsWith('/shop/')) {
+    const pageMap = {
+      'products': '商品管理',
+      'orders': '订单管理',
+      'employees': '员工管理',
+      'addresses': '地址管理',
+      'returns': '退货管理',
+      'info': '商店信息'
+    }
+    const segment = path.split('/').pop()
+    if (pageMap[segment]) {
+      crumbs.push({ label: pageMap[segment], path: '' })
+    }
   }
 
   return crumbs
