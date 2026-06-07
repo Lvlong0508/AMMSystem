@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.shop.mapper;
 
+import com.gzasc.aishopping.shop.dto.SimpleShopDTO;
 import com.gzasc.aishopping.shop.model.Shop;
 import org.apache.ibatis.annotations.*;
 
@@ -53,4 +54,16 @@ public interface ShopMapper {
              "</if><if test='ids == null or ids.size() == 0'> WHERE 1=0</if>",
              "</script>"})
     List<Shop> selectShopsByIds(@Param("ids") Collection<Long> ids);
+
+
+    @Select("SELECT s.id, si.name, s.status FROM shops s " +
+            "LEFT JOIN shop_info si ON s.shop_info_id = si.id " +
+            "INNER JOIN merchant_roles mr ON s.id = mr.shop_id " +
+            "WHERE mr.merchant_id = #{merchantId}")
+    @Results(id = "simpleShopMap", value = {
+        @Result(property = "id", column = "id"),
+        @Result(property = "name", column = "name"),
+        @Result(property = "status", column = "status")
+    })
+    List<SimpleShopDTO> selectSimpleShopsByMerchantId(@Param("merchantId") Long merchantId);
 }

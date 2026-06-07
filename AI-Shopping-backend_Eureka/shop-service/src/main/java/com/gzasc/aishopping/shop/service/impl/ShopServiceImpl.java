@@ -6,6 +6,7 @@ import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.common.util.SafeIdGenerator;
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.dto.SimpleShopDTO;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.mapper.ShopMapper;
@@ -16,8 +17,7 @@ import com.gzasc.aishopping.shop.service.MerchantRoleService;
 import com.gzasc.aishopping.shop.service.ShopInfoService;
 import com.gzasc.aishopping.shop.service.ShopService;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +30,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShopServiceImpl implements ShopService {
@@ -122,26 +123,31 @@ public class ShopServiceImpl implements ShopService {
 
             ApiResponse<Map<String, Object>> registerResponse = authFeignClient.registerEmployee(registerRequest);
             Map<String, Object> registerResult = registerResponse != null ? registerResponse.getData() : null;
-            if (registerResult == null || !registerResult.containsKey("merchantId")) {
-                String errorMsg = registerResponse != null ? registerResponse.getMessage() : "注册失败";
-                throw new ShopException("添加店员失败: " + errorMsg);
+            if (registerResult == null) {
+                throw new ShopException("注册店员账号失败");
             }
+            Object employeeIdObj = registerResult.get("id");
+            if (employeeIdObj == null) {
+                throw new ShopException("注册店员账号返回数据异常: 缺少id");
+            }
+            Long employeeId = ((Number) employeeIdObj).longValue();
 
-            Long merchantId = (Long) registerResult.get("merchantId");
-            MerchantRole role = new MerchantRole();
-            role.setMerchantId(merchantId);
-            role.setShopId(shopId);
-            role.setRole(2);
-            role.setAssignedBy(userId);
-            merchantRoleService.insert(role);
+            MerchantRole merchantRole = new MerchantRole();
+            merchantRole.setMerchantId(employeeId);
+            merchantRole.setShopId(shopId);
+            merchantRole.setRole(2);
+            merchantRole.setAssignedBy(userId);
+            merchantRoleService.insert(merchantRole);
         } catch (ShopException e) {
             throw e;
         } catch (Exception e) {
-            throw new ShopException("添加店员失败: " + e.getMessage());
+            log.error("添加员工失败, shopId={}, username={}", shopId, request.getUsername(), e);
+            throw new ShopException("添加员工失败");
         }
     }
 
     @Override
+    @Transactional
     public void removeEmployee(Long shopId, Long merchantId, Long userId) {
         checkShopOwner(userId, shopId);
         merchantRoleService.deleteByMerchantAndShop(merchantId, shopId);
@@ -243,6 +249,11 @@ public class ShopServiceImpl implements ShopService {
     }
 
     @Override
+    public List<SimpleShopDTO> getSimpleShop(Long userId) {
+        return shopMapper.selectSimpleShopsByMerchantId(userId);
+    }
+
+    @Override
     public Map<Long, ShopInfoDTO> batchGetShopInfo(Set<Long> shopIds) {
         if (shopIds == null || shopIds.isEmpty()) {
             return Collections.emptyMap();
@@ -267,6 +278,7 @@ public class ShopServiceImpl implements ShopService {
     }
 
     private void checkShopOwner(Long userId, Long shopId) {
+
         if (merchantRoleService.selectByMerchantShopAndRole(userId, shopId, 1) == null) {
             throw new ShopException("仅店长可操作");
         }

@@ -726,14 +726,14 @@
 
 | 方法 | 路径 | 作用 | 请求体 |
 |------|------|------|--------|
-| GET | `/api/seller/shop/merchant/{merchantId}` | 根据商家ID查询关联店铺ID列表 | - |
+| GET | `/api/seller/shop/my-shops` | 查询当前商家店铺列表（从Header获取商家ID） | - |
 | GET | `/api/seller/shop/{shopId}` | 查询店铺详情（含权限校验） | - |
 | GET | `/api/seller/shop/{shopId}/employees` | 查询店铺员工列表 | - |
 | POST | `/api/seller/shop/register` | 创建店铺 | `CreateShopRequest` |
 | PUT | `/api/seller/shop/{shopId}` | 更新店铺信息 | `UpdateShopRequest` |
-| DELETE | `/api/seller/shop/{shopId}` | 关闭店铺 | - |
-| PUT | `/api/seller/shop/{shopId}/open` | 重新开店 | - |
-| POST | `/api/seller/shop/{shopId}/employees/register` | 添加店员 | `AddEmployeeRequest` |
+| PATCH | `/api/seller/shop/{shopId}/close` | 关闭店铺 | - |
+| PATCH | `/api/seller/shop/{shopId}/open` | 重新开店 | - |
+| POST | `/api/seller/shop/{shopId}/employees` | 添加店员 | `AddEmployeeRequest` |
 | DELETE | `/api/seller/shop/{shopId}/employees/{merchantId}` | 移除店员 | - |
 
 #### 请求体:
@@ -811,7 +811,12 @@
 {
   "code": 200,
   "message": "成功",
-  "data": { "shopIds": ["2062474586787811328", "2062474586787811329", "2062474586787811330"] }
+  "data": {
+    "shops": [
+      { "id": 167184879099904, "name": "店铺名称", "status": 1 },
+      { "id": 167195414294528, "name": "店铺名称2", "status": 0 }
+    ]
+  }
 }
 ```
 

@@ -2,6 +2,7 @@ package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
+import com.gzasc.aishopping.shop.dto.SimpleShopDTO;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
 import com.gzasc.aishopping.shop.exception.ShopException;
 import com.gzasc.aishopping.shop.model.Shop;
@@ -118,26 +119,28 @@ class ShopMerchantControllerTest {
                 .andExpect(jsonPath("$.code").value(400));
     }
 
-    // ========== 更新/删除店铺 ==========
+    // ========== 更新店铺 ==========
 
     @Test
-    @DisplayName("SH-007 更新店铺成功")
+    @DisplayName("SH-009 更新店铺成功")
     void updateShop_success() throws Exception {
         mockMvc.perform(put("/api/seller/shop/1")
                         .header("X-User-Id", 1001L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"新名称","description":"新描述"}
+                                {"name":"新名称","description":"新描述","logoId":"logo-new"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("更新店铺成功"));
     }
 
+    // ========== 关闭/开启店铺 ==========
+
     @Test
-    @DisplayName("SH-017 关闭店铺成功")
+    @DisplayName("SH-015 关闭店铺成功")
     void closeShop_success() throws Exception {
-        mockMvc.perform(delete("/api/seller/shop/1")
+        mockMvc.perform(patch("/api/seller/shop/1/close")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -145,25 +148,25 @@ class ShopMerchantControllerTest {
     }
 
     @Test
-    @DisplayName("SH-019 重新开店成功")
+    @DisplayName("SH-019 开启店铺成功")
     void openShop_success() throws Exception {
-        mockMvc.perform(put("/api/seller/shop/1/open")
+        mockMvc.perform(patch("/api/seller/shop/1/open")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("重新开店成功"));
+                .andExpect(jsonPath("$.message").value("开启店铺成功"));
     }
 
     // ========== 员工管理 ==========
 
     @Test
-    @DisplayName("SH-020 添加店员成功")
+    @DisplayName("SH-011 添加店员成功")
     void addEmployee_success() throws Exception {
-        mockMvc.perform(post("/api/seller/shop/1/employees/register")
+        mockMvc.perform(post("/api/seller/shop/1/employees")
                         .header("X-User-Id", 1001L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"username":"emp1","password":"123456","name":"员工一","phone":"13800138001"}
+                                {"username":"emp001","password":"123456","phone":"13800138000","name":"店员小王"}
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -183,17 +186,29 @@ class ShopMerchantControllerTest {
     // ========== 查询(商家端) ==========
 
     @Test
-    @DisplayName("SH-023 按商家查询店铺ID列表")
+    @DisplayName("SH-023 查询商户店铺列表")
     void getShopsByMerchant() throws Exception {
-        when(shopService.getShopIdsByMerchantId(1001L)).thenReturn(List.of(1L, 2L, 3L));
+        List<SimpleShopDTO> shops = List.of(
+                new SimpleShopDTO(1L, "店铺A", 1),
+                new SimpleShopDTO(2L, "店铺B", 0),
+                new SimpleShopDTO(3L, null, 1)
+        );
+        when(shopService.getSimpleShop(1001L)).thenReturn(shops);
 
-        mockMvc.perform(get("/api/seller/shop/merchant/1001")
+        mockMvc.perform(get("/api/seller/shop/my-shops")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.shopIds[0]").value(1))
-                .andExpect(jsonPath("$.data.shopIds[1]").value(2))
-                .andExpect(jsonPath("$.data.shopIds[2]").value(3));
+                .andExpect(jsonPath("$.data.shops.length()").value(3))
+                .andExpect(jsonPath("$.data.shops[0].id").value(1))
+                .andExpect(jsonPath("$.data.shops[0].name").value("店铺A"))
+                .andExpect(jsonPath("$.data.shops[0].status").value(1))
+                .andExpect(jsonPath("$.data.shops[1].id").value(2))
+                .andExpect(jsonPath("$.data.shops[1].name").value("店铺B"))
+                .andExpect(jsonPath("$.data.shops[1].status").value(0))
+                .andExpect(jsonPath("$.data.shops[2].id").value(3))
+                .andExpect(jsonPath("$.data.shops[2].name").isEmpty())
+                .andExpect(jsonPath("$.data.shops[2].status").value(1));
     }
 
     @Test
@@ -263,23 +278,13 @@ class ShopMerchantControllerTest {
     @Test
     @DisplayName("SH-048 未知异常返回500")
     void unknownException() throws Exception {
-        when(shopService.getShopIdsByMerchantId(any()))
+        when(shopService.getSimpleShop(any()))
                 .thenThrow(new RuntimeException("未知错误"));
 
-        mockMvc.perform(get("/api/seller/shop/merchant/1001")
+        mockMvc.perform(get("/api/seller/shop/my-shops")
                         .header("X-User-Id", 1001L))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
-    }
-
-    @Test
-    @DisplayName("SH-049 按商家查询 - userId != merchantId 无权限")
-    void getShopsByMerchant_noPermission() throws Exception {
-        mockMvc.perform(get("/api/seller/shop/merchant/2001")
-                        .header("X-User-Id", 1001L))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("无权限查看该商户的店铺列表"));
     }
 }
