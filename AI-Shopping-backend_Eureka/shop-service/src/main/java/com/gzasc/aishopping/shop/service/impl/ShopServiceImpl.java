@@ -128,7 +128,7 @@ public class ShopServiceImpl implements ShopService {
                 throw new ShopException("添加店员失败: " + errorMsg);
             }
 
-            Long merchantId = ((Number) registerResult.get("merchantId")).longValue();
+            Long merchantId = (Long) registerResult.get("merchantId");
             MerchantRole role = new MerchantRole();
             role.setMerchantId(merchantId);
             role.setShopId(shopId);
