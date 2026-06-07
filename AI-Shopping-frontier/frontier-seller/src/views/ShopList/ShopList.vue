@@ -5,6 +5,10 @@
         <el-avatar :size="36">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
         <span class="shop-select-page__username">{{ auth.merchantName }}</span>
       </div>
+      <div class="shop-select-page__actions">
+        <el-button type="primary" size="default" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
+        <el-button @click="handleLogout">{{ T.BTN_LOGOUT }}</el-button>
+      </div>
     </div>
 
     <div class="shop-select-page__body">
@@ -38,11 +42,6 @@
       <el-empty v-if="!loading && shopStore.shops.length === 0" :description="T.EMPTY_TEXT">
         <el-button type="primary" @click="goRegister">{{ T.BTN_CREATE_NOW }}</el-button>
       </el-empty>
-    </div>
-
-    <div class="shop-select-page__footer">
-      <el-button type="primary" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
-      <el-button @click="handleLogout">{{ T.BTN_LOGOUT }}</el-button>
     </div>
   </div>
 </template>

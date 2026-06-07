@@ -7,7 +7,8 @@
 
 .shop-select-page__header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   padding: var(--space-4) var(--space-6);
 }
 
@@ -20,6 +21,12 @@
 .shop-select-page__username {
   font-size: var(--text-base);
   color: var(--color-text);
+}
+
+.shop-select-page__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
 }
 
 .shop-select-page__body {
@@ -40,13 +47,6 @@
   color: var(--color-text);
   margin: 0 0 var(--space-8);
   text-align: center;
-}
-
-.shop-select-page__footer {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-3);
-  padding: var(--space-6);
 }
 
 .shop-select-page__grid {
