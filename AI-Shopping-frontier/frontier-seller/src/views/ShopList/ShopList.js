@@ -14,6 +14,7 @@ export function useShopList() {
   const detailVisible = ref(false)
   const detailLoading = ref(false)
   const shopDetail = ref(null)
+  const selectedShop = ref(null)
 
   onMounted(async () => {
     if (auth.merchantId) {
@@ -26,12 +27,17 @@ export function useShopList() {
     }
   })
 
-  async function showShopDetail() {
-    if (!shopStore.shop) return
+  function goRegister() {
+    router.push('/register')
+  }
+
+  async function showShopDetail(shop) {
+    if (!shop) return
+    selectedShop.value = shop
     detailVisible.value = true
     detailLoading.value = true
     try {
-      const res = await getShopDetail(shopStore.shop.id)
+      const res = await getShopDetail(shop.id)
       const shopData = res?.data?.shop || res?.shop || {}
       const shopInfo = res?.data?.shopInfo || res?.shopInfo || {}
       shopDetail.value = { ...shopData, ...shopInfo }
@@ -60,5 +66,5 @@ export function useShopList() {
     router.push('/login')
   }
 
-  return { loading, detailVisible, detailLoading, shopDetail, T, showShopDetail, closeDetail, enterShop, handleLogout, auth, shopStore }
+  return { loading, detailVisible, detailLoading, selectedShop, shopDetail, T, showShopDetail, closeDetail, enterShop, goRegister, handleLogout, auth, shopStore }
 }

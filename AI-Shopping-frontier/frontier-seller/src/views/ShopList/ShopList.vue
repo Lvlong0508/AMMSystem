@@ -13,39 +13,40 @@
     <div class="shop-select-page__body">
       <h1 class="shop-select-page__title">{{ T.SELECT_TITLE }}</h1>
 
-      <div v-if="shopStore.shops.length > 0" class="shop-select-page__toolbar">
+      <div v-if="shopStore.hasShop" class="shop-select-page__toolbar">
         <el-button type="primary" size="large" @click="goRegister">{{ T.BTN_CREATE }}</el-button>
       </div>
 
       <div v-loading="loading" class="shop-select-page__grid">
-        <el-card
-          v-for="shop in shopStore.shops"
-          :key="shop.id"
-          shadow="hover"
-          class="shop-card"
-        >
-          <div class="shop-card__inner" @click="showShopDetail(shop)">
-            <div class="shop-card__avatar">
-              <el-avatar :size="64" shape="square">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <rect x="2" y="3" width="20" height="14" rx="2"/>
-                  <path d="M8 21h8"/>
-                  <path d="M12 17v4"/>
-                </svg>
-              </el-avatar>
+        <template v-if="shopStore.hasShop">
+          <el-card
+            :key="shopStore.shop.id"
+            shadow="hover"
+            class="shop-card"
+          >
+            <div class="shop-card__inner" @click="showShopDetail(shopStore.shop)">
+              <div class="shop-card__avatar">
+                <el-avatar :size="64" shape="square">
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <rect x="2" y="3" width="20" height="14" rx="2"/>
+                    <path d="M8 21h8"/>
+                    <path d="M12 17v4"/>
+                  </svg>
+                </el-avatar>
+              </div>
+              <div class="shop-card__info">
+                <h3 class="shop-card__name">{{ shopStore.shop.name || `店铺 ${shopStore.shop.id}` }}</h3>
+                <span class="shop-card__id">ID: {{ shopStore.shop.id }}</span>
+              </div>
+              <el-button type="primary" size="large" class="shop-card__btn" @click.stop="enterShop(shopStore.shop.id)">
+                {{ T.BTN_ENTER }}
+              </el-button>
             </div>
-            <div class="shop-card__info">
-              <h3 class="shop-card__name">{{ shop.name || `店铺 ${shop.id}` }}</h3>
-              <span class="shop-card__id">ID: {{ shop.id }}</span>
-            </div>
-            <el-button type="primary" size="large" class="shop-card__btn" @click.stop="enterShop(shop.id)">
-              {{ T.BTN_ENTER }}
-            </el-button>
-          </div>
-        </el-card>
+          </el-card>
+        </template>
       </div>
 
-      <el-empty v-if="!loading && shopStore.shops.length === 0" :description="T.EMPTY_TEXT">
+      <el-empty v-if="!loading && shopStore.hasNoShop" :description="T.EMPTY_TEXT">
         <el-button type="primary" size="large" @click="goRegister">{{ T.BTN_CREATE_NOW }}</el-button>
       </el-empty>
     </div>
