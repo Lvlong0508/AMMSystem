@@ -776,8 +776,27 @@ git commit -m "feat: implement return request service"
 - Modify: `OrderServiceImpl.java`
 - Modify: `OrderUserControllerTest.java`
 - Modify: `OrderSellerControllerTest.java`
+- Modify: `OrderServiceImplTest.java`
 
-- [ ] **Step 1: 替换 `OrderServiceImpl.requestReturn`**
+- [ ] **Step 1: 更新 `OrderServiceImplTest`（新增 mock）**
+
+`OrderServiceImpl` 新增依赖 `ReturnRequestService`，当前测试构造时需 mock：
+
+```java
+// OrderServiceImplTest.java — 追加 mock 字段
+@Mock private ReturnRequestService returnRequestService;
+```
+
+将 `returnRequestService` 传入构造器（Mockito 不会自动注入构造函数，需手动追加到 `new OrderServiceImpl(..., returnRequestService)`）：
+
+```java
+// setUp() 中修改构造调用
+orderService = new OrderServiceImpl(orderMapper, deletedOrderMapper, orderIdSelector,
+        productFeignClient, logisticsFeignClient, contactFeignClient, orderConverter,
+        fileFallbackDaemon, returnRequestService);
+```
+
+- [ ] **Step 2: 替换 `OrderServiceImpl.requestReturn`**
 
 ```java
 // OrderServiceImpl.java — 替换现有 requestReturn 方法
@@ -796,10 +815,12 @@ public void requestReturn(Long userId, String orderId) {
 private final ReturnRequestService returnRequestService;
 ```
 
-- [ ] **Step 2: 改造 `OrderUserController`**
+- [ ] **Step 3: 改造 `OrderUserController`**
+
+路由不变，`POST /{orderId}/return-request` 改为接收 `@RequestBody CreateReturnRequest`，新增 `POST /{orderId}/return-logistics`：
 
 ```java
-// OrderUserController.java — 追加新端点，保留旧端点
+// OrderUserController.java — 追加 return-logistics，修改 return-request 接收请求体
 @RestController
 @RequestMapping("/api/user/order")
 @RequiredArgsConstructor
@@ -813,8 +834,9 @@ public class OrderUserController {
     @PostMapping("/{orderId}/return-request")
     public ApiResponse<Void> requestReturn(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable("orderId") String orderId) {
-        orderService.requestReturn(userId, orderId);
+            @PathVariable("orderId") String orderId,
+            @RequestBody @Valid CreateReturnRequest request) {
+        returnRequestService.createReturnRequest(userId, orderId, request);
         return ApiResponse.success("退货申请已提交", null);
     }
 
@@ -829,7 +851,9 @@ public class OrderUserController {
 }
 ```
 
-- [ ] **Step 3: 改造 `OrderSellerController`**
+注意：旧端点不再走 `OrderService.requestReturn`，改为直接调 `ReturnRequestService.createReturnRequest`。`OrderServiceImpl.requestReturn` 只保留给旧内部调用方（不对外）。
+
+- [ ] **Step 4: 改造 `OrderSellerController`**
 
 ```java
 // OrderSellerController.java — 追加审核相关端点
@@ -870,10 +894,85 @@ public class OrderSellerController {
 }
 ```
 
-- [ ] **Step 4: 写 Controller 测试**
+- [ ] **Step 5: 更新现有 Controller 测试的 `setUp` + 追加新测试**
+
+**`OrderUserControllerTest`：**
 
 ```java
-// OrderUserControllerTest.java — 追加测试
+// OrderUserControllerTest.java — 追加 mock 和 ObjectMapper
+@Mock private ReturnRequestService returnRequestService;
+private final ObjectMapper objectMapper = new ObjectMapper();
+
+// setUp() 改为注入 ReturnRequestService
+@BeforeEach
+void setUp() {
+    var controller = new OrderUserController(orderService, returnRequestService);
+    var validator = new LocalValidatorFactoryBean();
+    validator.afterPropertiesSet();
+    mockMvc = standaloneSetup(controller)
+            .setValidator(validator)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+}
+```
+
+替换现有 `requestReturn` 测试（不需要 `orderService` mock，改为 returnRequestService + body）：
+
+```java
+@Test
+@DisplayName("OR-028 申请退货 - 正常提交")
+void requestReturn_success() throws Exception {
+    CreateReturnRequest req = new CreateReturnRequest();
+    req.setReturnReason("商品有瑕疵");
+    doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
+    mockMvc.perform(post("/api/user/order/{orderId}/return-request", "ORDER001")
+                    .header("X-User-Id", "100")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.message").value("退货申请已提交"));
+}
+
+@Test
+@DisplayName("OR-029 申请退货 - 参数校验失败（原因空）")
+void requestReturn_validationFail() throws Exception {
+    CreateReturnRequest req = new CreateReturnRequest();
+    req.setReturnReason("");
+    mockMvc.perform(post("/api/user/order/{orderId}/return-request", "ORDER001")
+                    .header("X-User-Id", "100")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isBadRequest());
+}
+```
+
+删除旧的 `requestReturn_shipped` 和 `requestReturn_wrongStatus` 测试（已被替换）。
+
+需追加 import：`com.fasterxml.jackson.databind.ObjectMapper`。
+
+**`OrderSellerControllerTest`：**
+
+```java
+// OrderSellerControllerTest.java — 追加 mock 字段
+@Mock private ReturnRequestService returnRequestService;
+
+// setUp() 改为注入 ReturnRequestService
+@BeforeEach
+void setUp() {
+    var controller = new OrderSellerController(orderService, returnRequestService);
+    var validator = new LocalValidatorFactoryBean();
+    validator.afterPropertiesSet();
+    mockMvc = standaloneSetup(controller)
+            .setValidator(validator)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+}
+```
+
+追加新测试：
+
+```java
+// OrderUserControllerTest.java — 追加
 @Nested
 @DisplayName("退货物流")
 class ReturnLogisticsTests {
@@ -957,7 +1056,7 @@ class ReturnReviewTests {
 }
 ```
 
-- [ ] **Step 5: 跑测试并提交**
+- [ ] **Step 6: 跑测试并提交**
 
 ```bash
 mvn -pl AI-Shopping-backend_Eureka/order-service -Dtest=OrderUserControllerTest,OrderSellerControllerTest test
@@ -966,7 +1065,7 @@ mvn -pl AI-Shopping-backend_Eureka/order-service -Dtest=OrderUserControllerTest,
 Expected: `BUILD SUCCESS`.
 
 ```bash
-git add AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/controller/OrderUserController.java AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/controller/OrderSellerController.java AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/service/impl/OrderServiceImpl.java AI-Shopping-backend_Eureka/order-service/src/test/java/com/gzasc/aishopping/order/controller/OrderUserControllerTest.java AI-Shopping-backend_Eureka/order-service/src/test/java/com/gzasc/aishopping/order/controller/OrderSellerControllerTest.java
+git add AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/controller/OrderUserController.java AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/controller/OrderSellerController.java AI-Shopping-backend_Eureka/order-service/src/main/java/com/gzasc/aishopping/order/service/impl/OrderServiceImpl.java AI-Shopping-backend_Eureka/order-service/src/test/java/com/gzasc/aishopping/order/service/OrderServiceImplTest.java AI-Shopping-backend_Eureka/order-service/src/test/java/com/gzasc/aishopping/order/controller/OrderUserControllerTest.java AI-Shopping-backend_Eureka/order-service/src/test/java/com/gzasc/aishopping/order/controller/OrderSellerControllerTest.java
 git commit -m "feat: expose return request endpoints"
 ```
 
