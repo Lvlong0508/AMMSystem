@@ -2,7 +2,6 @@ package com.gzasc.aishopping.shop.controller;
 
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.shop.dto.AddEmployeeRequest;
 import com.gzasc.aishopping.shop.dto.CreateShopRequest;
 import com.gzasc.aishopping.shop.dto.SimpleShopDTO;
 import com.gzasc.aishopping.shop.dto.UpdateShopRequest;
@@ -12,10 +11,11 @@ import com.gzasc.aishopping.shop.service.ShopService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -26,42 +26,56 @@ public class ShopMerchantController {
 
     private final ShopService shopService;
 
-    @GetMapping("/my-shops")
-    public ApiResponse<Map<String, Object>> getSimpleShop(
+    @GetMapping("/my-shop")
+    public ApiResponse<Map<String, Object>> getMyShop(
             @RequestHeader("X-User-Id") Long userId) {
-        List<SimpleShopDTO> shops = shopService.getSimpleShop(userId);
-        log.info("查询商户店铺列表, userId={}, 店铺数量={}", userId, shops.size());
-        return ApiResponse.success(Map.of("shops", shops));
+        SimpleShopDTO shop = shopService.getMyShop(userId);
+        log.info("閺屻儴顕楅幋鎴犳畱鎼存鎽? userId={}", userId);
+        Map<String, Object> data = new HashMap<>();
+        data.put("shop", shop);
+        return ApiResponse.success(data);
+    }
+
+    @PostMapping(value = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponse<Map<String, Object>> register(
+            @RequestBody @Valid CreateShopRequest request,
+            @RequestHeader("X-User-Id") Long userId) {
+        log.info("鍟嗗娉ㄥ唽搴楅摵, userId={}", userId);
+        Shop shop = shopService.createShop(request, userId);
+        return ApiResponse.success(Map.of("id", shop.getId()));
+    }
+
+    @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ApiResponse<Map<String, Object>> registerWithLogo(
+            @RequestPart("shop") @Valid CreateShopRequest request,
+            @RequestPart(value = "logo", required = false) MultipartFile logo,
+            @RequestHeader("X-User-Id") Long userId) {
+        if (logo != null && !logo.isEmpty()) {
+            validateLogo(logo);
+        }
+        log.info("鍟嗗娉ㄥ唽搴楅摵, userId={}", userId);
+        Shop shop = shopService.createShop(request, userId, logo);
+        return ApiResponse.success(Map.of("id", shop.getId()));
+    }
+
+    private void validateLogo(MultipartFile logo) {
+        String contentType = logo.getContentType();
+        if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
+            throw new ShopException(400, "浠呮敮鎸?JPG 鍜?PNG 鏍煎紡");
+        }
     }
 
     @GetMapping("/{shopId}")
     public ApiResponse<Map<String, Object>> getShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("查询店铺详情, shopId={}, userId={}", shopId, userId);
+        log.info("鑾峰彇鍟嗗簵, shopId={}, userId={}", shopId, userId);
         Shop shop = shopService.getShopWithAccessCheck(shopId, userId);
         ShopInfoDTO shopInfo = shopService.getShopInfoById(shopId);
-        Map<String, Object> result = new HashMap<>();
-        result.put("shop", shop);
-        result.put("shopInfo", shopInfo);
-        return ApiResponse.success(result);
-    }
-
-    @GetMapping("/{shopId}/employees")
-    public ApiResponse<Map<String, Object>> getEmployees(
-            @PathVariable("shopId") Long shopId,
-            @RequestHeader("X-User-Id") Long userId) {
-        log.info("查询店铺员工列表, shopId={}, userId={}", shopId, userId);
-        return ApiResponse.success(shopService.getShopEmployees(shopId, userId));
-    }
-
-    @PostMapping("/register")
-    public ApiResponse<Map<String, Object>> createShop(
-            @RequestBody @Valid CreateShopRequest request,
-            @RequestHeader("X-User-Id") Long userId) {
-        log.info("创建店铺, name={}, userId={}", request.getName(), userId);
-        Shop shop = shopService.createShop(request, userId);
-        return ApiResponse.success("创建店铺成功", Map.of("id", shop.getId()));
+        return ApiResponse.success(Map.of(
+                "shop", shop,
+                "shopInfo", shopInfo
+        ));
     }
 
     @PutMapping("/{shopId}")
@@ -69,46 +83,26 @@ public class ShopMerchantController {
             @PathVariable("shopId") Long shopId,
             @RequestBody @Valid UpdateShopRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("更新店铺信息, shopId={}", shopId);
+        log.info("鏇存柊鍟嗗簵, shopId={}", shopId);
         shopService.updateShop(shopId, request, userId);
-        return ApiResponse.success("更新店铺成功", null);
+        return ApiResponse.success("??????", null);
     }
 
     @PatchMapping("/{shopId}/close")
     public ApiResponse<Map<String, Object>> closeShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("关闭店铺, shopId={}, userId={}", shopId, userId);
+        log.info("鍏抽棴鍟嗗簵, shopId={}, userId={}", shopId, userId);
         shopService.closeShop(shopId, userId);
-        return ApiResponse.success("关闭店铺成功", null);
+        return ApiResponse.success("??????", null);
     }
 
     @PatchMapping("/{shopId}/open")
     public ApiResponse<Map<String, Object>> openShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("开启店铺, shopId={}, userId={}", shopId, userId);
+        log.info("鎵撳紑鍟嗗簵 shopId={}, userId={}", shopId, userId);
         shopService.openShop(shopId, userId);
-        return ApiResponse.success("开启店铺成功", null);
-    }
-
-    @PostMapping("/{shopId}/employees")
-    public ApiResponse<Map<String, Object>> addEmployee(
-            @PathVariable("shopId") Long shopId,
-            @RequestBody @Valid AddEmployeeRequest request,
-            @RequestHeader("X-User-Id") Long userId) {
-        log.info("添加员工, shopId={}, username={}", shopId, request.getUsername());
-        shopService.addEmployee(shopId, request, userId);
-        return ApiResponse.success("添加店员成功", null);
-    }
-
-    @DeleteMapping("/{shopId}/employees/{merchantId}")
-    public ApiResponse<Map<String, Object>> removeEmployee(
-            @PathVariable("shopId") Long shopId,
-            @PathVariable("merchantId") Long merchantId,
-            @RequestHeader("X-User-Id") Long userId) {
-        log.info("移除员工, shopId={}, merchantId={}", shopId, merchantId);
-        shopService.removeEmployee(shopId, merchantId, userId);
-        return ApiResponse.success("移除店员成功", null);
+        return ApiResponse.success("??????", null);
     }
 }

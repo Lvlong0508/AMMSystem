@@ -17,4 +17,14 @@ public class ShopInfoDTO implements Serializable {
 
     @JsonProperty("logourl")
     private String logoUrl;
+
+    private String address;
+    private String phone;
+
+    public ShopInfoDTO(Long id, String name, String description, String logoUrl) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.logoUrl = logoUrl;
+    }
 }

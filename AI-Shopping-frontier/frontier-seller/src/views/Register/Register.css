@@ -1,4 +1,4 @@
-.register-page {
+﻿.register-page {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9,7 +9,7 @@
 
 .register-card {
   width: 100%;
-  max-width: 460px;
+  max-width: 520px;
 }
 
 .register-card :deep(.el-card__body) {
@@ -18,7 +18,7 @@
 
 .register-brand {
   text-align: center;
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
 }
 
 .register-brand__icon {
@@ -40,8 +40,35 @@
   margin: 0;
 }
 
+.register-steps {
+  margin-bottom: var(--space-8);
+}
+
+.register-account-alert {
+  margin-bottom: var(--space-6);
+}
+
 .register-btn {
   width: 100%;
+}
+
+.register-form-actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.register-form-actions :deep(.el-form-item__content) {
+  display: flex;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.register-form-actions .el-button {
+  flex: 1;
+}
+
+.register-done {
+  padding: var(--space-8) 0;
 }
 
 .register-footer {
@@ -58,4 +85,18 @@
 .register-footer__link:hover {
   color: var(--color-primary-hover);
   text-decoration: underline;
+}
+
+.register-logo-upload {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.register-logo-upload__name {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  word-break: break-all;
 }

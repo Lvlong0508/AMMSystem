@@ -15,4 +15,10 @@ public class UpdateShopRequest {
     private String description;
 
     private String logoId;
+
+    @Size(max = 200, message = "店铺地址最长200个字符")
+    private String address;
+
+    @Size(max = 20, message = "店铺电话最长20个字符")
+    private String phone;
 }
