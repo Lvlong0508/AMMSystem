@@ -367,8 +367,8 @@ class LogisticsServiceImplTest {
     }
 
     @Test
-    @DisplayName("LG-005 type为无效值 - 直接写入不校验")
-    void createLogistics_withInvalidType_success() {
+    @DisplayName("LG-005 type为无效值 - 抛出LogisticsException")
+    void createLogistics_withInvalidType_throwsException() {
         CreateLogisticsRequest request = new CreateLogisticsRequest();
         request.setOrderId("ORD005");
         request.setType("INVALID");
@@ -381,16 +381,12 @@ class LogisticsServiceImplTest {
         logistics.setContactId(1);
         logistics.setTrackingNumber("SF0000000000");
 
-        LogisticsResponse response = LogisticsResponse.builder()
-                .id(5).orderId("ORD005").type("INVALID")
-                .trackingNumber("SF0000000000").build();
-
         when(logisticsConverter.toModel(request)).thenReturn(logistics);
-        when(logisticsMapper.insertLogistics(logistics)).thenReturn(1);
-        when(logisticsConverter.toResponse(logistics)).thenReturn(response);
 
-        LogisticsResponse result = logisticsService.createLogistics(request);
+        LogisticsException ex = assertThrows(LogisticsException.class,
+                () -> logisticsService.createLogistics(request));
 
-        assertEquals("INVALID", result.getType());
+        assertEquals("物流类型只能是DELIVERY或RETURN", ex.getMessage());
+        verify(logisticsMapper, never()).insertLogistics(any());
     }
 }

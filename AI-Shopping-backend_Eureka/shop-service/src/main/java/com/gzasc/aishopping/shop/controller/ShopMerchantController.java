@@ -30,7 +30,7 @@ public class ShopMerchantController {
     public ApiResponse<Map<String, Object>> getMyShop(
             @RequestHeader("X-User-Id") Long userId) {
         SimpleShopDTO shop = shopService.getMyShop(userId);
-        log.info("閺屻儴顕楅幋鎴犳畱鎼存鎽? userId={}", userId);
+        log.info("查询我的店铺, userId={}", userId);
         Map<String, Object> data = new HashMap<>();
         data.put("shop", shop);
         return ApiResponse.success(data);
@@ -40,7 +40,7 @@ public class ShopMerchantController {
     public ApiResponse<Map<String, Object>> register(
             @RequestBody @Valid CreateShopRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("鍟嗗娉ㄥ唽搴楅摵, userId={}", userId);
+        log.info("商家注册店铺, userId={}", userId);
         Shop shop = shopService.createShop(request, userId);
         return ApiResponse.success(Map.of("id", shop.getId()));
     }
@@ -53,7 +53,7 @@ public class ShopMerchantController {
         if (logo != null && !logo.isEmpty()) {
             validateLogo(logo);
         }
-        log.info("鍟嗗娉ㄥ唽搴楅摵, userId={}", userId);
+        log.info("商家注册店铺, userId={}", userId);
         Shop shop = shopService.createShop(request, userId, logo);
         return ApiResponse.success(Map.of("id", shop.getId()));
     }
@@ -61,7 +61,7 @@ public class ShopMerchantController {
     private void validateLogo(MultipartFile logo) {
         String contentType = logo.getContentType();
         if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-            throw new ShopException(400, "浠呮敮鎸?JPG 鍜?PNG 鏍煎紡");
+            throw new ShopException(400, "仅支持 JPG 和 PNG 格式");
         }
     }
 
@@ -69,7 +69,7 @@ public class ShopMerchantController {
     public ApiResponse<Map<String, Object>> getShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("鑾峰彇鍟嗗簵, shopId={}, userId={}", shopId, userId);
+        log.info("获取店铺, shopId={}, userId={}", shopId, userId);
         Shop shop = shopService.getShopWithAccessCheck(shopId, userId);
         ShopInfoDTO shopInfo = shopService.getShopInfoById(shopId);
         return ApiResponse.success(Map.of(
@@ -83,26 +83,26 @@ public class ShopMerchantController {
             @PathVariable("shopId") Long shopId,
             @RequestBody @Valid UpdateShopRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("鏇存柊鍟嗗簵, shopId={}", shopId);
+        log.info("更新店铺, shopId={}", shopId);
         shopService.updateShop(shopId, request, userId);
-        return ApiResponse.success("??????", null);
+        return ApiResponse.success("更新店铺成功", null);
     }
 
     @PatchMapping("/{shopId}/close")
     public ApiResponse<Map<String, Object>> closeShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("鍏抽棴鍟嗗簵, shopId={}, userId={}", shopId, userId);
+        log.info("关闭店铺, shopId={}, userId={}", shopId, userId);
         shopService.closeShop(shopId, userId);
-        return ApiResponse.success("??????", null);
+        return ApiResponse.success("关闭店铺成功", null);
     }
 
     @PatchMapping("/{shopId}/open")
     public ApiResponse<Map<String, Object>> openShop(
             @PathVariable("shopId") Long shopId,
             @RequestHeader("X-User-Id") Long userId) {
-        log.info("鎵撳紑鍟嗗簵 shopId={}, userId={}", shopId, userId);
+        log.info("打开店铺 shopId={}, userId={}", shopId, userId);
         shopService.openShop(shopId, userId);
-        return ApiResponse.success("??????", null);
+        return ApiResponse.success("开启店铺成功", null);
     }
 }

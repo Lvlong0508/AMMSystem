@@ -10,6 +10,7 @@ import com.gzasc.aishopping.logistics.service.LogisticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,11 +36,22 @@ public class LogisticsServiceImpl implements LogisticsService {
     }
 
     private LogisticsResponse doCreateLogistics(Logistics logistics) {
+        normalizeAndValidateType(logistics);
         int result = logisticsMapper.insertLogistics(logistics);
         if (result <= 0) {
             throw new LogisticsException("创建物流信息失败");
         }
         return logisticsConverter.toResponse(logistics);
+    }
+
+    private void normalizeAndValidateType(Logistics logistics) {
+        if (!StringUtils.hasText(logistics.getType())) {
+            logistics.setType("DELIVERY");
+            return;
+        }
+        if (!"DELIVERY".equals(logistics.getType()) && !"RETURN".equals(logistics.getType())) {
+            throw new LogisticsException("物流类型只能是DELIVERY或RETURN");
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS logistics (
     contact_id INT NOT NULL COMMENT '联系人ID',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     tracking_number VARCHAR(50) NOT NULL COMMENT '快递单号',
+    CONSTRAINT chk_logistics_type CHECK (type IN ('DELIVERY', 'RETURN')),
     INDEX idx_order_type (order_id, type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='物流表';
 
