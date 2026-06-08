@@ -562,18 +562,18 @@ class ReturnRequestServiceImplTest {
 
         @Test
         @DisplayName("按订单ID查询")
-        void getByOrderId_success() {
+        void getReturnRequestByOrderId_success() {
             when(returnRequestMapper.selectByOrderId(orderId))
                     .thenReturn(createReturnRequest(ReturnRequest.APPLYING));
-            ReturnRequestDTO result = returnRequestService.getByOrderId(orderId);
+            ReturnRequestDTO result = returnRequestService.getReturnRequestByOrderId(orderId);
             assertEquals(orderId, result.getOrderId());
         }
 
         @Test
         @DisplayName("按订单ID查询不存在抛异常")
-        void getByOrderId_notFound() {
+        void getReturnRequestByOrderId_notFound() {
             when(returnRequestMapper.selectByOrderId(orderId)).thenReturn(null);
-            assertThrows(OrderException.class, () -> returnRequestService.getByOrderId(orderId));
+            assertThrows(OrderException.class, () -> returnRequestService.getReturnRequestByOrderId(orderId));
         }
     }
 }
@@ -599,7 +599,7 @@ public interface ReturnRequestService {
     void createReturnRequest(Long userId, String orderId, CreateReturnRequest request);
     void reviewReturnRequest(String shopId, String orderId, ReviewReturnRequest request);
     void submitReturnLogistics(Long userId, String orderId, SubmitReturnLogisticsRequest request);
-    ReturnRequestDTO getByOrderId(String orderId);
+    ReturnRequestDTO getReturnRequestByOrderId(String orderId);
     List<ReturnRequestDTO> listByShop(String shopId, String status);
 }
 ```
@@ -758,7 +758,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     }
 
     @Override
-    public ReturnRequestDTO getByOrderId(String orderId) {
+    public ReturnRequestDTO getReturnRequestByOrderId(String orderId) {
         ReturnRequest entity = returnRequestMapper.selectByOrderId(orderId);
         if (entity == null) {
             throw new OrderException("退货申请不存在");
@@ -1209,10 +1209,10 @@ Expected: 只包含本计划涉及文件，无无关变更。
 - ✅ `updateStatus` SQL 增加 `AND status = 'applying'` 状态前置约束
 
 ### Agent 2 — Service Layer
-- ✅ Service 接口增加 `getByOrderId(String orderId)` 方法
-- ✅ Service 实现增加 `getByOrderId` 逻辑
+- ✅ Service 接口增加 `getReturnRequestByOrderId(String orderId)` 方法
+- ✅ Service 实现增加 `getReturnRequestByOrderId` 逻辑
 - ✅ 测试增加 `reviewReturnRequest_alreadyProcessed` 场景
-- ✅ 测试增加 `getByOrderId_success` 和 `getByOrderId_notFound`
+- ✅ 测试增加 `getReturnRequestByOrderId_success` 和 `getReturnRequestByOrderId_notFound`
 - ❌ `trackingCompany` 字段：已验证 `LogisticsRequest` 无此字段，按现有代码留空
 
 ### Agent 3 — Controller & Tests
