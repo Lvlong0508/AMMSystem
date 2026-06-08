@@ -70,7 +70,10 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             return;
         }
         String relativePath = imageUrl.replace(imageBaseUrl, "");
-        if (relativePath.startsWith("/")) {
+        String logoPrefix = "/image/shop/logo/";
+        if (relativePath.startsWith(logoPrefix)) {
+            relativePath = relativePath.substring(logoPrefix.length());
+        } else if (relativePath.startsWith("/")) {
             relativePath = relativePath.substring(1);
         }
         Path filePath = storagePath.resolve(relativePath).normalize();
