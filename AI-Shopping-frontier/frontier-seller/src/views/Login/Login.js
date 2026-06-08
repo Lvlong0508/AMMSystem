@@ -1,8 +1,9 @@
-import { ref, reactive } from 'vue'
+﻿import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useAuthStore } from '@/store/auth'
 import { useShopStore } from '@/store/shop'
+import { getMyShop } from '@/api/shop'
 import * as T from './Text.js'
 
 export function useLogin() {
@@ -37,14 +38,34 @@ export function useLogin() {
         username: form.username,
         password: form.password
       })
-      ElMessage.success(res.message || '登录成功')
+      ElMessage.success(res.message || T.LOGIN_SUCCESS)
+
+      // 查询店铺信息
+      verifying.value = true
       const shopStore = useShopStore()
       shopStore.clearCurrentShop()
-      verifying.value = true
-      if (authStore.merchantId) await shopStore.initShops(authStore.merchantId)
-      router.push('/shop/select')
+      await shopStore.initShop(authStore.merchantId)
+
+      verifying.value = false
+
+      if (shopStore.hasShop) {
+        // 有店铺 → 跳转管理页
+        const shopId = shopStore.currentShopId
+        router.push(`/shop/${shopId}/products`)
+      } else {
+        // 无店铺 → 弹窗引导注册
+        ElMessageBox.confirm(T.NO_SHOP_MSG, T.NO_SHOP_TITLE, {
+          confirmButtonText: T.NO_SHOP_CONFIRM,
+          cancelButtonText: T.NO_SHOP_CANCEL,
+          type: 'warning'
+        }).then(() => {
+          router.push('/register')
+        }).catch(() => {
+          // 用户取消，留在登录页
+        })
+      }
     } catch (err) {
-      const msg = err.response?.data?.message || err.message || '登录失败，请重试'
+      const msg = err.response?.data?.message || err.message || T.LOGIN_FAILED
       ElMessage.error(msg)
     } finally {
       loading.value = false

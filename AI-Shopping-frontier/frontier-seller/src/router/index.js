@@ -1,15 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
 import { useShopStore } from '@/store/shop'
 import AppLayout from '@/layout/AppLayout.vue'
 import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
-import ShopRegister from '../views/ShopRegister/ShopRegister.vue'
 import ShopSelectPage from '../views/ShopList/ShopList.vue'
 import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
 import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
-import ShopEmployees from '../views/ShopEmployees/ShopEmployees.vue'
 import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
 import ShopReturns from '../views/ReturnManagement/ReturnManagement.vue'
 import ShopInfo from '../views/ShopInfo/ShopInfo.vue'
@@ -28,16 +26,10 @@ const routes = [
     meta: { public: true }
   },
   {
-    path: '/shop/register',
-    name: 'shop-register',
-    component: ShopRegister,
-    meta: { public: true }
-  },
-  {
-    path: '/shop/select',
+    path: '/shop',
     name: 'shop-select',
     component: ShopSelectPage,
-    meta: { public: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/',
@@ -56,16 +48,9 @@ const routes = [
         component: ShopOrders
       },
       {
-        path: 'shop/:shopId/employees',
-        name: 'shop-employees',
-        component: ShopEmployees,
-        meta: { shopOwnerOnly: true }
-      },
-      {
         path: 'shop/:shopId/addresses',
         name: 'shop-addresses',
-        component: ShopAddresses,
-        meta: { shopOwnerOnly: true }
+        component: ShopAddresses
       },
       {
         path: 'shop/:shopId/returns',
@@ -75,8 +60,7 @@ const routes = [
       {
         path: 'shop/:shopId/info',
         name: 'shop-info',
-        component: ShopInfo,
-        meta: { shopOwnerOnly: true }
+        component: ShopInfo
       }
     ]
   }
@@ -101,20 +85,16 @@ router.beforeEach(async (to, _from, next) => {
     return
   }
 
-  if (to.meta.shopOwnerOnly && !auth.isOwner) {
-    next('/ship')
-    return
-  }
-
-  if (auth.merchantId && !shop.loaded) await shop.initShops(auth.merchantId)
-
-  if (shop.loaded && to.params.shopId && to.params.shopId !== shop.currentShopId) {
-    next('/shop/select')
-    return
+  if (auth.merchantId && !shop.loaded) {
+    await shop.initShop(auth.merchantId)
   }
 
   if (to.name === 'home') {
-    next('/shop/select')
+    if (shop.hasShop) {
+      next(`/shop/${shop.currentShopId}/products`)
+    } else {
+      next('/shop')
+    }
     return
   }
 

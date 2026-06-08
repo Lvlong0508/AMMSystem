@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
@@ -24,9 +23,6 @@ class ShopMapperTest {
 
     @Autowired
     private ShopMapper shopMapper;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
 
     private static long uniqueId() {
         return System.nanoTime();
@@ -104,22 +100,24 @@ class ShopMapperTest {
         }
 
         @Test
-        @DisplayName("根据用户ID查询其有权限的店铺")
-        void selectShopsByUserId_shouldReturnShops() {
-            long shopId = uniqueId();
+        @DisplayName("根据商户ID查询单个店铺（一对一）")
+        void selectShopByMerchantId_shouldReturnShop() {
             long merchantId = uniqueId();
-            long userId = merchantId;
-            shopMapper.insertShop(createShop(shopId, merchantId, 1, null));
+            Shop shop = createShop(uniqueId(), merchantId, 1, null);
+            shopMapper.insertShop(shop);
 
-            jdbcTemplate.update(
-                "INSERT INTO merchant_roles (merchant_id, shop_id, role, assigned_by, created_at) VALUES (?, ?, 1, ?, NOW())",
-                userId, shopId, merchantId
-            );
+            Shop found = shopMapper.selectShopByMerchantId(merchantId);
 
-            List<Shop> shops = shopMapper.selectShopsByUserId(userId);
+            assertThat(found).isNotNull();
+            assertThat(found.getId()).isEqualTo(shop.getId());
+            assertThat(found.getMerchantId()).isEqualTo(merchantId);
+        }
 
-            assertThat(shops).isNotEmpty();
-            assertThat(shops.get(0).getId()).isEqualTo(shopId);
+        @Test
+        @DisplayName("查询不存在的商户返回null")
+        void selectShopByMerchantId_notFound_shouldReturnNull() {
+            Shop found = shopMapper.selectShopByMerchantId(999999999L);
+            assertThat(found).isNull();
         }
 
         @Test

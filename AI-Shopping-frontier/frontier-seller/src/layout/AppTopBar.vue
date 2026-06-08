@@ -1,85 +1,29 @@
-<template>
+﻿<template>
   <header class="topbar">
     <div class="topbar__left">
-      <el-button text @click="app.toggleSidebar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-      </el-button>
-      <el-breadcrumb v-if="!shop.hasNoShops" separator="/">
-        <el-breadcrumb-item v-for="(crumb, i) in breadcrumbs" :key="i">
-          <router-link v-if="i < breadcrumbs.length - 1" :to="crumb.path">{{ crumb.label }}</router-link>
-          <span v-else>{{ crumb.label }}</span>
-        </el-breadcrumb-item>
-      </el-breadcrumb>
+      <span class="topbar__logo">AI Shopping 商店控制台</span>
     </div>
-
     <div class="topbar__right">
-      <el-button text @click="switchShop">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
-        <span>切换店铺</span>
-      </el-button>
-
       <div class="topbar__user">
-        <el-avatar :size="34">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</el-avatar>
+        <span class="topbar__user-avatar">{{ auth.merchantName?.charAt(0)?.toUpperCase() || 'M' }}</span>
         <span class="topbar__user-name">{{ auth.merchantName }}</span>
-        <el-button text type="danger" @click="handleLogout">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          <span>退出</span>
-        </el-button>
       </div>
+      <el-button class="topbar__logout-btn" @click="handleLogout">[ 退出 ]</el-button>
     </div>
   </header>
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/store/auth'
-import { useAppStore } from '@/store/app'
-import { useShopStore } from '@/store/shop'
 
-const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const app = useAppStore()
-const shop = useShopStore()
 
 async function handleLogout() {
   await auth.logout()
   router.push('/login')
 }
-
-function switchShop() {
-  shop.clearCurrentShop()
-  router.push('/shop/select')
-}
-
-const breadcrumbMap = {
-  '/ship': '订单发货'
-}
-
-const breadcrumbs = computed(() => {
-  const path = route.path
-  const crumbs = []
-
-  if (breadcrumbMap[path]) {
-    crumbs.push({ label: breadcrumbMap[path], path: '' })
-  } else if (path.startsWith('/shop/')) {
-    const pageMap = {
-      'products': '商品管理',
-      'orders': '订单管理',
-      'employees': '员工管理',
-      'addresses': '地址管理',
-      'returns': '退货管理',
-      'info': '商店信息'
-    }
-    const segment = path.split('/').pop()
-    if (pageMap[segment]) {
-      crumbs.push({ label: pageMap[segment], path: '' })
-    }
-  }
-
-  return crumbs
-})
 </script>
 
 <style scoped>
@@ -87,36 +31,63 @@ const breadcrumbs = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-5);
-  background: white;
-  border-bottom: 1px solid var(--color-border-light);
-  min-height: 56px;
+  height: 56px;
+  padding: 0 24px;
+  background: #1a1a2e;
+  color: #fff;
+  flex-shrink: 0;
 }
 
 .topbar__left {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+}
+
+.topbar__logo {
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
 }
 
 .topbar__right {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: 16px;
 }
 
 .topbar__user {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 8px;
+}
+
+.topbar__user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #4361ee;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .topbar__user-name {
-  font-size: var(--text-base);
-  color: var(--color-text);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
-:deep(.el-breadcrumb) {
-  font-size: var(--text-base);
+.topbar__logout-btn {
+  color: rgba(255, 255, 255, 0.7) !important;
+  font-size: 13px;
+  border: none !important;
+  background: transparent !important;
+}
+
+.topbar__logout-btn:hover {
+  color: #fff !important;
 }
 </style>

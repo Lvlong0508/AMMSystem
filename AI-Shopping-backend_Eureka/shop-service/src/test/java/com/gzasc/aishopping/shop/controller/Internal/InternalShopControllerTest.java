@@ -1,9 +1,10 @@
 package com.gzasc.aishopping.shop.controller.internal;
 
+import com.gzasc.aishopping.common.dto.shop.CreateShopForMerchantRequest;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.shop.controller.GlobalExceptionHandler;
-import com.gzasc.aishopping.shop.model.MerchantRole;
-import com.gzasc.aishopping.shop.service.MerchantRoleService;
+import com.gzasc.aishopping.shop.model.Shop;
 import com.gzasc.aishopping.shop.service.ShopService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,13 +16,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
@@ -32,14 +32,11 @@ class InternalShopControllerTest {
     private MockMvc mockMvc;
 
     @Mock
-    private MerchantRoleService merchantRoleService;
-
-    @Mock
     private ShopService shopService;
 
     @BeforeEach
     void setUp() {
-        var controller = new InternalShopController(merchantRoleService, shopService);
+        var controller = new InternalShopController(shopService);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -49,35 +46,53 @@ class InternalShopControllerTest {
     }
 
     @Test
-    @DisplayName("SH-035 查询商家角色列表")
-    void getMerchantRoles() throws Exception {
-        MerchantRole r1 = new MerchantRole(1L, 1001L, 1L, 1, 1001L, null);
-        MerchantRole r2 = new MerchantRole(2L, 1001L, 2L, 1, 1001L, null);
-        MerchantRole r3 = new MerchantRole(3L, 1001L, 3L, 2, 1001L, null);
-        when(merchantRoleService.selectByMerchantId(1001L)).thenReturn(List.of(r1, r2, r3));
+    @DisplayName("内部接口 - 为商家创建店铺成功")
+    void createShopForMerchant_success() throws Exception {
+        Shop shop = new Shop();
+        shop.setId(10001L);
+        when(shopService.createShop(any(), eq(1001L))).thenReturn(shop);
 
-        mockMvc.perform(get("/internal/shop/employees/roles/1001"))
+        mockMvc.perform(post("/internal/shop/create-for-merchant")
+                        .header("X-Internal-Source", "auth-service")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"merchantId":1001,"name":"我的小店","description":"描述","logoUrl":"http://logo"}
+                                """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.roles.length()").value(3))
-                .andExpect(jsonPath("$.data.roles[0].merchantId").value(1001))
-                .andExpect(jsonPath("$.data.roles[0].shopId").value(1))
-                .andExpect(jsonPath("$.data.roles[0].role").value(1));
+                .andExpect(jsonPath("$.data.id").value(10001));
     }
 
     @Test
-    @DisplayName("SH-036 查询商家角色列表 - 无角色")
-    void getMerchantRoles_empty() throws Exception {
-        when(merchantRoleService.selectByMerchantId(999L)).thenReturn(List.of());
+    @DisplayName("内部接口 - 创建店铺时shop-service异常")
+    void createShopForMerchant_serviceError() throws Exception {
+        when(shopService.createShop(any(), anyLong())).thenThrow(new RuntimeException("DB error"));
 
-        mockMvc.perform(get("/internal/shop/employees/roles/999"))
+        mockMvc.perform(post("/internal/shop/create-for-merchant")
+                        .header("X-Internal-Source", "auth-service")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"merchantId":1001,"name":"我的小店"}
+                                """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.roles").isEmpty());
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("创建店铺失败"));
     }
 
     @Test
-    @DisplayName("SH-037 查询店铺信息")
+    @DisplayName("内部接口 - 店铺名称为空")
+    void createShopForMerchant_nameBlank() throws Exception {
+        mockMvc.perform(post("/internal/shop/create-for-merchant")
+                        .header("X-Internal-Source", "auth-service")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"merchantId":1001,"name":""}
+                                """))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("查询店铺信息")
     void getShopInfo() throws Exception {
         ShopInfoDTO dto = new ShopInfoDTO(10L, "测试店铺", "测试描述", "logo");
         when(shopService.getShopInfoById(1L)).thenReturn(dto);
@@ -91,7 +106,7 @@ class InternalShopControllerTest {
     }
 
     @Test
-    @DisplayName("SH-038 查询店铺信息 - 无关联info")
+    @DisplayName("查询店铺信息 - 无关联info")
     void getShopInfo_null() throws Exception {
         when(shopService.getShopInfoById(1L)).thenReturn(null);
 
@@ -102,7 +117,7 @@ class InternalShopControllerTest {
     }
 
     @Test
-    @DisplayName("SH-039 批量查询店铺信息")
+    @DisplayName("批量查询店铺信息")
     void batchGetShopInfo() throws Exception {
         ShopInfoDTO dto1 = new ShopInfoDTO(10L, "店铺A", "描述A", "logoA");
         ShopInfoDTO dto2 = new ShopInfoDTO(20L, "店铺B", "描述B", "logoB");
@@ -120,7 +135,7 @@ class InternalShopControllerTest {
     }
 
     @Test
-    @DisplayName("SH-040 批量查询 - 空集合")
+    @DisplayName("批量查询 - 空集合")
     void batchGetShopInfo_empty() throws Exception {
         when(shopService.batchGetShopInfo(Set.of())).thenReturn(Map.of());
 

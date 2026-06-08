@@ -13,26 +13,25 @@ export function useShopList() {
   const loading = ref(false)
   const detailVisible = ref(false)
   const detailLoading = ref(false)
-  const selectedShop = ref(null)
   const shopDetail = ref(null)
 
   onMounted(async () => {
     if (auth.merchantId) {
       loading.value = true
-      await shopStore.initShops(auth.merchantId)
+      await shopStore.initShop(auth.merchantId)
       loading.value = false
     }
-    if (shopStore.shops.length === 1 && shopStore.currentShopId) {
+    if (shopStore.hasShop && shopStore.currentShopId) {
       router.replace(`/shop/${shopStore.currentShopId}/products`)
     }
   })
 
-  async function showShopDetail(shop) {
-    selectedShop.value = shop
+  async function showShopDetail() {
+    if (!shopStore.shop) return
     detailVisible.value = true
     detailLoading.value = true
     try {
-      const res = await getShopDetail(shop.id)
+      const res = await getShopDetail(shopStore.shop.id)
       const shopData = res?.data?.shop || res?.shop || {}
       const shopInfo = res?.data?.shopInfo || res?.shopInfo || {}
       shopDetail.value = { ...shopData, ...shopInfo }
@@ -46,17 +45,14 @@ export function useShopList() {
 
   function closeDetail() {
     detailVisible.value = false
-    selectedShop.value = null
     shopDetail.value = null
   }
 
-  function enterShop(shopId) {
-    shopStore.switchShop(shopId)
-    router.push(`/shop/${shopId}/products`)
-  }
-
-  function goRegister() {
-    window.open('/shop/register', '_blank')
+  function enterShop() {
+    if (shopStore.shop) {
+      shopStore.switchShop(shopStore.shop.id)
+      router.push(`/shop/${shopStore.shop.id}/products`)
+    }
   }
 
   async function handleLogout() {
@@ -64,5 +60,5 @@ export function useShopList() {
     router.push('/login')
   }
 
-  return { loading, detailVisible, detailLoading, selectedShop, shopDetail, T, showShopDetail, closeDetail, enterShop, goRegister, handleLogout, auth, shopStore }
+  return { loading, detailVisible, detailLoading, shopDetail, T, showShopDetail, closeDetail, enterShop, handleLogout, auth, shopStore }
 }

@@ -1,37 +1,33 @@
-﻿import { defineStore } from "pinia";
+import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { getShopByMerchant } from "@/api/shop";
+import { getMyShop } from "@/api/shop";
 
 export const useShopStore = defineStore("shop", () => {
   const currentShopId = ref(
     localStorage.getItem("currentShopId") || null
   );
-  const shops = ref([]);
+  const shop = ref(null);
   const loaded = ref(false);
 
-  const currentShop = computed(() =>
-    shops.value.find((s) => s.id === currentShopId.value)
-  );
-  const hasMultipleShops = computed(() => shops.value.length > 1);
-  const hasNoShops = computed(
-    () => loaded.value && shops.value.length === 0
-  );
+  const hasShop = computed(() => shop.value !== null);
+  const hasNoShop = computed(() => loaded.value && shop.value === null);
 
-  async function initShops(merchantId) {
-    if (!merchantId) return;
+  async function initShop(userId) {
+    if (!userId) return;
     loaded.value = false;
     try {
-      const res = await getShopByMerchant(merchantId);
-      shops.value = res?.data?.shops || [];
-      if (shops.value.length === 1) {
-        currentShopId.value = shops.value[0].id;
+      const res = await getMyShop();
+      shop.value = res?.data?.shop || null;
+      if (shop.value && shop.value.id) {
+        currentShopId.value = shop.value.id;
         localStorage.setItem("currentShopId", currentShopId.value);
-      } else if (shops.value.length === 0) {
+      } else {
         currentShopId.value = null;
         localStorage.removeItem("currentShopId");
       }
     } catch (e) {
       console.error("初始化店铺失败:", e);
+      shop.value = null;
     } finally {
       loaded.value = true;
     }
@@ -39,6 +35,7 @@ export const useShopStore = defineStore("shop", () => {
 
   function clearCurrentShop() {
     currentShopId.value = null;
+    shop.value = null;
     localStorage.removeItem("currentShopId");
   }
 
@@ -49,12 +46,11 @@ export const useShopStore = defineStore("shop", () => {
 
   return {
     currentShopId,
-    shops,
+    shop,
     loaded,
-    currentShop,
-    hasMultipleShops,
-    hasNoShops,
-    initShops,
+    hasShop,
+    hasNoShop,
+    initShop,
     clearCurrentShop,
     switchShop,
   };

@@ -315,6 +315,86 @@
 
 **端口**: 8087
 
+### 商家端店铺 API (`/api/seller/shop`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| GET | `/api/seller/shop/my-shop` | 查询我的店铺（一对一，返回单店铺） | - |
+| GET | `/api/seller/shop/{shopId}` | 查询店铺详情（含权限校验） | - |
+| PUT | `/api/seller/shop/{shopId}` | 更新店铺信息 | `UpdateShopRequest` |
+| PATCH | `/api/seller/shop/{shopId}/close` | 关闭店铺 | - |
+| PATCH | `/api/seller/shop/{shopId}/open` | 重新开店 | - |
+
+> ⚠️ 变更说明：
+> - `GET /myShop` → `GET /my-shop`（单数语义，返回单个 `SimpleShopDTO`）
+> - `POST /register` 已删除，**商家注册与店铺创建已合并为一步**，详见 Auth Service 商家注册 API
+> - 员工管理相关 API 已全部删除（不再支持员工概念）
+> - `GET /{shopId}` 现同时返回 `shop` + `shopInfo`
+
+#### 请求体:
+
+**更新店铺**（全部可选）:
+```json
+{
+  "name": "新名称",
+  "description": "新描述",
+  "logoId": "http://example.com/new-logo.jpg"
+}
+```
+
+#### 响应示例:
+
+**查询我的店铺**:
+```json
+{
+  "code": 200,
+  "data": {
+    "shop": { "id": 1, "name": "我的小店", "status": 1 }
+  }
+}
+```
+
+**查询店铺详情**:
+```json
+{
+  "code": 200,
+  "data": {
+    "shop": { "id": 1, "merchantId": 1, "shopInfoId": 1, "status": 1, "createdAt": "...", "updatedAt": "..." },
+    "shopInfo": { "id": 1, "name": "店铺名称", "description": "店铺描述", "logourl": "http://..." }
+  }
+}
+```
+
+---
+
+### 内部 API (`/internal/shop`)
+
+**Header**: 无（仅服务间 Feign 调用，不走 Gateway）
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| POST | `/internal/shop/create-for-merchant` | 为商家创建店铺（注册流程中使用） | `CreateShopForMerchantRequest` |
+| GET | `/internal/shop/info/{shopId}` | 查询店铺信息 | - |
+| POST | `/internal/shop/info/batch` | 批量查询店铺信息 | `Set<Long>` |
+
+#### 请求体（create-for-merchant）:
+
+```json
+{
+  "merchantId": 1234567890,
+  "name": "我的小店",
+  "description": "...",
+  "logoUrl": "http://..."
+}
+```
+
+- `merchantId` 必填
+- `name` 必填
+- 响应 `409` 表示该商家已绑定店铺
+
+> ⚠️ 变更说明：`/employees/roles/{merchantId}` 已删除
 ### 用户端店铺 API (`/api/user/shop`)
 
 **Header**: `X-User-Id: <userId>`
@@ -726,15 +806,92 @@
 
 | 方法 | 路径 | 作用 | 请求体 |
 |------|------|------|--------|
-| GET | `/api/seller/shop/my-shops` | 查询当前商家店铺列表（从Header获取商家ID） | - |
+| GET | `/api/seller/shop/my-shop` | 查询我的店铺（一对一，返回单店铺） | - |
 | GET | `/api/seller/shop/{shopId}` | 查询店铺详情（含权限校验） | - |
-| GET | `/api/seller/shop/{shopId}/employees` | 查询店铺员工列表 | - |
-| POST | `/api/seller/shop/register` | 创建店铺 | `CreateShopRequest` |
 | PUT | `/api/seller/shop/{shopId}` | 更新店铺信息 | `UpdateShopRequest` |
 | PATCH | `/api/seller/shop/{shopId}/close` | 关闭店铺 | - |
 | PATCH | `/api/seller/shop/{shopId}/open` | 重新开店 | - |
-| POST | `/api/seller/shop/{shopId}/employees` | 添加店员 | `AddEmployeeRequest` |
-| DELETE | `/api/seller/shop/{shopId}/employees/{merchantId}` | 移除店员 | - |
+
+> ⚠️ 变更说明：
+> - `GET /myShop` → `GET /my-shop`（单数语义，返回单个 `SimpleShopDTO`）
+> - `POST /register` 已删除，**商家注册与店铺创建已合并为一步**，详见 Auth Service 商家注册 API
+> - 员工管理相关 API 已全部删除（不再支持员工概念）
+> - `GET /{shopId}` 现同时返回 `shop` + `shopInfo`
+
+#### 请求体:
+
+**更新店铺**（全部可选）:
+```json
+{
+  "name": "新名称",
+  "description": "新描述",
+  "logoId": "http://example.com/new-logo.jpg"
+}
+```
+
+#### 响应示例:
+
+**查询我的店铺**:
+```json
+{
+  "code": 200,
+  "data": {
+    "shop": { "id": 1, "name": "我的小店", "status": 1 }
+  }
+}
+```
+
+**查询店铺详情**:
+```json
+{
+  "code": 200,
+  "data": {
+    "shop": { "id": 1, "merchantId": 1, "shopInfoId": 1, "status": 1, "createdAt": "...", "updatedAt": "..." },
+    "shopInfo": { "id": 1, "name": "店铺名称", "description": "店铺描述", "logourl": "http://..." }
+  }
+}
+```
+
+---
+
+### 内部 API (`/internal/shop`)
+
+**Header**: 无（仅服务间 Feign 调用，不走 Gateway）
+
+| 方法 | 路径 | 作用 | 请求体 |
+|------|------|------|--------|
+| POST | `/internal/shop/create-for-merchant` | 为商家创建店铺（注册流程中使用） | `CreateShopForMerchantRequest` |
+| GET | `/internal/shop/info/{shopId}` | 查询店铺信息 | - |
+| POST | `/internal/shop/info/batch` | 批量查询店铺信息 | `Set<Long>` |
+
+#### 请求体（create-for-merchant）:
+
+```json
+{
+  "merchantId": 1234567890,
+  "name": "我的小店",
+  "description": "...",
+  "logoUrl": "http://..."
+}
+```
+
+- `merchantId` 必填
+- `name` 必填
+- 响应 `409` 表示该商家已绑定店铺
+
+> ⚠️ 变更说明：`/employees/roles/{merchantId}` 已删除
+### 商家端店铺 API (`/api/seller/shop`)
+
+**Header**: `X-User-Id: <userId>`
+
+| 方法 | 路径                                | 作用 | 请求体 |
+|------|-----------------------------------|------|--------|
+| GET | `/api/seller/shop/myShop`         | 查询当前商家店铺列表（从Header获取商家ID） | - |
+| GET | `/api/seller/shop/{shopId}`       | 查询店铺详情（含权限校验） | - |
+| POST | `/api/seller/shop/register`       | 创建店铺 | `CreateShopRequest` |
+| PUT | `/api/seller/shop/{shopId}`       | 更新店铺信息 | `UpdateShopRequest` |
+| PATCH | `/api/seller/shop/{shopId}/close` | 关闭店铺 | - |
+| PATCH | `/api/seller/shop/{shopId}/open`  | 重新开店 | - |
 
 #### 请求体:
 
@@ -758,29 +915,6 @@
 }
 ```
 
-**添加店员**:
-```json
-{
-  "username": "employee001",
-  "password": "pass123",
-  "phone": "13800138000",
-  "name": "店员姓名"
-}
-```
-- `username` 必填，3-20位字母数字下划线
-- `password`、`phone`、`name` 可选
-
-#### 响应示例:
-
-**创建成功**:
-```json
-{
-  "code": 200,
-  "message": "创建店铺成功",
-  "data": { "id": 123456789 }
-}
-```
-
 **店铺详情**:
 ```json
 {
@@ -791,34 +925,3 @@
   }
 }
 ```
-
-**员工列表**:
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "employees": [
-      { "merchantId": 1, "shopId": 1, "role": 1, "assignedBy": 1 }
-    ],
-    "total": 1
-  }
-}
-```
-
-**商家关联店铺**:
-```json
-{
-  "code": 200,
-  "message": "成功",
-  "data": {
-    "shops": [
-      { "id": 167184879099904, "name": "店铺名称", "status": 1 },
-      { "id": 167195414294528, "name": "店铺名称2", "status": 0 }
-    ]
-  }
-}
-```
-
-
-
