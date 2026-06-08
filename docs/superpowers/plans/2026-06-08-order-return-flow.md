@@ -201,10 +201,10 @@ public interface ReturnRequestMapper {
     @Select("SELECT * FROM return_requests WHERE shop_id = #{shopId} AND status = #{status} ORDER BY created_date DESC")
     List<ReturnRequest> selectByShopAndStatus(@Param("shopId") String shopId, @Param("status") String status);
 
-    @Update("UPDATE return_requests SET status = #{status}, updated_date = CURRENT_TIMESTAMP WHERE order_id = #{orderId}")
+    @Update("UPDATE return_requests SET status = #{status}, updated_date = CURRENT_TIMESTAMP WHERE order_id = #{orderId} AND status = 'applying'")
     int updateStatus(@Param("orderId") String orderId, @Param("status") String status);
 
-    @Update("UPDATE return_requests SET logistics_id = #{logisticsId}, updated_date = CURRENT_TIMESTAMP WHERE order_id = #{orderId}")
+    @Update("UPDATE return_requests SET logistics_id = #{logisticsId}, updated_date = CURRENT_TIMESTAMP WHERE order_id = #{orderId} AND logistics_id IS NULL")
     int updateLogisticsId(@Param("orderId") String orderId, @Param("logisticsId") Integer logisticsId);
 }
 ```
@@ -414,6 +414,16 @@ class ReturnRequestServiceImplTest {
         }
 
         @Test
+        @DisplayName("退货申请已被处理抛异常")
+        void reviewReturnRequest_alreadyProcessed() {
+            ReviewReturnRequest req = new ReviewReturnRequest();
+            req.setStatus(ReturnRequest.AGREED);
+            ReturnRequest processed = createReturnRequest(ReturnRequest.AGREED);
+            when(returnRequestMapper.selectByOrderIdAndShop(orderId, shopId)).thenReturn(processed);
+            assertThrows(OrderException.class, () -> returnRequestService.reviewReturnRequest(shopId, orderId, req));
+        }
+
+        @Test
         @DisplayName("CAS失败回滚")
         void reviewReturnRequest_casFailure() {
             ReviewReturnRequest req = new ReviewReturnRequest();
@@ -549,6 +559,22 @@ class ReturnRequestServiceImplTest {
             assertEquals(1, result.size());
             assertEquals(orderId, result.get(0).getOrderId());
         }
+
+        @Test
+        @DisplayName("按订单ID查询")
+        void getByOrderId_success() {
+            when(returnRequestMapper.selectByOrderId(orderId))
+                    .thenReturn(createReturnRequest(ReturnRequest.APPLYING));
+            ReturnRequestDTO result = returnRequestService.getByOrderId(orderId);
+            assertEquals(orderId, result.getOrderId());
+        }
+
+        @Test
+        @DisplayName("按订单ID查询不存在抛异常")
+        void getByOrderId_notFound() {
+            when(returnRequestMapper.selectByOrderId(orderId)).thenReturn(null);
+            assertThrows(OrderException.class, () -> returnRequestService.getByOrderId(orderId));
+        }
     }
 }
 ```
@@ -573,6 +599,7 @@ public interface ReturnRequestService {
     void createReturnRequest(Long userId, String orderId, CreateReturnRequest request);
     void reviewReturnRequest(String shopId, String orderId, ReviewReturnRequest request);
     void submitReturnLogistics(Long userId, String orderId, SubmitReturnLogisticsRequest request);
+    ReturnRequestDTO getByOrderId(String orderId);
     List<ReturnRequestDTO> listByShop(String shopId, String status);
 }
 ```
@@ -731,6 +758,15 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     }
 
     @Override
+    public ReturnRequestDTO getByOrderId(String orderId) {
+        ReturnRequest entity = returnRequestMapper.selectByOrderId(orderId);
+        if (entity == null) {
+            throw new OrderException("退货申请不存在");
+        }
+        return toDTO(entity);
+    }
+
+    @Override
     public List<ReturnRequestDTO> listByShop(String shopId, String status) {
         List<ReturnRequest> list = returnRequestMapper.selectByShopAndStatus(shopId, status);
         return list.stream().map(this::toDTO).collect(Collectors.toList());
@@ -778,7 +814,7 @@ git commit -m "feat: implement return request service"
 - Modify: `OrderSellerControllerTest.java`
 - Modify: `OrderServiceImplTest.java`
 
-- [ ] **Step 1: 更新 `OrderServiceImplTest`（新增 mock）**
+- [ ] **Step 1: 更新 `OrderServiceImplTest`（新增 mock + 重写旧测试）**
 
 `OrderServiceImpl` 新增依赖 `ReturnRequestService`，当前测试构造时需 mock：
 
@@ -795,6 +831,48 @@ orderService = new OrderServiceImpl(orderMapper, deletedOrderMapper, orderIdSele
         productFeignClient, logisticsFeignClient, contactFeignClient, orderConverter,
         fileFallbackDaemon, returnRequestService);
 ```
+
+⚠️ `OrderServiceImpl.requestReturn` 改为委托 `ReturnRequestService.createReturnRequest`，4 个旧测试（OR-028~030/OR-073）不能再用 `orderMapper` mock，需改为验证委托：
+
+```java
+// 替换 OR-028 requestReturn_shipped
+@Test
+@DisplayName("OR-028 申请退货 - 委托给 ReturnRequestService")
+void requestReturn_shipped() {
+    doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
+    orderService.requestReturn(100L, "ORDER001");
+    verify(returnRequestService).createReturnRequest(eq(100L), eq("ORDER001"), any());
+}
+
+// 替换 OR-029 requestReturn_delivered — 同上，委托行为一致，保留测试名以示区别
+@Test
+@DisplayName("OR-029 申请退货 - DELIVERED 委托")
+void requestReturn_delivered() {
+    doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
+    orderService.requestReturn(100L, "ORDER001");
+    verify(returnRequestService).createReturnRequest(eq(100L), eq("ORDER001"), any());
+}
+
+// 替换 OR-030 requestReturn_wrongStatus — 委托无状态感知，验证委托调用即可
+@Test
+@DisplayName("OR-030 申请退货 - 委托调用")
+void requestReturn_wrongStatus() {
+    doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
+    orderService.requestReturn(100L, "ORDER001");
+    verify(returnRequestService).createReturnRequest(eq(100L), eq("ORDER001"), any());
+}
+
+// 替换 OR-073 requestReturn_notFound — 委托不关心订单存在性
+@Test
+@DisplayName("OR-073 requestReturn - 委托调用")
+void requestReturn_notFound() {
+    doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
+    orderService.requestReturn(999L, "MISSING");
+    verify(returnRequestService).createReturnRequest(eq(999L), eq("MISSING"), any());
+}
+```
+
+如不保留这些测试（`OrderService.requestReturn` 仅作委托），可直接删除 OR-028/029/030/073 四个测试。但保留可确保回归时知道委托链路未断。
 
 - [ ] **Step 2: 替换 `OrderServiceImpl.requestReturn`**
 
@@ -948,13 +1026,14 @@ void requestReturn_validationFail() throws Exception {
 
 删除旧的 `requestReturn_shipped` 和 `requestReturn_wrongStatus` 测试（已被替换）。
 
-需追加 import：`com.fasterxml.jackson.databind.ObjectMapper`。
+需在 `OrderUserControllerTest` 追加 import：`com.fasterxml.jackson.databind.ObjectMapper`。
 
-**`OrderSellerControllerTest`：**
+**`OrderSellerControllerTest`：** 同样需追加 `import com.fasterxml.jackson.databind.ObjectMapper`。
 
 ```java
-// OrderSellerControllerTest.java — 追加 mock 字段
+// OrderSellerControllerTest.java — 追加 mock 和 ObjectMapper
 @Mock private ReturnRequestService returnRequestService;
+private final ObjectMapper objectMapper = new ObjectMapper();
 
 // setUp() 改为注入 ReturnRequestService
 @BeforeEach
@@ -1053,6 +1132,18 @@ class ReturnReviewTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("审核完成"));
     }
+
+    @Test
+    @DisplayName("审核 - 审核结果为空")
+    void reviewReturnRequest_validationFail() throws Exception {
+        ReviewReturnRequest req = new ReviewReturnRequest();
+        req.setStatus("");
+        mockMvc.perform(put("/api/seller/order/return-requests/{orderId}/review", "ORDER001")
+                        .param("shopId", "SHOP001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
 }
 ```
 
@@ -1110,3 +1201,26 @@ Expected: 只包含本计划涉及文件，无无关变更。
 - Type consistency: DTO、Model、Mapper、Service 方法命名一致；状态值与 spec 一致。
 - 去掉了 WebSocket（按简化版设计）；去掉了双表设计（单表 `return_requests`）。
 - `submitReturnLogistics` 成功后订单状态改为 `RETURNING`（按用户确认）。
+
+## Peer Review (3-agent parallel review, 2026-06-08)
+
+### Agent 1 — Data Layer
+- ✅ `updateLogisticsId` SQL 增加 `AND logistics_id IS NULL` CAS 保护
+- ✅ `updateStatus` SQL 增加 `AND status = 'applying'` 状态前置约束
+
+### Agent 2 — Service Layer
+- ✅ Service 接口增加 `getByOrderId(String orderId)` 方法
+- ✅ Service 实现增加 `getByOrderId` 逻辑
+- ✅ 测试增加 `reviewReturnRequest_alreadyProcessed` 场景
+- ✅ 测试增加 `getByOrderId_success` 和 `getByOrderId_notFound`
+- ❌ `trackingCompany` 字段：已验证 `LogisticsRequest` 无此字段，按现有代码留空
+
+### Agent 3 — Controller & Tests
+- ✅ `OrderSellerControllerTest` 增加 `ObjectMapper` 声明（防止编译错误）
+- ✅ `OrderSellerControllerTest` 增加审核结果为空校验失败测试
+- ✅ `OrderServiceImplTest` 4 个旧 `requestReturn*` 测试改写为委托验证
+
+### All Issues Status
+- **Critical**: 6 → 0 resolved
+- **Important**: 10 → 0 resolved (9 fixed, 1 `trackingCompany` determined not needed)
+- **Minor**: 7 noted for future
