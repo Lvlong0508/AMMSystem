@@ -28,12 +28,13 @@ export function useChatView() {
     if (!text || loading.value) return
     if (!requireLogin()) return
 
+    messages.value.push({ role: 'user', text })
     inputText.value = ''
     loading.value = true
+    await scrollToBottom()
 
     try {
       const res = await sendMessage(text)
-      messages.value.push({ role: 'user', text })
       const reply = {
         role: 'ai',
         text: res.message || '',
