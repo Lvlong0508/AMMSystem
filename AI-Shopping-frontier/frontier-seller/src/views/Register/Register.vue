@@ -83,10 +83,20 @@
             show-word-limit
           />
         </el-form-item>
-        <el-form-item :label="T.LABEL_SHOP_ADDRESS" prop="address">
+        <el-form-item :label="T.LABEL_SHOP_REGION" prop="region">
+          <el-cascader
+            v-model="shopForm.region"
+            :options="regionOptions"
+            :props="{ expandTrigger: 'hover' }"
+            :placeholder="T.PLACEHOLDER_SHOP_REGION"
+            clearable
+            style="width: 100%"
+          />
+        </el-form-item>
+        <el-form-item :label="T.LABEL_SHOP_ADDRESS" prop="addressDetail">
           <el-input
-            v-model="shopForm.address"
-            :placeholder="T.PLACEHOLDER_SHOP_ADDRESS"
+            v-model="shopForm.addressDetail"
+            :placeholder="T.PLACEHOLDER_SHOP_ADDRESS_DETAIL"
             :maxlength="200"
             show-word-limit
           />
@@ -126,6 +136,10 @@
 
 <script setup>
 import { useRegister } from './Register.js'
+import { regionData } from 'element-china-area-data'
+
+const regionOptions = regionData
+
 const {
   T, currentStep,
   accountFormRef, accountForm, accountRules,

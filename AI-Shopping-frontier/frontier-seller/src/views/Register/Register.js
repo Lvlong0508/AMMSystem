@@ -5,6 +5,7 @@ import { merchantRegister } from "@/api/auth"
 import { createShop } from "@/api/shop"
 import { useAuthStore } from "@/store/auth"
 import * as T from "./Text.js"
+import { buildAddressString } from "@/utils/region"
 
 export function useRegister() {
   const router = useRouter()
@@ -50,7 +51,7 @@ export function useRegister() {
     ]
   }
 
-  const shopForm = reactive({ name: "", description: "", address: "", phone: "" })
+  const shopForm = reactive({ name: "", description: "", region: [], addressDetail: "", phone: "" })
 
   const shopRules = {
     name: [
@@ -58,7 +59,8 @@ export function useRegister() {
       { max: 50, message: T.SHOP_NAME_MAX, trigger: "blur" }
     ],
     description: [{ max: 200, message: T.SHOP_DESC_MAX, trigger: "blur" }],
-    address: [{ max: 200, message: T.SHOP_ADDRESS_MAX, trigger: "blur" }],
+    region: [{ required: true, message: T.REGION_REQUIRED, trigger: "change" }],
+    addressDetail: [{ max: 200, message: T.SHOP_ADDRESS_MAX, trigger: "blur" }],
     phone: [
       { max: 20, message: T.SHOP_PHONE_MAX, trigger: "blur" },
       { pattern: /^$|^(1\d{10}|0\d{2,3}-?\d{7,8})$/, message: T.SHOP_PHONE_INVALID, trigger: "blur" }
@@ -127,7 +129,7 @@ export function useRegister() {
     const shopData = {
       name: shopForm.name,
       description: shopForm.description || undefined,
-      address: shopForm.address || undefined,
+      address: buildAddressString(shopForm.region, shopForm.addressDetail) || undefined,
       phone: shopForm.phone || undefined
     }
     formData.append("shop", new Blob([JSON.stringify(shopData)], { type: "application/json" }))
