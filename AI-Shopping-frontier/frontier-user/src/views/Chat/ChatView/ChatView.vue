@@ -26,6 +26,10 @@
                 :product="p"
                 @viewDetail="(prod) => $emit('viewDetail', prod)"
             />
+          </div>
+        </div>
+      </div>
+
       <div v-if="loading" class="chat-view__bubble-wrap chat-view__bubble-wrap--ai">
         <div class="chat-view__bubble chat-view__bubble--ai">
           <div class="chat-view__typing">
@@ -35,10 +39,6 @@
           </div>
         </div>
       </div>
-    </div>
-        </div>
-      </div>
-
     </div>
 
     <div class="chat-view__input-bar">
