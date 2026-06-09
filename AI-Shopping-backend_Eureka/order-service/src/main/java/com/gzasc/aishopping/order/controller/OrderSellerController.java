@@ -1,8 +1,9 @@
 package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.order.dto.OrderAbstractSellerDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.SellerOrderCardDTO;
+import com.gzasc.aishopping.order.dto.ShipmentOrderCardDTO;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.ShipOrderRequest;
@@ -25,9 +26,16 @@ public class OrderSellerController {
     private final ReturnRequestService returnRequestService;
 
     @GetMapping("/shop/{shopId}/list")
-    public ApiResponse<List<OrderAbstractSellerDTO>> listShopOrders(
+    public ApiResponse<List<SellerOrderCardDTO>> listShopOrders(
             @PathVariable("shopId") String shopId) {
-        List<OrderAbstractSellerDTO> orders = orderService.getOrdersByShopId(shopId);
+        List<SellerOrderCardDTO> orders = orderService.getOrdersByShopId(shopId);
+        return ApiResponse.success(orders);
+    }
+
+    @GetMapping("/shop/{shopId}/shipment-list")
+    public ApiResponse<List<ShipmentOrderCardDTO>> listShipmentOrders(
+            @PathVariable("shopId") String shopId) {
+        List<ShipmentOrderCardDTO> orders = orderService.getShipmentOrdersByShopId(shopId);
         return ApiResponse.success(orders);
     }
 

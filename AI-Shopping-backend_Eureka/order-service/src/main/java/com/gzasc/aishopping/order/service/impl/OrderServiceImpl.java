@@ -4,9 +4,11 @@ import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.converter.OrderConverter;
 import com.gzasc.aishopping.order.dto.*;
@@ -28,6 +30,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     private final ProductFeignClient productFeignClient;
     private final LogisticsFeignClient logisticsFeignClient;
     private final ContactFeignClient contactFeignClient;
+    private final ShopFeignClient shopFeignClient;
     private final OrderConverter orderConverter;
     private final FileFallbackDaemon fileFallbackDaemon;
 
@@ -262,9 +266,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderAbstractUserDTO> getOrdersByUserId(Long userId) {
+    public List<UserOrderCardDTO> getOrdersByUserId(Long userId) {
         List<Order> orders = orderMapper.selectAbstractOrdersByUserId(userId);
-        return orderConverter.toUserAbstractDTOList(orders);
+        if (orders.isEmpty()) return List.of();
+
+        Map<String, ProductDTO> productMap = buildProductMap(orders);
+        Map<Long, ShopInfoDTO> shopMap = buildShopMap(orders);
+        return orderConverter.toUserCardDTOList(orders, productMap, shopMap);
     }
 
     @Override
@@ -277,9 +285,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderAbstractSellerDTO> getOrdersByShopId(String shopId) {
+    public List<SellerOrderCardDTO> getOrdersByShopId(String shopId) {
         List<Order> orders = orderMapper.selectAbstractOrdersByShopId(shopId);
-        return orderConverter.toSellerAbstractDTOList(orders);
+        if (orders.isEmpty()) return List.of();
+
+        Map<String, ProductDTO> productMap = buildProductMap(orders);
+        Map<Integer, ContactDTO> contactMap = buildContactMap(orders);
+        return orderConverter.toSellerCardDTOList(orders, productMap, contactMap);
+    }
+
+    @Override
+    public List<ShipmentOrderCardDTO> getShipmentOrdersByShopId(String shopId) {
+        List<Order> orders = orderMapper.selectPaidOrdersByShopId(shopId);
+        if (orders.isEmpty()) return List.of();
+
+        Map<String, ProductDTO> productMap = buildProductMap(orders);
+        Map<Integer, ContactDTO> contactMap = buildContactMap(orders);
+        return orderConverter.toShipmentCardDTOList(orders, productMap, contactMap);
     }
 
     @Override
@@ -293,6 +315,30 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderDetailDTO buildDetailDTO(Order order) {
         OrderDetailDTO dto = orderConverter.toDetailDTO(order);
+
+        ProductDTO product = null;
+        try {
+            if (order.getProductId() != null) {
+                ApiResponse<ProductDTO> productResp = productFeignClient.getProductById(Long.valueOf(order.getProductId()));
+                if (productResp != null) {
+                    product = productResp.getData();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("获取商品信息失败", e);
+        }
+
+        ShopInfoDTO shop = null;
+        try {
+            if (order.getShopId() != null) {
+                ApiResponse<ShopInfoDTO> shopResp = shopFeignClient.getShopInfo(Long.valueOf(order.getShopId()));
+                if (shopResp != null) {
+                    shop = shopResp.getData();
+                }
+            }
+        } catch (Exception e) {
+            log.warn("获取店铺信息失败", e);
+        }
 
         ContactDTO contactInfo = null;
         try {
@@ -317,7 +363,63 @@ public class OrderServiceImpl implements OrderService {
             log.warn("获取物流信息失败", e);
         }
 
-        orderConverter.enrichDetailDTO(dto, contactInfo, logisticsInfo);
+        orderConverter.enrichDetailDTO(dto, product, shop, contactInfo, logisticsInfo);
         return dto;
+    }
+
+    // ==================== 辅助：批量获取商品/店铺/联系人 ====================
+
+    private Map<String, ProductDTO> buildProductMap(List<Order> orders) {
+        return orders.stream()
+            .map(Order::getProductId)
+            .filter(id -> id != null)
+            .distinct()
+            .map(id -> {
+                try {
+                    ApiResponse<ProductDTO> resp = productFeignClient.getProductById(Long.valueOf(id));
+                    return resp != null ? resp.getData() : null;
+                } catch (Exception e) {
+                    log.warn("获取商品信息失败, productId={}", id, e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(p -> String.valueOf(p.getId()), p -> p, (a, b) -> a));
+    }
+
+    private Map<Long, ShopInfoDTO> buildShopMap(List<Order> orders) {
+        return orders.stream()
+            .map(Order::getShopId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .map(id -> {
+                try {
+                    ApiResponse<ShopInfoDTO> resp = shopFeignClient.getShopInfo(Long.valueOf(id));
+                    return resp != null ? resp.getData() : null;
+                } catch (Exception e) {
+                    log.warn("获取店铺信息失败, shopId={}", id, e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(ShopInfoDTO::getId, s -> s, (a, b) -> a));
+    }
+
+    private Map<Integer, ContactDTO> buildContactMap(List<Order> orders) {
+        return orders.stream()
+            .map(Order::getContactId)
+            .filter(Objects::nonNull)
+            .distinct()
+            .map(id -> {
+                try {
+                    ApiResponse<ContactDTO> resp = contactFeignClient.getContactById(id);
+                    return resp != null ? Map.entry(id, resp.getData()) : null;
+                } catch (Exception e) {
+                    log.warn("获取联系人信息失败, contactId={}", id, e);
+                    return null;
+                }
+            })
+            .filter(Objects::nonNull)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

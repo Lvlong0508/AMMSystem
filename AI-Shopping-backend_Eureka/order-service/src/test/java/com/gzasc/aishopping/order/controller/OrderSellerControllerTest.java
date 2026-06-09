@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.order.controller;
 
-import com.gzasc.aishopping.order.dto.OrderAbstractSellerDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.SellerOrderCardDTO;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.ShipOrderRequest;
@@ -249,7 +249,7 @@ class OrderSellerControllerTest {
     @Test
     @DisplayName("OR-050 商家查询店铺订单列表")
     void listShopOrders_success() throws Exception {
-        OrderAbstractSellerDTO dto = new OrderAbstractSellerDTO();
+        SellerOrderCardDTO dto = new SellerOrderCardDTO();
         dto.setOrderId("ORDER001");
         dto.setOrderStatus("PAID");
         when(orderService.getOrdersByShopId("SHOP001")).thenReturn(List.of(dto));

@@ -1,8 +1,8 @@
 package com.gzasc.aishopping.order.controller.internal;
 
 import com.gzasc.aishopping.order.controller.GlobalExceptionHandler;
-import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.service.OrderService;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ class InternalOrderControllerTest {
     @Test
     @DisplayName("OR-054 内部查询订单列表")
     void getAllOrders_success() throws Exception {
-        OrderAbstractUserDTO dto = new OrderAbstractUserDTO();
+        UserOrderCardDTO dto = new UserOrderCardDTO();
         dto.setOrderId("ORDER001");
         when(orderService.getOrdersByUserId(100L)).thenReturn(List.of(dto));
 

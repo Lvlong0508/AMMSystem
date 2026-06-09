@@ -33,6 +33,9 @@ public interface OrderMapper {
     @Select("SELECT * FROM t_order WHERE shop_id = #{shopId} AND order_id = #{orderId}")
     Order selectOrderDetailByShop(@Param("shopId") String shopId, @Param("orderId") String orderId);
 
+    @Select("SELECT * FROM t_order WHERE shop_id = #{shopId} AND order_status = 'PAID'")
+    List<Order> selectPaidOrdersByShopId(@Param("shopId") String shopId);
+
     @Select("SELECT * FROM t_order WHERE order_status = 'PENDING' AND order_date < NOW() - INTERVAL #{minutes} MINUTE")
     List<Order> selectExpiredPendingOrders(@Param("minutes") int minutes);
 

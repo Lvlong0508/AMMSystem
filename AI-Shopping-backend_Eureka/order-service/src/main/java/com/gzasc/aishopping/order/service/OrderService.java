@@ -1,10 +1,11 @@
 package com.gzasc.aishopping.order.service;
 
-import com.gzasc.aishopping.order.dto.OrderAbstractSellerDTO;
-import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
+import com.gzasc.aishopping.order.dto.SellerOrderCardDTO;
+import com.gzasc.aishopping.order.dto.ShipmentOrderCardDTO;
 import com.gzasc.aishopping.order.dto.ShipOrderRequest;
+import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 
 import java.util.List;
 
@@ -25,8 +26,9 @@ public interface OrderService {
     void submitReturnLogisticsStatus(Long userId, String orderId);
 
     // 查询
-    List<OrderAbstractUserDTO> getOrdersByUserId(Long userId);
+    List<UserOrderCardDTO> getOrdersByUserId(Long userId);
     OrderDetailDTO getOrderDetailByUser(Long userId, String orderId);
-    List<OrderAbstractSellerDTO> getOrdersByShopId(String shopId);
+    List<SellerOrderCardDTO> getOrdersByShopId(String shopId);
+    List<ShipmentOrderCardDTO> getShipmentOrdersByShopId(String shopId);
     OrderDetailDTO getOrderDetailByShop(String shopId, String orderId);
 }

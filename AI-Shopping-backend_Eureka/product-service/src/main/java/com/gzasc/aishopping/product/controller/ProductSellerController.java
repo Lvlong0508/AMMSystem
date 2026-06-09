@@ -4,7 +4,6 @@ import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.CreateProductRequest;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
 import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
-import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
@@ -18,7 +17,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController

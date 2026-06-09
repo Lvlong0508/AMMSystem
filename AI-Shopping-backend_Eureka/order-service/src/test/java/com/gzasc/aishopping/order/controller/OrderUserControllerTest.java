@@ -1,8 +1,8 @@
 package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
-import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.exception.OrderException;
@@ -328,9 +328,8 @@ class OrderUserControllerTest {
     @Test
     @DisplayName("OR-046 用户查询订单列表")
     void listOrders_success() throws Exception {
-        OrderAbstractUserDTO dto = new OrderAbstractUserDTO();
+        UserOrderCardDTO dto = new UserOrderCardDTO();
         dto.setOrderId("ORDER001");
-        dto.setProductId("1");
         dto.setOrderStatus("PAID");
         dto.setTotalPrice(BigDecimal.valueOf(100));
         dto.setQuantity(2);

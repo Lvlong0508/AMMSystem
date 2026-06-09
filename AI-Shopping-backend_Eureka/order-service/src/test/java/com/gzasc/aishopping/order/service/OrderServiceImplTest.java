@@ -3,10 +3,12 @@ package com.gzasc.aishopping.order.service;
 import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
+import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
+import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.converter.OrderConverter;
 import com.gzasc.aishopping.order.dto.*;
@@ -55,6 +57,8 @@ class OrderServiceImplTest {
     @Mock
     private ContactFeignClient contactFeignClient;
     @Mock
+    private ShopFeignClient shopFeignClient;
+    @Mock
     private OrderConverter orderConverter;
     @Mock
     private FileFallbackDaemon fileFallbackDaemon;
@@ -96,7 +100,7 @@ class OrderServiceImplTest {
     @BeforeEach
     void setUp() {
         orderService = new OrderServiceImpl(orderMapper, deletedOrderMapper, orderIdSelector,
-                productFeignClient, logisticsFeignClient, contactFeignClient,
+                productFeignClient, logisticsFeignClient, contactFeignClient, shopFeignClient,
                 orderConverter, fileFallbackDaemon);
     }
 
@@ -550,11 +554,13 @@ class OrderServiceImplTest {
     void getOrdersByUserId() {
         Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
         when(orderMapper.selectAbstractOrdersByUserId(100L)).thenReturn(List.of(order));
-        when(orderConverter.toUserAbstractDTOList(anyList())).thenReturn(
-                List.of(new OrderAbstractUserDTO())
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        when(orderConverter.toUserCardDTOList(anyList(), anyMap(), anyMap())).thenReturn(
+                List.of(new UserOrderCardDTO())
         );
 
-        List<OrderAbstractUserDTO> result = orderService.getOrdersByUserId(100L);
+        List<UserOrderCardDTO> result = orderService.getOrdersByUserId(100L);
         assertEquals(1, result.size());
         verify(orderMapper).selectAbstractOrdersByUserId(100L);
     }
@@ -563,9 +569,8 @@ class OrderServiceImplTest {
     @DisplayName("OR-055 用户查询空列表")
     void getOrdersByUserId_empty() {
         when(orderMapper.selectAbstractOrdersByUserId(100L)).thenReturn(List.of());
-        when(orderConverter.toUserAbstractDTOList(List.of())).thenReturn(List.of());
 
-        List<OrderAbstractUserDTO> result = orderService.getOrdersByUserId(100L);
+        List<UserOrderCardDTO> result = orderService.getOrdersByUserId(100L);
         assertTrue(result.isEmpty());
     }
 
@@ -590,7 +595,10 @@ class OrderServiceImplTest {
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF1234567890")));
 
-        when(orderConverter.enrichDetailDTO(any(), any(ContactDTO.class), any())).thenReturn(dto);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(ContactDTO.class), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);
@@ -612,11 +620,14 @@ class OrderServiceImplTest {
     void getOrdersByShopId() {
         Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
         when(orderMapper.selectAbstractOrdersByShopId("SHOP001")).thenReturn(List.of(order));
-        when(orderConverter.toSellerAbstractDTOList(anyList())).thenReturn(
-                List.of(new OrderAbstractSellerDTO())
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
+        when(orderConverter.toSellerCardDTOList(anyList(), anyMap(), anyMap())).thenReturn(
+                List.of(new SellerOrderCardDTO())
         );
 
-        List<OrderAbstractSellerDTO> result = orderService.getOrdersByShopId("SHOP001");
+        List<SellerOrderCardDTO> result = orderService.getOrdersByShopId("SHOP001");
         assertEquals(1, result.size());
     }
 
@@ -627,6 +638,9 @@ class OrderServiceImplTest {
         when(orderMapper.selectOrderDetailByShop("SHOP001", "ORDER001")).thenReturn(order);
         OrderDetailDTO dto = new OrderDetailDTO();
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByShop("SHOP001", "ORDER001");
         assertNotNull(result);
@@ -721,10 +735,12 @@ class OrderServiceImplTest {
         OrderDetailDTO dto = new OrderDetailDTO();
         dto.setOrderId("ORDER001");
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(contactFeignClient.getContactById(99)).thenThrow(new RuntimeException("Feign 联系人异常"));
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF111")));
-        when(orderConverter.enrichDetailDTO(any(), any(), any())).thenReturn(dto);
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);
@@ -743,10 +759,12 @@ class OrderServiceImplTest {
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
         ContactDTO contact = new ContactDTO();
         contact.setName("张三");
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(contactFeignClient.getContactById(99)).thenReturn(ApiResponse.success(contact));
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenThrow(new RuntimeException("Feign 物流异常"));
-        when(orderConverter.enrichDetailDTO(any(), any(ContactDTO.class), any())).thenReturn(dto);
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(ContactDTO.class), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);
@@ -760,10 +778,12 @@ class OrderServiceImplTest {
         when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
 
         OrderDetailDTO dto = new OrderDetailDTO();
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF222")));
-        when(orderConverter.enrichDetailDTO(any(), isNull(), any())).thenReturn(dto);
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);
@@ -778,12 +798,14 @@ class OrderServiceImplTest {
         when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
 
         OrderDetailDTO dto = new OrderDetailDTO();
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
         when(orderConverter.toDetailDTO(order)).thenReturn(dto);
         when(contactFeignClient.getContactById(99))
                 .thenReturn(ApiResponse.success(null));
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "DELIVERY"))
                 .thenReturn(ApiResponse.success(null));
-        when(orderConverter.enrichDetailDTO(any(), any(), any())).thenReturn(dto);
+        when(orderConverter.enrichDetailDTO(any(), any(ProductDTO.class), any(), any(), any())).thenReturn(dto);
 
         OrderDetailDTO result = orderService.getOrderDetailByUser(100L, "ORDER001");
         assertNotNull(result);

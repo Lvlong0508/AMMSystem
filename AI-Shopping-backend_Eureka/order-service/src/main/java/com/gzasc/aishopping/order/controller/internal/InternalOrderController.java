@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.order.controller.internal;
 
-import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +26,7 @@ public class InternalOrderController {
     }
 
     @GetMapping("/list")
-    public List<OrderAbstractUserDTO> getAllOrders(@RequestHeader("X-User-Id") Long userId) {
+    public List<UserOrderCardDTO> getAllOrders(@RequestHeader("X-User-Id") Long userId) {
         return orderService.getOrdersByUserId(userId);
     }
 }

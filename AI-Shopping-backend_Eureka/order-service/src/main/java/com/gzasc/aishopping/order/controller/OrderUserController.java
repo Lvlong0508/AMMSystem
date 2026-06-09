@@ -2,8 +2,8 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
-import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -23,9 +23,9 @@ public class OrderUserController {
     private final ReturnRequestService returnRequestService;
 
     @GetMapping("/list")
-    public ApiResponse<List<OrderAbstractUserDTO>> listOrders(
+    public ApiResponse<List<UserOrderCardDTO>> listOrders(
             @RequestHeader("X-User-Id") Long userId) {
-        List<OrderAbstractUserDTO> orders = orderService.getOrdersByUserId(userId);
+        List<UserOrderCardDTO> orders = orderService.getOrdersByUserId(userId);
         return ApiResponse.success(orders);
     }
 
