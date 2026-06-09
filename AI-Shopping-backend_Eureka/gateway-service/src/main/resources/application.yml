@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8080
 
 spring:
@@ -61,7 +61,7 @@ spring:
           predicates:
             - Path=/api/user/logistics/**
           filters:
-            - RewritePath=/api/user/logistics/(?<segment>.*), /api/user/logistics/${segment}
+            - RewritePath=/api/user/logistics/(?<segment>.*), /logistics/${segment}
         
         # 用户聊天服务
         - id: user-chat
@@ -94,13 +94,6 @@ spring:
           filters:
             - RewritePath=/api/seller/order/(?<segment>.*), /api/seller/order/${segment}
         
-        # 商家联系人服务
-        - id: seller-contact
-          uri: lb://contact-service
-          predicates:
-            - Path=/api/seller/contact/**
-          filters:
-            - RewritePath=/api/seller/contact/(?<segment>.*), /api/seller/contact/${segment}
 
         # 商家地址服务
         - id: merchant-address
@@ -116,7 +109,7 @@ spring:
           predicates:
             - Path=/api/seller/logistics/**
           filters:
-            - RewritePath=/api/seller/logistics/(?<segment>.*), /api/seller/logistics/${segment}
+            - RewritePath=/api/seller/logistics/(?<segment>.*), /logistics/${segment}
         
         # 商家聊天服务
         - id: seller-chat
@@ -124,7 +117,7 @@ spring:
           predicates:
             - Path=/api/seller/chat/**
           filters:
-            - RewritePath=/api/seller/chat/(?<segment>.*), /api/seller/chat/${segment}
+            - RewritePath=/api/seller/chat/(?<segment>.*), /chat/${segment}
         
         # 商家店铺服务
         - id: seller-shop
