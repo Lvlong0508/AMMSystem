@@ -2,6 +2,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getShopDetail, updateShop, closeShop, openShop } from '@/api/shop'
+import { parseAddress, buildAddressString } from '@/utils/region'
 import * as T from './Text.js'
 
 export function useShopInfo() {
@@ -16,6 +17,8 @@ export function useShopInfo() {
     name: '',
     description: '',
     phone: '',
+    region: [],
+    addressDetail: '',
     address: '',
     businessHours: ''
   })
@@ -31,6 +34,9 @@ export function useShopInfo() {
       form.description = shop.description || ''
       form.phone = shop.phone || ''
       form.address = shop.address || ''
+      const parsed = parseAddress(shop.address || '')
+      form.region = parsed.region
+      form.addressDetail = parsed.detail
       form.businessHours = shop.businessHours || ''
       shopStatus.value = shop.status
     } catch (e) {
@@ -44,7 +50,14 @@ export function useShopInfo() {
   async function handleSave() {
     saving.value = true
     try {
-      const res = await updateShop(shopId, { ...form })
+      const payload = {
+        name: form.name,
+        description: form.description,
+        phone: form.phone,
+        address: form.region.length > 0 ? buildAddressString(form.region, form.addressDetail) : (form.addressDetail || ''),
+        businessHours: form.businessHours
+      }
+      const res = await updateShop(shopId, payload)
       ElMessage.success(res?.message || T.SAVE_SUCCESS)
     } catch (e) {
       ElMessage.error(T.SAVE_FAILED)
