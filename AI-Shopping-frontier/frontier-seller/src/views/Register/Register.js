@@ -152,7 +152,7 @@ export function useRegister() {
       await shopStore.initShop(authStore.merchantId)
       ElMessage.success(T.SUCCESS_SHOP)
       currentStep.value = 2
-      setTimeout(() => router.push(`/shop/${shopStore.currentShopId}/products`), 1500)
+      setTimeout(() => router.push(`/shop/${shopStore.currentShopId}`), 1500)
     } catch (err) {
       const msg = err.response?.data?.message || err.message || T.ERROR_SHOP
       ElMessage.error(msg)

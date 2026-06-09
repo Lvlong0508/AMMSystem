@@ -1,0 +1,27 @@
+.dashboard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.dashboard__card {
+  text-align: center;
+  padding: 48px 64px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.dashboard__card h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 8px;
+}
+
+.dashboard__card p {
+  font-size: 15px;
+  color: #999;
+  margin: 0;
+}

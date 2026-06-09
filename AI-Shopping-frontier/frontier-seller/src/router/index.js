@@ -11,6 +11,7 @@ import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
 import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
 import ShopReturns from '../views/ReturnManagement/ReturnManagement.vue'
 import ShopInfo from '../views/ShopInfo/ShopInfo.vue'
+import Dashboard from '../views/Dashboard/Dashboard.vue'
 
 const routes = [
   {
@@ -31,6 +32,11 @@ const routes = [
     children: [
       { path: '', name: 'home', component: Ship },
       { path: 'ship', name: 'ship', component: Ship },
+      {
+        path: 'shop/:shopId',
+        name: 'shop-dashboard',
+        component: Dashboard
+      },
       {
         path: 'shop/:shopId/products',
         name: 'shop-products',
@@ -85,7 +91,7 @@ router.beforeEach(async (to, _from, next) => {
 
   if (to.name === 'home') {
     if (shop.hasShop) {
-      next(`/shop/${shop.currentShopId}/products`)
+      next(`/shop/${shop.currentShopId}`)
     } else {
       next('/register')
     }
