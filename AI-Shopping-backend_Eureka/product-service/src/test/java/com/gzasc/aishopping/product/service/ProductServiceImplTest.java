@@ -9,7 +9,6 @@ import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
-import com.gzasc.aishopping.product.mapper.SalableProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
 import com.gzasc.aishopping.product.service.ImageStorageService;
@@ -40,8 +39,6 @@ class ProductServiceImplTest {
     private ProductMapper productMapper;
     @Mock
     private ProductImageInfoMapper productImageInfoMapper;
-    @Mock
-    private SalableProductMapper salableProductMapper;
     @Mock
     private ProductConverter productConverter;
     @Mock
@@ -121,21 +118,22 @@ class ProductServiceImplTest {
     @Test
     @DisplayName("PR-CARD-001 - getSalableProductCards 有数据")
     void testGetSalableProductCardsWithData() {
-        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L, 2L));
         Product p1 = new Product(); p1.setId(1L); p1.setImageId(1); p1.setStock(10);
         Product p2 = new Product(); p2.setId(2L); p2.setImageId(2); p2.setStock(5);
-        when(productMapper.selectCardProductsByIds(List.of(1L, 2L))).thenReturn(List.of(p1, p2));
+        when(productMapper.selectCardProductsPage(0, 20)).thenReturn(List.of(p1, p2));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
         when(productConverter.toCardDTOList(anyList(), anyMap())).thenReturn(List.of(new ProductCardDTO(), new ProductCardDTO()));
 
         List<ProductCardDTO> result = productService.getSalableProductCards(0);
+
         assertEquals(2, result.size());
+        verify(productMapper).selectCardProductsPage(0, 20);
     }
 
     @Test
     @DisplayName("PR-CARD-002 - getSalableProductCards 无数据")
     void testGetSalableProductCardsEmpty() {
-        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of());
+        when(productMapper.selectCardProductsPage(0, 20)).thenReturn(List.of());
         List<ProductCardDTO> result = productService.getSalableProductCards(0);
         assertTrue(result.isEmpty());
     }
@@ -147,50 +145,6 @@ class ProductServiceImplTest {
                 () -> productService.getSalableProductCards(-1));
         assertEquals(400, ex.getCode());
         assertTrue(ex.getMessage().contains("负数"));
-    }
-
-    @Test
-    @DisplayName("PR-001 - 分页查询可售商品 - 有数据")
-    void testGetSalableProductsAbstractWithData() {
-        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L, 2L));
-        Product p1 = new Product(); p1.setId(1L); p1.setImageId(1); p1.setShopId(10L);
-        Product p2 = new Product(); p2.setId(2L); p2.setImageId(2); p2.setShopId(10L);
-        when(productMapper.selectAbstractProductsByIds(List.of(1L, 2L))).thenReturn(List.of(p1, p2));
-        when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
-        when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
-
-        List<ProductWithImageAbstractDTO> result = productService.getSalableProductsAbstract(0);
-
-        assertEquals(2, result.size());
-    }
-
-    @Test
-    @DisplayName("PR-002-b - shop-service不可用时 分页查询应降级返回空店铺信息")
-    void testGetSalableProductsAbstractWhenShopServiceDown() {
-        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L));
-        Product p = new Product();
-        p.setId(1L);
-        p.setImageId(1);
-        p.setShopId(10L);
-        when(productMapper.selectAbstractProductsByIds(List.of(1L))).thenReturn(List.of(p));
-        when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
-        when(shopFeignClient.batchGetShopInfo(any())).thenThrow(new RuntimeException("shop-service unavailable"));
-        when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
-
-        List<ProductWithImageAbstractDTO> result = productService.getSalableProductsAbstract(0);
-
-        assertEquals(1, result.size());
-        verify(productConverter).toAbstractWithImageDTOList(anyList(), anyMap(), anyMap());
-    }
-
-    @Test
-    @DisplayName("PR-002 - 分页查询可售商品 - 无数据")
-    void testGetSalableProductsAbstractEmpty() {
-        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of());
-
-        List<ProductWithImageAbstractDTO> result = productService.getSalableProductsAbstract(0);
-
-        assertTrue(result.isEmpty());
     }
 
     @Test
@@ -338,13 +292,11 @@ class ProductServiceImplTest {
         product.setSale(false);
         when(productMapper.selectProductById(7001L)).thenReturn(product);
         when(productMapper.updateSaleStatus(7001L, true)).thenReturn(1);
-        when(salableProductMapper.addSalable(7001L)).thenReturn(1);
 
         boolean result = productService.listProduct(7001L);
 
         assertTrue(result);
         verify(productMapper).updateSaleStatus(7001L, true);
-        verify(salableProductMapper).addSalable(7001L);
     }
 
     @Test
@@ -355,13 +307,11 @@ class ProductServiceImplTest {
         product.setSale(true);
         when(productMapper.selectProductById(7002L)).thenReturn(product);
         when(productMapper.updateSaleStatus(7002L, false)).thenReturn(1);
-        when(salableProductMapper.removeSalable(7002L)).thenReturn(1);
 
         boolean result = productService.unlistProduct(7002L);
 
         assertTrue(result);
         verify(productMapper).updateSaleStatus(7002L, false);
-        verify(salableProductMapper).removeSalable(7002L);
     }
 
     @Test
@@ -448,15 +398,6 @@ class ProductServiceImplTest {
         verify(imageStorageService, never()).deleteImage(anyString());
 
         assertEquals(1, result);
-    }
-
-    @Test
-    @DisplayName("getSalableProductsAbstract page为负数抛出ProductException")
-    void getSalableProductsAbstract_negativePage() {
-        ProductException ex = assertThrows(ProductException.class,
-                () -> productService.getSalableProductsAbstract(-1));
-        assertEquals(400, ex.getCode());
-        assertTrue(ex.getMessage().contains("负数"));
     }
 
     @Test

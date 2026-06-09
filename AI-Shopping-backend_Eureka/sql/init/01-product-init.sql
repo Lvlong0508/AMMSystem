@@ -43,10 +43,4 @@ CREATE INDEX idx_price ON products(price);
 -- 索引：加速按在售状态+价格查询（用户端/商家端常见场景）
 CREATE INDEX idx_is_sale_price ON products(is_sale, price);
 
-CREATE TABLE IF NOT EXISTS salable_products (
-    id BIGINT PRIMARY KEY,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (id) REFERENCES products(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='可售商品表';
-
 SELECT '商品服务数据库初始化完成' AS message;
