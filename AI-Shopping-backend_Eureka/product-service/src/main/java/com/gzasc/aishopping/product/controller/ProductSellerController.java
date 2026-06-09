@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -45,12 +44,9 @@ public class ProductSellerController {
     }
 
     @GetMapping("/batch")
-    public ApiResponse<List<SellerProductAbstractDTO>> getProductsAbstract(@RequestParam("ids") String ids) {
+    public ApiResponse<List<SellerProductAbstractDTO>> getProductsAbstract(@RequestParam("ids") List<Long> ids) {
         log.info("商家批量查询商品, ids={}", ids);
-        List<Long> idList = Arrays.stream(ids.split(","))
-                .map(Long::valueOf)
-                .toList();
-        List<SellerProductAbstractDTO> products = productService.getSellerProductsAbstract(idList);
+        List<SellerProductAbstractDTO> products = productService.getSellerProductsAbstract(ids);
         return ApiResponse.success(products);
     }
 

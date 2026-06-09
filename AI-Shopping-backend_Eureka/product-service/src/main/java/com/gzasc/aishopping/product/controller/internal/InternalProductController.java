@@ -7,14 +7,12 @@ import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
-import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -53,15 +51,11 @@ public class InternalProductController {
 
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/batch")
-    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByIds(@RequestParam("ids") String ids) {
-        if (ids == null || ids.trim().isEmpty()) {
+    public ApiResponse<List<ProductWithImageAbstractDTO>> getProductsByIds(@RequestParam("ids") List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
             return ApiResponse.success(List.of());
         }
-        List<Long> idList = Arrays.stream(ids.split(","))
-                .filter(s -> !s.trim().isEmpty())
-                .map(s -> Long.valueOf(s.trim()))
-                .toList();
-        List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForBuyer(idList);
+        List<ProductWithImageAbstractDTO> products = productService.getAbstractProductsForBuyer(ids);
         return ApiResponse.success(products);
     }
 
@@ -78,39 +72,21 @@ public class InternalProductController {
     // 内部接口：预占库存（订单服务下单成功后执行）
     @PostMapping("/reserve-stock")
     public ApiResponse<Void> reserveStock(@RequestBody @Valid StockReserveRequest req) {
-        try {
-            reservationService.reserve(req.getOrderId(), String.valueOf(req.getProductId()), req.getQuantity());
-            return ApiResponse.success(null);
-        } catch (ProductException e) {
-            return ApiResponse.error(e.getCode(), e.getMessage());
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        reservationService.reserve(req.getOrderId(), String.valueOf(req.getProductId()), req.getQuantity());
+        return ApiResponse.success(null);
     }
 
     // 内部接口：确认预占并扣减库存（订单服务支付时执行）
     @PostMapping("/confirm-reservation")
     public ApiResponse<Void> confirmReservation(@RequestParam("orderId") String orderId) {
-        try {
-            reservationService.confirm(orderId);
-            return ApiResponse.success(null);
-        } catch (ProductException e) {
-            return ApiResponse.error(e.getCode(), e.getMessage());
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        reservationService.confirm(orderId);
+        return ApiResponse.success(null);
     }
 
     // 内部接口：释放预占（订单服务取消订单或超时取消时执行）
     @PostMapping("/release-reservation")
     public ApiResponse<Void> releaseReservation(@RequestParam("orderId") String orderId) {
-        try {
-            reservationService.release(orderId);
-            return ApiResponse.success(null);
-        } catch (ProductException e) {
-            return ApiResponse.error(e.getCode(), e.getMessage());
-        } catch (Exception e) {
-            return ApiResponse.error(e.getMessage());
-        }
+        reservationService.release(orderId);
+        return ApiResponse.success(null);
     }
 }

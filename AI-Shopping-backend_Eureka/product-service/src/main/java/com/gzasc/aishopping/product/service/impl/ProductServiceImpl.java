@@ -157,23 +157,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        Set<Long> shopIds = Set.of(shopId);
-        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
-
-    @Override
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        Set<Long> shopIds = Set.of(shopId);
-        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
-
-    @Override
     public List<ProductCardDTO> getSalableProductCards(int page) {
         if (page < 0) {
-            throw new ProductException(400, "页码不能为负�?);
+            throw new ProductException(400, "页码不能为负数");
         }
         int pageSize = 20;
         List<Product> products = productMapper.selectCardProductsPage(page * pageSize, pageSize);
@@ -193,7 +179,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductCardDTO> getProductCardsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
         if (page < 0) {
-            throw new ProductException(400, "页码不能为负�?);
+            throw new ProductException(400, "页码不能为负数");
         }
         List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
         if (products.isEmpty()) return List.of();
@@ -206,10 +192,10 @@ public class ProductServiceImpl implements ProductService {
     public int deleteProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存�? " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         if (product.isSale()) {
-            throw new ProductException(400, "商品在上架中，请先下�? " + productId);
+            throw new ProductException(400, "商品在上架中，请先下�? " + productId);
         }
         if (product.getImageId() != null && product.getImageId() > 0) {
             productImageInfoMapper.deleteById(product.getImageId());
@@ -260,7 +246,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean listProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存�? " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         productMapper.updateSaleStatus(productId, true);
         return true;
@@ -271,7 +257,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean unlistProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存�? " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         productMapper.updateSaleStatus(productId, false);
         return true;
@@ -320,7 +306,7 @@ public class ProductServiceImpl implements ProductService {
     public int updateProductWithImage(Product product, MultipartFile image) {
         Product existingProduct = productMapper.selectProductById(product.getId());
         if (existingProduct == null) {
-            throw new ProductException(404, "商品不存�? " + product.getId());
+            throw new ProductException(404, "商品不存�? " + product.getId());
         }
 
         if (image != null && !image.isEmpty()) {

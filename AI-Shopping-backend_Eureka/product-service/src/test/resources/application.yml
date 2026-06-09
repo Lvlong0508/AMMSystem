@@ -26,3 +26,6 @@ app:
     base-url: http://localhost:8081
     storage-path: ./target/test-image/goods/main
     resource-location: file:./target/test-image/
+  scheduler:
+    reservation:
+      enabled: false

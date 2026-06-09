@@ -313,18 +313,6 @@ class ProductMapperTest {
             assertThat(reloaded.getDescription()).isNotNull();
         }
 
-        @Test
-        @DisplayName("更新商品图片ID")
-        void updateProductImageId_shouldUpdateImageId() {
-            ProductImageInfo img = new ProductImageInfo();
-            img.setUrl("http://test.com/img.jpg");
-            productImageInfoMapper.insert(img);
-
-            Long id = uniqueId();
-            insertAndReturn(buildProduct(id, "image-test", BigDecimal.valueOf(100), 5));
-            int affected = productMapper.updateProductImageId(id, img.getId());
-            assertThat(affected).isEqualTo(1);
-        }
     }
 
     @Nested

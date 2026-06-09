@@ -4,7 +4,6 @@ import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.converter.ProductConverter;
-import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
@@ -149,23 +148,23 @@ class ProductServiceImplTest {
 
     @Test
     @DisplayName("PR-010 - 价格区间查询 - 有结果")
-    void testGetProductsByPriceRangeWithResults() {
+    void testGetProductCardsByPriceRangeWithResults() {
         Product p = new Product(); p.setId(1L); p.setImageId(1); p.setSale(true); p.setShopId(10L);
         when(productMapper.selectByPriceRangeWithPage(eq(BigDecimal.valueOf(50)), eq(BigDecimal.valueOf(200)), eq(0))).thenReturn(List.of(p));
         when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
-        when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
+        when(productConverter.toCardDTOList(anyList(), anyMap())).thenReturn(List.of(new ProductCardDTO()));
 
-        List<ProductWithImageAbstractDTO> result = productService.getProductsByPriceRange(BigDecimal.valueOf(50), BigDecimal.valueOf(200), 0);
+        List<ProductCardDTO> result = productService.getProductCardsByPriceRange(BigDecimal.valueOf(50), BigDecimal.valueOf(200), 0);
 
         assertEquals(1, result.size());
     }
 
     @Test
     @DisplayName("PR-011 - 价格区间查询 - 无结果")
-    void testGetProductsByPriceRangeEmpty() {
+    void testGetProductCardsByPriceRangeEmpty() {
         when(productMapper.selectByPriceRangeWithPage(eq(BigDecimal.valueOf(1000)), eq(BigDecimal.valueOf(10000)), eq(0))).thenReturn(List.of());
 
-        List<ProductWithImageAbstractDTO> result = productService.getProductsByPriceRange(BigDecimal.valueOf(1000), BigDecimal.valueOf(10000), 0);
+        List<ProductCardDTO> result = productService.getProductCardsByPriceRange(BigDecimal.valueOf(1000), BigDecimal.valueOf(10000), 0);
 
         assertTrue(result.isEmpty());
     }
@@ -334,28 +333,7 @@ class ProductServiceImplTest {
         assertTrue(exception.getMessage().contains("不存在"));
     }
 
-    @Test
-    @DisplayName("PR-030 - 商家批量查询商品")
-    void testGetAbstractProductsForMerchant() {
-        Product p = new Product(); p.setId(1L); p.setImageId(1); p.setShopId(10L);
-        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of(1001L, 1002L))).thenReturn(List.of(p));
-        when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of(new ProductImageInfo(1, "http://img.test/a.jpg")));
-        when(productConverter.toAbstractWithImageDTOList(anyList(), anyMap(), anyMap())).thenReturn(List.of(new ProductWithImageAbstractDTO()));
 
-        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of(1001L, 1002L));
-
-        assertEquals(1, result.size());
-    }
-
-    @Test
-    @DisplayName("PR-031 - 批量查询含无效ID（空列表返回）")
-    void testGetAbstractProductsForMerchantWithInvalidIds() {
-        when(productMapper.selectAbstractProductsByIdsJustMerchant(List.of(1001L, 99999L))).thenReturn(List.of());
-
-        List<ProductWithImageAbstractDTO> result = productService.getAbstractProductsForMerchant(List.of(1001L, 99999L));
-
-        assertTrue(result.isEmpty());
-    }
 
     @Test
     @DisplayName("B1 - updateProductWithImage 传入新 image 且原商品无图片时，imageId 应正确关联")
