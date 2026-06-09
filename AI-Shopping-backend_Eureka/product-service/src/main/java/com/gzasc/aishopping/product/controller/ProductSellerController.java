@@ -7,7 +7,9 @@ import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
-import com.gzasc.aishopping.product.service.ProductService;
+import com.gzasc.aishopping.product.service.ImageStorageService;
+import com.gzasc.aishopping.product.service.ProductCommandService;
+import com.gzasc.aishopping.product.service.SellerProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,13 +25,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductSellerController {
 
-
-    private final ProductService productService;
+    private final SellerProductService sellerProductService;
+    private final ProductCommandService productCommandService;
+    private final ImageStorageService imageStorageService;
 
     @GetMapping("/{productId}")
     public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") Long productId) {
         log.info("商家查询商品详情, productId={}", productId);
-        ProductWithImageDetailDTO product = productService.getProductById(productId);
+        ProductWithImageDetailDTO product = sellerProductService.getSellerProductDetail(productId);
         if (product == null) {
             throw new ProductException(404, "商品不存在");
         }
@@ -39,14 +42,14 @@ public class ProductSellerController {
     @GetMapping("/shop/{shopId}")
     public ApiResponse<List<SellerProductAbstractDTO>> getProductsByShop(@PathVariable("shopId") Long shopId) {
         log.info("商家查询店铺商品列表, shopId={}", shopId);
-        List<SellerProductAbstractDTO> products = productService.getSellerProductsByShopId(shopId);
+        List<SellerProductAbstractDTO> products = sellerProductService.getSellerProductsByShopId(shopId);
         return ApiResponse.success(products);
     }
 
     @GetMapping("/batch")
     public ApiResponse<List<SellerProductAbstractDTO>> getProductsAbstract(@RequestParam("ids") List<Long> ids) {
         log.info("商家批量查询商品, ids={}", ids);
-        List<SellerProductAbstractDTO> products = productService.getSellerProductsAbstract(ids);
+        List<SellerProductAbstractDTO> products = sellerProductService.getSellerProductsAbstract(ids);
         return ApiResponse.success(products);
     }
 
@@ -54,13 +57,7 @@ public class ProductSellerController {
     public ApiResponse<String> createProduct(
             @RequestPart("product") @Valid CreateProductRequest request,
             @RequestPart("image") MultipartFile image) {
-        if (image.isEmpty()) {
-            throw new ProductException(400, "图片不能为空");
-        }
-        String contentType = image.getContentType();
-        if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-            throw new ProductException(400, "仅支�?JPG �?PNG 格式");
-        }
+        imageStorageService.validateImage(image);
 
         log.info("创建商品, name={}, shopId={}", request.getName(), request.getShopId());
         Product product = new Product();
@@ -72,7 +69,7 @@ public class ProductSellerController {
         product.setTags(request.getTags());
         product.setShopId(request.getShopId());
 
-        int result = productService.createProductWithImage(product, image);
+        int result = productCommandService.createProductWithImage(product, image);
         if (result > 0) {
             return ApiResponse.success("创建商品成功", product.getId().toString());
         }
@@ -87,10 +84,7 @@ public class ProductSellerController {
         log.info("更新商品, productId={}", productId);
 
         if (image != null && !image.isEmpty()) {
-            String contentType = image.getContentType();
-            if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-                throw new ProductException(400, "仅支持JPG或者PNG 格式");
-            }
+            imageStorageService.validateImage(image);
         }
 
         Product product = new Product();
@@ -101,7 +95,7 @@ public class ProductSellerController {
         if (request.getStock() != null) product.setStock(request.getStock());
         if (request.getTags() != null) product.setTags(request.getTags());
 
-        int result = productService.updateProductWithImage(product, image);
+        int result = productCommandService.updateProductWithImage(product, image);
         if (result > 0) {
             return ApiResponse.success("更新商品成功", null);
         }
@@ -111,7 +105,7 @@ public class ProductSellerController {
     @DeleteMapping("/{productId}")
     public ApiResponse<Void> deleteProduct(@PathVariable("productId") Long productId) {
         log.info("删除商品, productId={}", productId);
-        int result = productService.deleteProduct(productId);
+        int result = sellerProductService.deleteProduct(productId);
         if (result > 0) {
             return ApiResponse.success("删除商品成功", null);
         }
@@ -121,7 +115,7 @@ public class ProductSellerController {
     @PostMapping("/{productId}/list")
     public ApiResponse<Void> listProduct(@PathVariable("productId") Long productId) {
         log.info("上架商品, productId={}", productId);
-        boolean result = productService.listProduct(productId);
+        boolean result = sellerProductService.listProduct(productId);
         if (!result) {
             throw new ProductException(404, "商品不存在或上架失败");
         }
@@ -131,7 +125,7 @@ public class ProductSellerController {
     @PostMapping("/{productId}/unlist")
     public ApiResponse<Void> unlistProduct(@PathVariable("productId") Long productId) {
         log.info("下架商品, productId={}", productId);
-        boolean result = productService.unlistProduct(productId);
+        boolean result = sellerProductService.unlistProduct(productId);
         if (!result) {
             throw new ProductException(404, "商品不存在或下架失败");
         }

@@ -20,18 +20,35 @@ import java.util.HexFormat;
 public class ImageStorageServiceImpl implements ImageStorageService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     private final Path storagePath;
 
-    @Value("${app.image.base-url}")
+    @Value("")
     private String imageBaseUrl;
 
-    public ImageStorageServiceImpl(@Value("${app.image.storage-path}") String storagePath) {
+    public ImageStorageServiceImpl(@Value("") String storagePath) {
         this.storagePath = Paths.get(storagePath).toAbsolutePath().normalize();
     }
 
     @Override
+    public void validateImage(MultipartFile imageFile) {
+        if (imageFile == null || imageFile.isEmpty()) {
+            throw new ProductException(400, "图片不能为空");
+        }
+        String contentType = imageFile.getContentType();
+        if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
+            throw new ProductException(400, "仅支持 JPG 或 PNG 格式");
+        }
+        if (imageFile.getSize() > MAX_FILE_SIZE) {
+            throw new ProductException(400, "图片大小不能超过 5MB");
+        }
+    }
+
+    @Override
     public String saveImage(Long productId, MultipartFile file) {
+        validateImage(file);
+
         String originalFilename = file.getOriginalFilename();
         String ext = "";
         if (originalFilename != null && originalFilename.contains(".")) {
@@ -60,7 +77,8 @@ public class ImageStorageServiceImpl implements ImageStorageService {
             throw new ProductException(500, "保存图片失败");
         }
 
-        return "/image/goods/main/" + productId + "/" + fileName;
+        String relativePath = "/image/goods/main/" + productId + "/" + fileName;
+        return imageBaseUrl + relativePath;
     }
 
     @Async

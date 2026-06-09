@@ -11,6 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.util.List;
 
+/**
+ * @deprecated 请使用 BuyerProductService / SellerProductService / InternalProductService /
+ *             ProductCommandService / ProductShopInfoService 按业务领域调用
+ */
+@Deprecated
 public interface ProductService {
 
     // ==================== CRUD 操作 ====================
@@ -18,7 +23,6 @@ public interface ProductService {
     ProductWithImageDetailDTO getProductById(Long productId);
 
     List<ProductWithImageDetailDTO> getProductsByName(String name);
-
 
     List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<Long> ids);
 
@@ -34,24 +38,19 @@ public interface ProductService {
 
     List<SellerProductAbstractDTO> getSellerProductsAbstract(List<Long> ids);
 
-
-
     // ==================== 库存管理 ====================
 
     boolean restoreStock(Long productId, int quantity);
 
-
-    // ==================== 上下架管�?====================
+    // ==================== 上下架管理 ====================
 
     boolean listProduct(Long productId);
 
     boolean unlistProduct(Long productId);
 
-
-
     ProductDTO getBasicProductById(Long productId);
 
-    // ==================== 统一创建/更新（含图片�?====================
+    // ==================== 统一创建/更新（含图片） ====================
 
     int createProductWithImage(Product product, MultipartFile imageFile);
 

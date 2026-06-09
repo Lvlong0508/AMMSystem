@@ -25,8 +25,6 @@ public interface ProductReservationMapper {
     @Select("SELECT * FROM product_reservations WHERE status = 'RESERVED' AND expired_at <= #{now}")
     List<ProductReservation> selectExpiredReservations(@Param("now") Date now);
 
-    @Update("UPDATE products SET stock = stock - #{quantity} WHERE id = #{productId} AND stock >= #{quantity}")
-    int deductProductStock(@Param("productId") Long productId, @Param("quantity") int quantity);
 
     @Select("SELECT stock FROM products WHERE id = #{productId} FOR UPDATE")
     Integer selectProductStockForUpdate(@Param("productId") Long productId);

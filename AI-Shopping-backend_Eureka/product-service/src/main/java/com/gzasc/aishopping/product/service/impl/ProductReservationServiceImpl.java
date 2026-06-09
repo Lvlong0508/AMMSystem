@@ -2,6 +2,7 @@ package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.mapper.ProductReservationMapper;
+import com.gzasc.aishopping.product.mapper.ProductStockMapper;
 import com.gzasc.aishopping.product.model.ProductReservation;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import lombok.RequiredArgsConstructor;
@@ -19,11 +20,10 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProductReservationServiceImpl implements ProductReservationService {
 
-
-
     private final ProductReservationMapper mapper;
+    private final ProductStockMapper productStockMapper;
 
-    @Value("${order.timeout.payment-minutes:30}")
+    @Value("")
     private int paymentTimeoutMinutes;
 
     @Override
@@ -38,12 +38,10 @@ public class ProductReservationServiceImpl implements ProductReservationService 
         if (stock - alreadyReserved < quantity) {
             throw new ProductException(409, "商品库存不足");
         }
-
         Calendar cal = Calendar.getInstance();
         Date now = cal.getTime();
         cal.add(Calendar.MINUTE, paymentTimeoutMinutes);
         Date expiredAt = cal.getTime();
-
         ProductReservation reservation = new ProductReservation();
         reservation.setProductId(productId);
         reservation.setOrderId(orderId);
@@ -51,7 +49,6 @@ public class ProductReservationServiceImpl implements ProductReservationService 
         reservation.setStatus(ProductReservation.RESERVED);
         reservation.setCreatedAt(now);
         reservation.setExpiredAt(expiredAt);
-
         mapper.insertReservation(reservation);
         log.info("预占库存成功 orderId={}, productId={}, quantity={}", orderId, productId, quantity);
     }
@@ -60,22 +57,12 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     @Transactional
     public void confirm(String orderId) {
         ProductReservation reservation = mapper.selectByOrderId(orderId);
-        if (reservation == null) {
-            throw new ProductException("预占记录不存在");
-        }
-        if (!ProductReservation.RESERVED.equals(reservation.getStatus())) {
-            throw new ProductException("预占状态已变更，无法确认");
-        }
-
+        if (reservation == null) throw new ProductException("预占记录不存在");
+        if (!ProductReservation.RESERVED.equals(reservation.getStatus())) throw new ProductException("预占状态已变更");
         int rows = mapper.confirmReservation(orderId);
-        if (rows <= 0) {
-            throw new ProductException("确认预占失败");
-        }
-
-        rows = mapper.deductProductStock(Long.valueOf(reservation.getProductId()), reservation.getQuantity());
-        if (rows <= 0) {
-            throw new ProductException("扣减库存失败");
-        }
+        if (rows <= 0) throw new ProductException("确认预占失败");
+        rows = productStockMapper.deductStock(Long.valueOf(reservation.getProductId()), reservation.getQuantity());
+        if (rows <= 0) throw new ProductException("扣减库存失败");
         log.info("确认预占成功 orderId={}, productId={}, quantity={}", orderId, reservation.getProductId(), reservation.getQuantity());
     }
 
@@ -83,15 +70,9 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     @Transactional
     public void release(String orderId) {
         ProductReservation reservation = mapper.selectByOrderId(orderId);
-        if (reservation == null) {
-            return;
-        }
-        if (ProductReservation.RELEASED.equals(reservation.getStatus())) {
-            return;
-        }
-        if (!ProductReservation.RESERVED.equals(reservation.getStatus())) {
-            throw new ProductException("预占状态不允许释放");
-        }
+        if (reservation == null) return;
+        if (ProductReservation.RELEASED.equals(reservation.getStatus())) return;
+        if (!ProductReservation.RESERVED.equals(reservation.getStatus())) throw new ProductException("预占状态不允许释放");
         mapper.releaseReservation(orderId);
         log.info("释放预占成功 orderId={}", orderId);
     }
@@ -100,11 +81,8 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     public void releaseExpiredReservations() {
         List<ProductReservation> expiredList = mapper.selectExpiredReservations(new Date());
         for (ProductReservation r : expiredList) {
-            try {
-                release(r.getOrderId());
-            } catch (Exception e) {
-                log.warn("释放过期预占失败 orderId={}", r.getOrderId(), e);
-            }
+            try { release(r.getOrderId()); }
+            catch (Exception e) { log.warn("释放过期预占失败 orderId={}", r.getOrderId(), e); }
         }
     }
 }

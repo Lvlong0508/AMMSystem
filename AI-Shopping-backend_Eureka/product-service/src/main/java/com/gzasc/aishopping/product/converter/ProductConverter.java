@@ -31,7 +31,6 @@ public class ProductConverter {
 
     // ==================== 抽象/详情 DTO 转换（带图片和店铺信息） ====================
 
-    @Deprecated
     public ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
         if (product == null) return null;
         return new ProductWithImageAbstractDTO(
@@ -45,7 +44,6 @@ public class ProductConverter {
         );
     }
 
-    @Deprecated
     public ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
         if (product == null) return null;
         return new ProductWithImageDetailDTO(
@@ -64,7 +62,6 @@ public class ProductConverter {
         );
     }
 
-    @Deprecated
     public List<ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
         if (products == null) return List.of();
         return products.stream()
@@ -72,7 +69,6 @@ public class ProductConverter {
             .collect(Collectors.toList());
     }
 
-    @Deprecated
     public List<ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
         if (products == null) return List.of();
         return products.stream()
