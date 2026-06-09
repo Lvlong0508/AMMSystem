@@ -3,8 +3,7 @@ import { newChatCounter } from '@/stores/chatStore'
 import { sendMessage } from '@/api/chat'
 import { CHAT_VIEW_TEXT } from './Text'
 import { requireLogin } from '@/stores/authStore'
-
-const ERROR_TEXT = CHAT_VIEW_TEXT.ERROR_TEXT
+import { showError } from '@/utils/swal'
 
 export function useChatView() {
   const messages = ref([])
@@ -29,13 +28,12 @@ export function useChatView() {
     if (!text || loading.value) return
     if (!requireLogin()) return
 
-    messages.value.push({ role: 'user', text })
     inputText.value = ''
     loading.value = true
-    await scrollToBottom()
 
     try {
       const res = await sendMessage(text)
+      messages.value.push({ role: 'user', text })
       const reply = {
         role: 'ai',
         text: res.message || '',
@@ -43,7 +41,7 @@ export function useChatView() {
       }
       messages.value.push(reply)
     } catch {
-      messages.value.push({ role: 'ai', text: ERROR_TEXT })
+      showError(CHAT_VIEW_TEXT.ERROR_TEXT)
     } finally {
       loading.value = false
       await scrollToBottom()
