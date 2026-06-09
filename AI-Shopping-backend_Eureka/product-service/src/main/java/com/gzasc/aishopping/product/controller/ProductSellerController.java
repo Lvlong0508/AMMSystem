@@ -63,7 +63,7 @@ public class ProductSellerController {
         }
         String contentType = image.getContentType();
         if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-            throw new ProductException(400, "仅支持 JPG 和 PNG 格式");
+            throw new ProductException(400, "仅支�?JPG �?PNG 格式");
         }
 
         log.info("创建商品, name={}, shopId={}", request.getName(), request.getShopId());
@@ -73,6 +73,7 @@ public class ProductSellerController {
         product.setPrice(request.getPrice());
         product.setStock(request.getStock());
         product.setSale(false);
+        product.setTags(request.getTags());
         product.setShopId(request.getShopId());
 
         int result = productService.createProductWithImage(product, image);
@@ -92,7 +93,7 @@ public class ProductSellerController {
         if (image != null && !image.isEmpty()) {
             String contentType = image.getContentType();
             if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
-                throw new ProductException(400, "仅支持 JPG 和 PNG 格式");
+                throw new ProductException(400, "仅支持JPG或者PNG 格式");
             }
         }
 
@@ -102,6 +103,7 @@ public class ProductSellerController {
         if (request.getDescription() != null) product.setDescription(request.getDescription());
         if (request.getPrice() != null) product.setPrice(request.getPrice());
         if (request.getStock() != null) product.setStock(request.getStock());
+        if (request.getTags() != null) product.setTags(request.getTags());
 
         int result = productService.updateProductWithImage(product, image);
         if (result > 0) {

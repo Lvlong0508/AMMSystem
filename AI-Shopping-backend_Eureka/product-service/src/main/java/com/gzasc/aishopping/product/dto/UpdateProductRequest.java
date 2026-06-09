@@ -9,4 +9,6 @@ public class UpdateProductRequest {
     private String description;
     private BigDecimal price;
     private Integer stock;
+
+    private String tags;
 }

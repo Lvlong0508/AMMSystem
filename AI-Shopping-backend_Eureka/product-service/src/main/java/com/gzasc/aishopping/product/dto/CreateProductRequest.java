@@ -23,6 +23,8 @@ public class CreateProductRequest {
     @Min(value = 0, message = "商品库存不能小于0")
     private Integer stock;
 
+    private String tags;
+
     @NotNull(message = "店铺ID不能为空")
     private Long shopId;
 }

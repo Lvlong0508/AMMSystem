@@ -17,10 +17,6 @@ public class ProductConverter {
 
     // ==================== 抽象/详情 DTO 转换（带图片和店铺信息） ====================
 
-    @Deprecated
-    public ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl) {
-        return toAbstractWithImageDTO(product, imageUrl, null);
-    }
 
     @Deprecated
     public ProductWithImageAbstractDTO toAbstractWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
@@ -36,10 +32,6 @@ public class ProductConverter {
         );
     }
 
-    @Deprecated
-    public ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl) {
-        return toDetailWithImageDTO(product, imageUrl, null);
-    }
 
     @Deprecated
     public ProductWithImageDetailDTO toDetailWithImageDTO(Product product, String imageUrl, ShopInfoDTO shop) {
@@ -60,10 +52,6 @@ public class ProductConverter {
         );
     }
 
-    @Deprecated
-    public List<ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
-        return toAbstractWithImageDTOList(products, imageUrlMap, null);
-    }
 
     @Deprecated
     public List<ProductWithImageAbstractDTO> toAbstractWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
@@ -83,10 +71,6 @@ public class ProductConverter {
             .collect(Collectors.toList());
     }
 
-    @Deprecated
-    public List<ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
-        return toDetailWithImageDTOList(products, imageUrlMap, null);
-    }
 
     @Deprecated
     public List<ProductWithImageDetailDTO> toDetailWithImageDTOList(List<Product> products, Map<Integer, String> imageUrlMap, Map<Long, ShopInfoDTO> shopInfoMap) {
@@ -106,7 +90,7 @@ public class ProductConverter {
             .collect(Collectors.toList());
     }
 
-    // ==================== 商家端抽象 DTO 转换（含上下架状态） ====================
+    // ==================== 商家端抽�?DTO 转换（含上下架状态） ====================
 
     public SellerProductAbstractDTO toSellerAbstractDTO(Product product, String imageUrl, ShopInfoDTO shop) {
         if (product == null) return null;
@@ -139,7 +123,7 @@ public class ProductConverter {
             .collect(Collectors.toList());
     }
 
-    // ==================== 用户端卡片 DTO 转换 ====================
+    // ==================== 用户端卡�?DTO 转换 ====================
 
     public ProductCardDTO toCardDTO(Product product, String imageUrl) {
         if (product == null) return null;

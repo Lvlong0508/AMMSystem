@@ -157,11 +157,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductWithImageAbstractDTO> getSalableProductsByShopId(Long shopId) {
-        List<Product> products = productMapper.selectSalableByShopId(shopId);
-        if (products.isEmpty()) {
-            return List.of();
-        }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
         Set<Long> shopIds = Set.of(shopId);
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
@@ -169,11 +164,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductWithImageAbstractDTO> getAllProductsByShopId(Long shopId) {
-        List<Product> products = productMapper.selectByShopId(shopId);
-        if (products.isEmpty()) {
-            return List.of();
-        }
         Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
         Set<Long> shopIds = Set.of(shopId);
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
@@ -183,7 +173,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductCardDTO> getSalableProductCards(int page) {
         if (page < 0) {
-            throw new ProductException(400, "页码不能为负数");
+            throw new ProductException(400, "页码不能为负�?);
         }
         int pageSize = 20;
         List<Product> products = productMapper.selectCardProductsPage(page * pageSize, pageSize);
@@ -203,7 +193,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductCardDTO> getProductCardsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
         if (page < 0) {
-            throw new ProductException(400, "页码不能为负数");
+            throw new ProductException(400, "页码不能为负�?);
         }
         List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
         if (products.isEmpty()) return List.of();
@@ -216,10 +206,10 @@ public class ProductServiceImpl implements ProductService {
     public int deleteProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存在: " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         if (product.isSale()) {
-            throw new ProductException(400, "商品在上架中，请先下架: " + productId);
+            throw new ProductException(400, "商品在上架中，请先下�? " + productId);
         }
         if (product.getImageId() != null && product.getImageId() > 0) {
             productImageInfoMapper.deleteById(product.getImageId());
@@ -233,23 +223,6 @@ public class ProductServiceImpl implements ProductService {
         return productMapper.restoreStock(productId, quantity) > 0;
     }
 
-    @Override
-    public List<ProductWithImageAbstractDTO> getAbstractProductsForMerchant(List<Long> ids) {
-        if (ids == null || ids.isEmpty()) {
-            return List.of();
-        }
-        List<Product> products = productMapper.selectAbstractProductsByIdsJustMerchant(ids);
-        if (products.isEmpty()) {
-            return List.of();
-        }
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        Set<Long> shopIds = products.stream()
-            .map(Product::getShopId)
-            .filter(id -> id != null)
-            .collect(Collectors.toSet());
-        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
-    }
 
     @Override
     public List<SellerProductAbstractDTO> getSellerProductsByShopId(Long shopId) {
@@ -287,7 +260,7 @@ public class ProductServiceImpl implements ProductService {
     public boolean listProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存在: " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         productMapper.updateSaleStatus(productId, true);
         return true;
@@ -298,28 +271,10 @@ public class ProductServiceImpl implements ProductService {
     public boolean unlistProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存在: " + productId);
+            throw new ProductException(404, "商品不存�? " + productId);
         }
         productMapper.updateSaleStatus(productId, false);
         return true;
-    }
-
-    @Override
-    public List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
-        if (page < 0) {
-            throw new ProductException(400, "页码不能为负数");
-        }
-        List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20);
-        if (products.isEmpty()) {
-            return List.of();
-        }
-        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
-        Set<Long> shopIds = products.stream()
-            .map(Product::getShopId)
-            .filter(id -> id != null)
-            .collect(Collectors.toSet());
-        Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
-        return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
     }
 
     @Override
@@ -365,7 +320,7 @@ public class ProductServiceImpl implements ProductService {
     public int updateProductWithImage(Product product, MultipartFile image) {
         Product existingProduct = productMapper.selectProductById(product.getId());
         if (existingProduct == null) {
-            throw new ProductException(404, "商品不存在: " + product.getId());
+            throw new ProductException(404, "商品不存�? " + product.getId());
         }
 
         if (image != null && !image.isEmpty()) {
