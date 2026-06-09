@@ -1,12 +1,17 @@
 package com.gzasc.aishopping.order.controller;
 
+import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
+import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.service.OrderService;
+import com.gzasc.aishopping.order.service.ReturnRequestService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -40,10 +45,14 @@ class OrderUserControllerTest {
 
     @Mock
     private OrderService orderService;
+    @Mock
+    private ReturnRequestService returnRequestService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        var controller = new OrderUserController(orderService);
+        var controller = new OrderUserController(orderService, returnRequestService);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -255,27 +264,63 @@ class OrderUserControllerTest {
     // ==================== 退货申请 (OR-028 ~ OR-030) ====================
 
     @Test
-    @DisplayName("OR-028 申请退货 - SHIPPED→RETURN_PENDING")
-    void requestReturn_shipped() throws Exception {
-        doNothing().when(orderService).requestReturn(anyLong(), anyString());
-
+    @DisplayName("OR-028 申请退货 - 正常提交")
+    void requestReturn_success() throws Exception {
+        CreateReturnRequest req = new CreateReturnRequest();
+        req.setReturnReason("商品有瑕疵");
+        doNothing().when(returnRequestService).createReturnRequest(anyLong(), anyString(), any());
         mockMvc.perform(post("/api/user/order/{orderId}/return-request", "ORDER001")
-                        .header("X-User-Id", "100"))
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("退货申请已提交"));
+        verify(returnRequestService).createReturnRequest(100L, "ORDER001", req);
     }
 
     @Test
-    @DisplayName("OR-030 申请退货 - 不支持的状态")
-    void requestReturn_wrongStatus() throws Exception {
-        doThrow(new OrderException("申请退货失败，订单状态不允许退货"))
-                .when(orderService).requestReturn(anyLong(), anyString());
-
+    @DisplayName("OR-029 申请退货 - 参数校验失败（原因空）")
+    void requestReturn_validationFail() throws Exception {
+        CreateReturnRequest req = new CreateReturnRequest();
+        req.setReturnReason("");
         mockMvc.perform(post("/api/user/order/{orderId}/return-request", "ORDER001")
-                        .header("X-User-Id", "100"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("申请退货失败，订单状态不允许退货"));
+                        .header("X-User-Id", "100")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Nested
+    @DisplayName("退货物流")
+    class ReturnLogisticsTests {
+        @Test
+        @DisplayName("提交退货物流成功")
+        void submitReturnLogistics_success() throws Exception {
+            SubmitReturnLogisticsRequest req = new SubmitReturnLogisticsRequest();
+            req.setTrackingNumber("SF123456789");
+            req.setContactId(1);
+            doNothing().when(returnRequestService).submitReturnLogistics(anyLong(), anyString(), any());
+            mockMvc.perform(post("/api/user/order/{orderId}/return-logistics", "ORDER001")
+                            .header("X-User-Id", "100")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("退货物流已提交"));
+            verify(returnRequestService).submitReturnLogistics(100L, "ORDER001", req);
+        }
+
+        @Test
+        @DisplayName("提交退货物流-参数校验失败")
+        void submitReturnLogistics_validationFail() throws Exception {
+            SubmitReturnLogisticsRequest req = new SubmitReturnLogisticsRequest();
+            req.setTrackingNumber("");
+            req.setContactId(null);
+            mockMvc.perform(post("/api/user/order/{orderId}/return-logistics", "ORDER001")
+                            .header("X-User-Id", "100")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     // ==================== 查询 (OR-046 ~ OR-049, OR-055) ====================

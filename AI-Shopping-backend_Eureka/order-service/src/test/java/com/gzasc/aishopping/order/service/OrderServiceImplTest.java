@@ -406,64 +406,61 @@ class OrderServiceImplTest {
                 () -> orderService.deliverOrder(999L, "ORDER001"));
     }
 
-    // ==================== 退货 (OR-028 ~ OR-035) ====================
+    // ==================== 退货 ====================
 
     @Test
-    @DisplayName("OR-028 申请退货 - SHIPPED→RETURN_PENDING")
-    void requestReturn_shipped() {
-        Order order = createOrder("ORDER001", 100L, "SHOP001", "SHIPPED");
-        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURN_PENDING", "SHIPPED")).thenReturn(1);
-
-        orderService.requestReturn(100L, "ORDER001");
-
-        verify(orderMapper).updateOrderStatusCas("ORDER001", "RETURN_PENDING", "SHIPPED");
-    }
-
-    @Test
-    @DisplayName("OR-029 申请退货 - DELIVERED→RETURN_PENDING")
-    void requestReturn_delivered() {
-        Order order = createOrder("ORDER001", 100L, "SHOP001", "DELIVERED");
-        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURN_PENDING", "SHIPPED")).thenReturn(0);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURN_PENDING", "DELIVERED")).thenReturn(1);
-
-        orderService.requestReturn(100L, "ORDER001");
-
-        verify(orderMapper).updateOrderStatusCas("ORDER001", "RETURN_PENDING", "DELIVERED");
-    }
-
-    @Test
-    @DisplayName("OR-030 申请退货 - 不支持的状态")
-    void requestReturn_wrongStatus() {
-        Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
-        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURN_PENDING", "SHIPPED")).thenReturn(0);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURN_PENDING", "DELIVERED")).thenReturn(0);
-
-        assertThrows(OrderException.class,
-                () -> orderService.requestReturn(100L, "ORDER001"));
-    }
-
-    @Test
-    @DisplayName("OR-031 审核退货 - RETURN_PENDING→RETURNING")
-    void approveReturn_success() {
-        Order order = createOrder("ORDER001", 100L, "SHOP001", "RETURN_PENDING");
+    @DisplayName("商家同意退货 - SHIPPED/DELIVERED→RETURN_PENDING")
+    void agreeReturnRequest_success() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", Order.SHIPPED);
         when(orderMapper.selectOrderDetailByShop("SHOP001", "ORDER001")).thenReturn(order);
-        when(orderMapper.updateOrderStatusCas("ORDER001", "RETURNING", "RETURN_PENDING")).thenReturn(1);
+        when(orderMapper.updateOrderStatusCasMulti("ORDER001", Order.RETURN_PENDING,
+                List.of(Order.SHIPPED, Order.DELIVERED))).thenReturn(1);
 
-        orderService.approveReturn("SHOP001", "ORDER001");
+        orderService.agreeReturnRequest("SHOP001", "ORDER001");
 
-        verify(orderMapper).updateOrderStatusCas("ORDER001", "RETURNING", "RETURN_PENDING");
+        verify(orderMapper).updateOrderStatusCasMulti("ORDER001", Order.RETURN_PENDING,
+                List.of(Order.SHIPPED, Order.DELIVERED));
     }
 
     @Test
-    @DisplayName("OR-032 审核退货 - 非RETURN_PENDING（订单不存在）")
-    void approveReturn_wrongStatus() {
+    @DisplayName("商家同意退货 - 订单不存在")
+    void agreeReturnRequest_orderNotFound() {
         when(orderMapper.selectOrderDetailByShop("SHOP001", "ORDER001")).thenReturn(null);
 
         assertThrows(OrderException.class,
-                () -> orderService.approveReturn("SHOP001", "ORDER001"));
+                () -> orderService.agreeReturnRequest("SHOP001", "ORDER001"));
+    }
+
+    @Test
+    @DisplayName("提交退货物流状态 - RETURN_PENDING→RETURNING")
+    void submitReturnLogisticsStatus_success() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", Order.RETURN_PENDING);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+        when(orderMapper.updateOrderStatusCas("ORDER001", Order.RETURNING, Order.RETURN_PENDING)).thenReturn(1);
+
+        orderService.submitReturnLogisticsStatus(100L, "ORDER001");
+
+        verify(orderMapper).updateOrderStatusCas("ORDER001", Order.RETURNING, Order.RETURN_PENDING);
+    }
+
+    @Test
+    @DisplayName("提交退货物流状态 - 订单不存在")
+    void submitReturnLogisticsStatus_orderNotFound() {
+        when(orderMapper.selectOrderDetailByUser(999L, "ORDER001")).thenReturn(null);
+
+        assertThrows(OrderException.class,
+                () -> orderService.submitReturnLogisticsStatus(999L, "ORDER001"));
+    }
+
+    @Test
+    @DisplayName("提交退货物流状态 - CAS失败")
+    void submitReturnLogisticsStatus_casFailed() {
+        Order order = createOrder("ORDER001", 100L, "SHOP001", Order.RETURN_PENDING);
+        when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
+        when(orderMapper.updateOrderStatusCas("ORDER001", Order.RETURNING, Order.RETURN_PENDING)).thenReturn(0);
+
+        assertThrows(OrderException.class,
+                () -> orderService.submitReturnLogisticsStatus(100L, "ORDER001"));
     }
 
     @Test
@@ -851,25 +848,6 @@ class OrderServiceImplTest {
 
         verify(orderMapper).insertOrder(orderCaptor.capture());
         assertEquals(0, BigDecimal.ZERO.compareTo(orderCaptor.getValue().getTotalPrice()));
-    }
-
-    @Test
-    @DisplayName("OR-073 requestReturn - 订单不存在抛异常")
-    void requestReturn_notFound() {
-        when(orderMapper.selectOrderDetailByUser(999L, "MISSING")).thenReturn(null);
-
-        OrderException ex = assertThrows(OrderException.class,
-                () -> orderService.requestReturn(999L, "MISSING"));
-        assertTrue(ex.getMessage().contains("不存在") || ex.getMessage().contains("无权限"));
-    }
-
-    @Test
-    @DisplayName("OR-074 approveReturn - 订单不存在抛异常")
-    void approveReturn_notFound() {
-        when(orderMapper.selectOrderDetailByShop("SHOP001", "MISSING")).thenReturn(null);
-
-        assertThrows(OrderException.class,
-                () -> orderService.approveReturn("SHOP001", "MISSING"));
     }
 
     @Test

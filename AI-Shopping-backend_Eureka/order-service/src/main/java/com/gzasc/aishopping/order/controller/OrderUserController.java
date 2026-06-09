@@ -1,10 +1,13 @@
 package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.OrderAbstractUserDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
+import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.service.OrderService;
+import com.gzasc.aishopping.order.service.ReturnRequestService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +20,7 @@ import java.util.List;
 public class OrderUserController {
 
     private final OrderService orderService;
+    private final ReturnRequestService returnRequestService;
 
     @GetMapping("/list")
     public ApiResponse<List<OrderAbstractUserDTO>> listOrders(
@@ -79,8 +83,18 @@ public class OrderUserController {
     @PostMapping("/{orderId}/return-request")
     public ApiResponse<Void> requestReturn(
             @RequestHeader("X-User-Id") Long userId,
-            @PathVariable("orderId") String orderId) {
-        orderService.requestReturn(userId, orderId);
+            @PathVariable("orderId") String orderId,
+            @RequestBody @Valid CreateReturnRequest request) {
+        returnRequestService.createReturnRequest(userId, orderId, request);
         return ApiResponse.success("退货申请已提交", null);
+    }
+
+    @PostMapping("/{orderId}/return-logistics")
+    public ApiResponse<Void> submitReturnLogistics(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable("orderId") String orderId,
+            @RequestBody @Valid SubmitReturnLogisticsRequest request) {
+        returnRequestService.submitReturnLogistics(userId, orderId, request);
+        return ApiResponse.success("退货物流已提交", null);
     }
 }

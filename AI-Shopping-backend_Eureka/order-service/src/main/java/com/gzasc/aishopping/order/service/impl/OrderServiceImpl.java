@@ -177,22 +177,6 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void requestReturn(Long userId, String orderId) {
-        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
-        if (order == null) {
-            throw new OrderException("订单不存在或无权限操作");
-        }
-        int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURN_PENDING, Order.SHIPPED);
-        if (updated <= 0) {
-            updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURN_PENDING, Order.DELIVERED);
-        }
-        if (updated <= 0) {
-            throw new OrderException("申请退货失败，订单状态不允许退货");
-        }
-    }
-
-    @Override
-    @Transactional
     public void payOrder(Long userId, String orderId) {
         Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
         if (order == null) {
@@ -223,15 +207,31 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void approveReturn(String shopId, String orderId) {
+    public void agreeReturnRequest(String shopId, String orderId) {
         Order order = orderMapper.selectOrderDetailByShop(shopId, orderId);
+        if (order == null) {
+            throw new OrderException("订单不存在或无权限操作");
+        }
+        int updated = orderMapper.updateOrderStatusCasMulti(
+                orderId, Order.RETURN_PENDING, List.of(Order.SHIPPED, Order.DELIVERED));
+        if (updated <= 0) {
+            throw new OrderException("订单状态变更失败，请重试");
+        }
+        log.info("退货审核通过, orderId={}", orderId);
+    }
+
+    @Override
+    @Transactional
+    public void submitReturnLogisticsStatus(Long userId, String orderId) {
+        Order order = orderMapper.selectOrderDetailByUser(userId, orderId);
         if (order == null) {
             throw new OrderException("订单不存在或无权限操作");
         }
         int updated = orderMapper.updateOrderStatusCas(orderId, Order.RETURNING, Order.RETURN_PENDING);
         if (updated <= 0) {
-            throw new OrderException("退货审核失败");
+            throw new OrderException("订单状态变更失败，请重试");
         }
+        log.info("退货物流已提交, orderId={}", orderId);
     }
 
     @Override

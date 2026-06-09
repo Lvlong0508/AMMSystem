@@ -2,11 +2,17 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.order.dto.OrderAbstractSellerDTO;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
+import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.ShipOrderRequest;
 import com.gzasc.aishopping.order.exception.OrderException;
+import com.gzasc.aishopping.order.model.ReturnRequest;
 import com.gzasc.aishopping.order.service.OrderService;
+import com.gzasc.aishopping.order.service.ReturnRequestService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -21,6 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -35,10 +42,14 @@ class OrderSellerControllerTest {
 
     @Mock
     private OrderService orderService;
+    @Mock
+    private ReturnRequestService returnRequestService;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeEach
     void setUp() {
-        var controller = new OrderSellerController(orderService);
+        var controller = new OrderSellerController(orderService, returnRequestService);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -123,32 +134,6 @@ class OrderSellerControllerTest {
                 .andExpect(jsonPath("$.code").value(400));
     }
 
-    // ==================== 审核退货 (OR-031 ~ OR-032) ====================
-
-    @Test
-    @DisplayName("OR-031 审核退货 - RETURN_PENDING→RETURNING")
-    void approveReturn_success() throws Exception {
-        doNothing().when(orderService).approveReturn(anyString(), anyString());
-
-        mockMvc.perform(put("/api/seller/order/{orderId}/approve-return", "ORDER001")
-                        .param("shopId", "SHOP001"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("退货审核通过"));
-    }
-
-    @Test
-    @DisplayName("OR-032 审核退货 - 非RETURN_PENDING")
-    void approveReturn_wrongStatus() throws Exception {
-        doThrow(new OrderException("退货审核失败"))
-                .when(orderService).approveReturn(anyString(), anyString());
-
-        mockMvc.perform(put("/api/seller/order/{orderId}/approve-return", "ORDER001")
-                        .param("shopId", "SHOP001"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("退货审核失败"));
-    }
-
     // ==================== 确认退货 (OR-033) ====================
 
     @Test
@@ -173,6 +158,90 @@ class OrderSellerControllerTest {
                         .param("shopId", "SHOP001"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("退货确认失败"));
+    }
+
+    @Nested
+    @DisplayName("退货审核")
+    class ReturnReviewTests {
+        @Test
+        @DisplayName("商家查看待审核列表")
+        void listPendingReturns() throws Exception {
+            ReturnRequestDTO dto = new ReturnRequestDTO();
+            dto.setOrderId("ORDER001");
+            dto.setReturnReason("瑕疵");
+            dto.setStatus(ReturnRequest.APPLYING);
+            when(returnRequestService.listByShop("SHOP001", ReturnRequest.APPLYING))
+                    .thenReturn(List.of(dto));
+            mockMvc.perform(get("/api/seller/order/return-requests/pending")
+                            .param("shopId", "SHOP001"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data[0].orderId").value("ORDER001"));
+            verify(returnRequestService).listByShop("SHOP001", ReturnRequest.APPLYING);
+        }
+
+        @Test
+        @DisplayName("商家查看已处理列表")
+        void listProcessedReturns() throws Exception {
+            ReturnRequestDTO agreed = new ReturnRequestDTO();
+            agreed.setOrderId("ORDER001");
+            agreed.setStatus(ReturnRequest.AGREED);
+            ReturnRequestDTO rejected = new ReturnRequestDTO();
+            rejected.setOrderId("ORDER002");
+            rejected.setStatus(ReturnRequest.REJECTED);
+            when(returnRequestService.listByShop("SHOP001", ReturnRequest.AGREED))
+                    .thenReturn(List.of(agreed));
+            when(returnRequestService.listByShop("SHOP001", ReturnRequest.REJECTED))
+                    .thenReturn(List.of(rejected));
+            mockMvc.perform(get("/api/seller/order/return-requests/processed")
+                            .param("shopId", "SHOP001"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data[0].orderId").value("ORDER001"))
+                    .andExpect(jsonPath("$.data[1].orderId").value("ORDER002"));
+            verify(returnRequestService).listByShop("SHOP001", ReturnRequest.AGREED);
+            verify(returnRequestService).listByShop("SHOP001", ReturnRequest.REJECTED);
+        }
+
+        @Test
+        @DisplayName("商家审核同意")
+        void reviewReturnRequest_agreed() throws Exception {
+            ReviewReturnRequest req = new ReviewReturnRequest();
+            req.setStatus(ReturnRequest.AGREED);
+            doNothing().when(returnRequestService).reviewReturnRequest(anyString(), anyString(), any());
+            mockMvc.perform(put("/api/seller/order/return-requests/{orderId}/review", "ORDER001")
+                            .param("shopId", "SHOP001")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("审核完成"));
+            verify(returnRequestService).reviewReturnRequest("SHOP001", "ORDER001", req);
+        }
+
+        @Test
+        @DisplayName("商家审核拒绝")
+        void reviewReturnRequest_rejected() throws Exception {
+            ReviewReturnRequest req = new ReviewReturnRequest();
+            req.setStatus(ReturnRequest.REJECTED);
+            doNothing().when(returnRequestService).reviewReturnRequest(anyString(), anyString(), any());
+            mockMvc.perform(put("/api/seller/order/return-requests/{orderId}/review", "ORDER001")
+                            .param("shopId", "SHOP001")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("审核完成"));
+            verify(returnRequestService).reviewReturnRequest("SHOP001", "ORDER001", req);
+        }
+
+        @Test
+        @DisplayName("审核 - 审核结果为空")
+        void reviewReturnRequest_validationFail() throws Exception {
+            ReviewReturnRequest req = new ReviewReturnRequest();
+            req.setStatus("");
+            mockMvc.perform(put("/api/seller/order/return-requests/{orderId}/review", "ORDER001")
+                            .param("shopId", "SHOP001")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isBadRequest());
+        }
     }
 
     // ==================== 查询 (OR-050 ~ OR-052, OR-055) ====================

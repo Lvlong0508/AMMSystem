@@ -15,12 +15,14 @@ public interface OrderService {
     void deleteOrder(Long userId, String orderId);
     void payOrder(Long userId, String orderId);
     void deliverOrder(Long userId, String orderId);
-    void requestReturn(Long userId, String orderId);
 
     // 商家端操作
     void shipOrder(String shopId, String orderId, ShipOrderRequest request);
-    void approveReturn(String shopId, String orderId);
     void confirmReturn(String shopId, String orderId);
+
+    // 退货相关订单状态变更
+    void agreeReturnRequest(String shopId, String orderId);
+    void submitReturnLogisticsStatus(Long userId, String orderId);
 
     // 查询
     List<OrderAbstractUserDTO> getOrdersByUserId(Long userId);
