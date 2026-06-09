@@ -4,12 +4,14 @@ import { ElMessage } from "element-plus"
 import { merchantRegister } from "@/api/auth"
 import { createShop } from "@/api/shop"
 import { useAuthStore } from "@/store/auth"
+import { useShopStore } from "@/store/shop"
 import * as T from "./Text.js"
 import { buildAddressString } from "@/utils/region"
 
 export function useRegister() {
   const router = useRouter()
   const authStore = useAuthStore()
+  const shopStore = useShopStore()
 
   const isAlreadyLoggedIn = !!authStore.token
   const currentStep = ref(isAlreadyLoggedIn ? 1 : 0)
@@ -147,9 +149,10 @@ export function useRegister() {
     submittingShop.value = true
     try {
       await createShop(buildShopFormData())
+      await shopStore.initShop(authStore.merchantId)
       ElMessage.success(T.SUCCESS_SHOP)
       currentStep.value = 2
-      setTimeout(() => router.push("/shop"), 1500)
+      setTimeout(() => router.push(`/shop/${shopStore.currentShopId}/products`), 1500)
     } catch (err) {
       const msg = err.response?.data?.message || err.message || T.ERROR_SHOP
       ElMessage.error(msg)

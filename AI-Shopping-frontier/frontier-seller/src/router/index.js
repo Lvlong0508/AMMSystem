@@ -5,7 +5,7 @@ import AppLayout from '@/layout/AppLayout.vue'
 import Ship from '../views/Ship/Ship.vue'
 import Login from '../views/Login/Login.vue'
 import Register from '../views/Register/Register.vue'
-import ShopSelectPage from '../views/ShopList/ShopList.vue'
+
 import ShopProducts from '../views/ShopProducts/ShopProducts.vue'
 import ShopOrders from '../views/ShopOrders/ShopOrders.vue'
 import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
@@ -24,12 +24,6 @@ const routes = [
     name: 'register',
     component: Register,
     meta: { public: true }
-  },
-  {
-    path: '/shop',
-    name: 'shop-select',
-    component: ShopSelectPage,
-    meta: { requiresAuth: true }
   },
   {
     path: '/',
@@ -93,7 +87,7 @@ router.beforeEach(async (to, _from, next) => {
     if (shop.hasShop) {
       next(`/shop/${shop.currentShopId}/products`)
     } else {
-      next('/shop')
+      next('/register')
     }
     return
   }

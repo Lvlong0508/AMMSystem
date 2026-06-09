@@ -1,6 +1,0 @@
-export const BTN_CREATE = '创建店铺'
-export const EMPTY_TEXT = '暂无店铺'
-export const BTN_CREATE_NOW = '创建一个店铺'
-export const BTN_ENTER = '进入管理'
-export const SELECT_TITLE = '请选择要管理的店铺'
-export const BTN_LOGOUT = '退出登录'
