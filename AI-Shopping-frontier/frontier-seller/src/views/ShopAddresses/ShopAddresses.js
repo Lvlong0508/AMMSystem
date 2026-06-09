@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAddressList, createAddress, updateAddress, deleteAddress, setDefaultAddress } from '@/api/contact'
+import { parseAddress, buildAddressString } from '@/utils/region'
 import * as T from './Text.js'
 
 export function useShopAddresses() {
@@ -14,7 +15,7 @@ export function useShopAddresses() {
   const isEdit = ref(false)
   const submitting = ref(false)
   const editingId = ref(null)
-  const form = ref({ addressType: 1, name: '', phone: '', address: '', isDefault: 0 })
+  const form = ref({ addressType: 1, name: '', phone: '', region: [], addressDetail: '', isDefault: 0 })
 
   const shippingAddresses = computed(() => addresses.value.filter(a => a.addressType === 1))
   const returnAddresses = computed(() => addresses.value.filter(a => a.addressType === 2))
@@ -35,13 +36,21 @@ export function useShopAddresses() {
 
   function showAddDialog() {
     isEdit.value = false; editingId.value = null
-    form.value = { addressType: activeTab.value, name: '', phone: '', address: '', isDefault: 0 }
+    form.value = { addressType: activeTab.value, name: '', phone: '', region: [], addressDetail: '', isDefault: 0 }
     dialogVisible.value = true
   }
 
   function showEditDialog(addr) {
     isEdit.value = true; editingId.value = addr.id
-    form.value = { addressType: addr.addressType, name: addr.name, phone: addr.phone, address: addr.address, isDefault: addr.isDefault || 0 }
+    const parsed = parseAddress(addr.address || '')
+    form.value = {
+      addressType: addr.addressType,
+      name: addr.name,
+      phone: addr.phone,
+      region: parsed.region,
+      addressDetail: parsed.detail,
+      isDefault: addr.isDefault || 0
+    }
     dialogVisible.value = true
   }
 
@@ -50,7 +59,7 @@ export function useShopAddresses() {
   function validate() {
     if (!form.value.name.trim()) { ElMessage.warning(T.NAME_REQUIRED); return false }
     if (!form.value.phone.trim()) { ElMessage.warning(T.PHONE_REQUIRED); return false }
-    if (!form.value.address.trim()) { ElMessage.warning(T.ADDRESS_REQUIRED); return false }
+    if (!form.value.region || form.value.region.length === 0) { ElMessage.warning(T.REGION_REQUIRED); return false }
     return true
   }
 
@@ -58,9 +67,16 @@ export function useShopAddresses() {
     if (!validate()) return
     submitting.value = true
     try {
+      const payload = {
+        addressType: form.value.addressType,
+        name: form.value.name,
+        phone: form.value.phone,
+        address: form.value.region.length > 0 ? buildAddressString(form.value.region, form.value.addressDetail) : (form.value.addressDetail || ''),
+        isDefault: form.value.isDefault
+      }
       const res = isEdit.value
-        ? await updateAddress(editingId.value, { ...form.value })
-        : await createAddress({ ...form.value })
+        ? await updateAddress(editingId.value, payload)
+        : await createAddress(payload)
       if (res?.message?.includes('成功')) {
         ElMessage.success(isEdit.value ? T.SUCCESS_EDIT : T.SUCCESS_ADD)
         closeDialog()
