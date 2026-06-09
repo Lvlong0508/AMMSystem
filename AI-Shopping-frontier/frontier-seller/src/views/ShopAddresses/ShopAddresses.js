@@ -71,7 +71,7 @@ export function useShopAddresses() {
         addressType: form.value.addressType,
         name: form.value.name,
         phone: form.value.phone,
-        address: form.value.region.length > 0 ? buildAddressString(form.value.region, form.value.addressDetail) : (form.value.addressDetail || ''),
+        address: buildAddressString(form.value.region, form.value.addressDetail),
         isDefault: form.value.isDefault
       }
       const res = isEdit.value

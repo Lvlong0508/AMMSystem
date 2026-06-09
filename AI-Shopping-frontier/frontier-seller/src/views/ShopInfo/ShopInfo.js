@@ -19,7 +19,6 @@ export function useShopInfo() {
     phone: '',
     region: [],
     addressDetail: '',
-    address: '',
     businessHours: ''
   })
 
@@ -33,7 +32,6 @@ export function useShopInfo() {
       form.name = shop.name || ''
       form.description = shop.description || ''
       form.phone = shop.phone || ''
-      form.address = shop.address || ''
       const parsed = parseAddress(shop.address || '')
       form.region = parsed.region
       form.addressDetail = parsed.detail
@@ -54,7 +52,7 @@ export function useShopInfo() {
         name: form.name,
         description: form.description,
         phone: form.phone,
-        address: form.region.length > 0 ? buildAddressString(form.region, form.addressDetail) : (form.addressDetail || ''),
+        address: buildAddressString(form.region, form.addressDetail),
         businessHours: form.businessHours
       }
       const res = await updateShop(shopId, payload)
