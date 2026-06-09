@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.converter;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
@@ -136,5 +137,24 @@ public class ProductConverter {
                 return toSellerAbstractDTO(p, url, shop);
             })
             .collect(Collectors.toList());
+    }
+
+    // ==================== 用户端卡片 DTO 转换 ====================
+
+    public ProductCardDTO toCardDTO(Product product, String imageUrl) {
+        if (product == null) return null;
+        return new ProductCardDTO(
+            product.getId(), product.getName(), imageUrl,
+            product.getStock(), product.getPrice()
+        );
+    }
+
+    public List<ProductCardDTO> toCardDTOList(List<Product> products, Map<Integer, String> imageUrlMap) {
+        if (products == null) return List.of();
+        return products.stream().map(p -> {
+            String url = p.getImageId() != null && imageUrlMap != null
+                ? imageUrlMap.get(p.getImageId()) : null;
+            return toCardDTO(p, url);
+        }).collect(Collectors.toList());
     }
 }

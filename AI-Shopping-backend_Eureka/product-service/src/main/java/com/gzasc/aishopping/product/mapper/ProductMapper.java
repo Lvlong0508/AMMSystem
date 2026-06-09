@@ -18,6 +18,14 @@ public interface ProductMapper {
             "</script>")
     List<Product> selectAbstractProductsByIds(@Param("ids") List<Long> ids);
 
+    @Select("<script>" +
+            "SELECT id,name,price,stock,image_id AS imageId FROM products WHERE id IN " +
+            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
+            "#{id}" +
+            "</foreach>" +
+            "</script>")
+    List<Product> selectCardProductsByIds(@Param("ids") List<Long> ids);
+
     // 再按id获取详情
     @Select("SELECT * FROM products WHERE id = #{id}")
     Product selectProductById(Long id);

@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
@@ -48,7 +49,22 @@ public interface ProductService {
     List<ProductWithImageAbstractDTO> getAbstractProductsForBuyer(List<Long> ids);
 
     /**
-     * 用户端: 分页查询可售商品抽象信息
+     * 用户端: 分页查询可售商品卡片信息
+     */
+    List<ProductCardDTO> getSalableProductCards(int page);
+
+    /**
+     * 用户端: 根据店铺ID查询可售商品卡片信息
+     */
+    List<ProductCardDTO> getSalableProductCardsByShopId(Long shopId);
+
+    /**
+     * 用户端: 分页按价格区间查询商品卡片信息
+     */
+    List<ProductCardDTO> getProductCardsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
+
+    /**
+     * 用户端: 分页查询可售商品抽象信息（已废弃）
      */
     List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page);
 

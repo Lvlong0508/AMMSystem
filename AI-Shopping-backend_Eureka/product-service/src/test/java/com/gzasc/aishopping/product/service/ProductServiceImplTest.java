@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service.impl;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.converter.ProductConverter;
@@ -115,6 +116,37 @@ class ProductServiceImplTest {
         List<ProductWithImageDetailDTO> result = productService.getProductsByName("不存在商品xxx");
 
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("PR-CARD-001 - getSalableProductCards 有数据")
+    void testGetSalableProductCardsWithData() {
+        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of(1L, 2L));
+        Product p1 = new Product(); p1.setId(1L); p1.setImageId(1); p1.setStock(10);
+        Product p2 = new Product(); p2.setId(2L); p2.setImageId(2); p2.setStock(5);
+        when(productMapper.selectCardProductsByIds(List.of(1L, 2L))).thenReturn(List.of(p1, p2));
+        when(productImageInfoMapper.selectByIds(anyList())).thenReturn(List.of());
+        when(productConverter.toCardDTOList(anyList(), anyMap())).thenReturn(List.of(new ProductCardDTO(), new ProductCardDTO()));
+
+        List<ProductCardDTO> result = productService.getSalableProductCards(0);
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("PR-CARD-002 - getSalableProductCards 无数据")
+    void testGetSalableProductCardsEmpty() {
+        when(salableProductMapper.selectAll(0, 20)).thenReturn(List.of());
+        List<ProductCardDTO> result = productService.getSalableProductCards(0);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("PR-CARD-003 - getSalableProductCards page为负数抛出异常")
+    void testGetSalableProductCardsNegativePage() {
+        ProductException ex = assertThrows(ProductException.class,
+                () -> productService.getSalableProductCards(-1));
+        assertEquals(400, ex.getCode());
+        assertTrue(ex.getMessage().contains("负数"));
     }
 
     @Test

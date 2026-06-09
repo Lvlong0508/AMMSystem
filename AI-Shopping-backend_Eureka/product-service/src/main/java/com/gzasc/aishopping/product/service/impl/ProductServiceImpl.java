@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service.impl;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
@@ -208,6 +209,41 @@ public class ProductServiceImpl implements ProductService {
             .collect(Collectors.toSet());
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
         return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
+    public List<ProductCardDTO> getSalableProductCards(int page) {
+        if (page < 0) {
+            throw new ProductException(400, "页码不能为负数");
+        }
+        int pageSize = 20;
+        List<Long> salableIds = salableProductMapper.selectAll(page * pageSize, pageSize);
+        if (salableIds.isEmpty()) return List.of();
+        List<Product> products = productMapper.selectCardProductsByIds(salableIds);
+        if (products.isEmpty()) return List.of();
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toCardDTOList(products, imageUrlMap);
+    }
+
+    @Override
+    public List<ProductCardDTO> getSalableProductCardsByShopId(Long shopId) {
+        List<Product> products = productMapper.selectByShopId(shopId).stream()
+            .filter(Product::isSale).collect(Collectors.toList());
+        if (products.isEmpty()) return List.of();
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toCardDTOList(products, imageUrlMap);
+    }
+
+    @Override
+    public List<ProductCardDTO> getProductCardsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page) {
+        if (page < 0) {
+            throw new ProductException(400, "页码不能为负数");
+        }
+        List<Product> products = productMapper.selectByPriceRangeWithPage(minPrice, maxPrice, page * 20)
+            .stream().filter(Product::isSale).collect(Collectors.toList());
+        if (products.isEmpty()) return List.of();
+        Map<Integer, String> imageUrlMap = buildImageUrlMap(products);
+        return productConverter.toCardDTOList(products, imageUrlMap);
     }
 
     @Override

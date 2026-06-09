@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.controller.internal;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
@@ -37,7 +38,7 @@ public class InternalProductController {
 
     @GetMapping("/page")
     public ApiResponse<Map<String, Object>> getProductPage(@RequestParam(name = "page", defaultValue = "0") int page) {
-        List<ProductWithImageAbstractDTO> products = productService.getSalableProductsAbstract(page);
+        List<ProductCardDTO> products = productService.getSalableProductCards(page);
         return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
     }
 

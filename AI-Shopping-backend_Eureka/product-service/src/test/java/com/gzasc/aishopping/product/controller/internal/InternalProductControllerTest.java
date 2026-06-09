@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.product.controller.internal;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.product.controller.GlobalExceptionHandler;
@@ -97,17 +98,19 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/page - 分页查询可售商品成功")
     void testGetProductPage() throws Exception {
-        ProductWithImageAbstractDTO product = new ProductWithImageAbstractDTO();
+        ProductCardDTO product = new ProductCardDTO();
         product.setId(1L);
         product.setName("测试商品");
         product.setPrice(BigDecimal.valueOf(99.99));
-        when(productService.getSalableProductsAbstract(0)).thenReturn(List.of(product));
+        product.setStock(10);
+        when(productService.getSalableProductCards(0)).thenReturn(List.of(product));
 
         mockMvc.perform(get("/internal/product/page").param("page", "0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.products[0].id").value(1))
                 .andExpect(jsonPath("$.data.products[0].name").value("测试商品"))
+                .andExpect(jsonPath("$.data.products[0].stock").value(10))
                 .andExpect(jsonPath("$.data.page").value(0))
                 .andExpect(jsonPath("$.data.size").value(1));
     }

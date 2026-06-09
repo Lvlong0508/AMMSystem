@@ -45,20 +45,14 @@ class ProductToolsTest {
         item1.put("name", "手机");
         item1.put("price", 2999.0);
         item1.put("stock", 100);
-        Map<String, Object> shop1 = new HashMap<>();
-        shop1.put("name", "shopA");
-        shop1.put("id", 1L);
-        item1.put("shop", shop1);
+        item1.put("imageUrl", "http://img.test/phone.jpg");
 
         Map<String, Object> item2 = new HashMap<>();
         item2.put("id", 2);
         item2.put("name", "耳机");
         item2.put("price", 199.0);
         item2.put("stock", 200);
-        Map<String, Object> shop2 = new HashMap<>();
-        shop2.put("name", "shopB");
-        shop2.put("id", 2L);
-        item2.put("shop", shop2);
+        item2.put("imageUrl", "http://img.test/earphone.jpg");
 
         data.put("products", List.of(item1, item2));
 
@@ -68,11 +62,9 @@ class ProductToolsTest {
 
         assertEquals(2, result.size());
         assertEquals("手机", result.get(0).get("name"));
-        assertEquals("shopA", result.get(0).get("shopName"));
-        assertFalse(result.get(0).containsKey("shop"));
+        assertEquals(100, result.get(0).get("stock"));
         assertEquals("耳机", result.get(1).get("name"));
-        assertEquals("shopB", result.get(1).get("shopName"));
-        assertFalse(result.get(1).containsKey("shop"));
+        assertEquals(200, result.get(1).get("stock"));
     }
 
     @Test
@@ -120,13 +112,14 @@ class ProductToolsTest {
     }
 
     @Test
-    @DisplayName("CH-017 getAllProducts - 商品无 shop 字段")
-    void getAllProducts_noShopField() {
+    @DisplayName("CH-017 getAllProducts - 商品无额外字段")
+    void getAllProducts_noExtraFields() {
         Map<String, Object> data = new HashMap<>();
 
         Map<String, Object> item = new HashMap<>();
         item.put("id", 1);
         item.put("name", "手机");
+        item.put("stock", 50);
 
         data.put("products", List.of(item));
 
@@ -134,19 +127,18 @@ class ProductToolsTest {
 
         List<Map<String, Object>> result = productTools.getAllProducts(0);
         assertEquals(1, result.size());
-        assertNull(result.get(0).get("shopName"));
-        assertFalse(result.get(0).containsKey("shop"));
+        assertEquals(50, result.get(0).get("stock"));
     }
 
     @Test
-    @DisplayName("CH-018 getAllProducts - shop 字段非 Map")
-    void getAllProducts_shopNotMap() {
+    @DisplayName("CH-018 getAllProducts - stock 为 0 的商品")
+    void getAllProducts_zeroStock() {
         Map<String, Object> data = new HashMap<>();
 
         Map<String, Object> item = new HashMap<>();
         item.put("id", 1);
         item.put("name", "手机");
-        item.put("shop", "invalid");
+        item.put("stock", 0);
 
         data.put("products", List.of(item));
 
@@ -154,8 +146,7 @@ class ProductToolsTest {
 
         List<Map<String, Object>> result = productTools.getAllProducts(0);
         assertEquals(1, result.size());
-        assertNull(result.get(0).get("shopName"));
-        assertFalse(result.get(0).containsKey("shop"));
+        assertEquals(0, result.get(0).get("stock"));
     }
 
     @Test
@@ -165,18 +156,14 @@ class ProductToolsTest {
         data.put("id", 1L);
         data.put("name", "手机");
         data.put("price", 2999.0);
-        Map<String, Object> shop = new HashMap<>();
-        shop.put("name", "shopA");
-        shop.put("id", 1L);
-        data.put("shop", shop);
+        data.put("stock", 50);
 
         when(productFeignClient.getProductByIdExternal(1L)).thenReturn(apiData(data));
 
         Map<String, Object> result = productTools.getProductDetails("1");
 
         assertEquals("手机", result.get("name"));
-        assertEquals("shopA", result.get("shopName"));
-        assertFalse(result.containsKey("shop"));
+        assertEquals(50, result.get("stock"));
     }
 
     @Test
@@ -217,22 +204,22 @@ class ProductToolsTest {
     }
 
     @Test
-    @DisplayName("CH-024 getProductDetails - data 非 Map")
+    @DisplayName("CH-024 getProductDetails - data 基本字段")
     void getProductDetails_dataNotMap() {
         Map<String, Object> data = new HashMap<>();
         data.put("id", 1L);
         data.put("name", "手机");
-        data.put("data", "error");
+        data.put("stock", 30);
 
         when(productFeignClient.getProductByIdExternal(1L)).thenReturn(apiData(data));
 
         Map<String, Object> result = productTools.getProductDetails("1");
         assertEquals("手机", result.get("name"));
-        assertNull(result.get("shopName"));
+        assertEquals(30, result.get("stock"));
     }
 
     @Test
-    @DisplayName("CH-025 getProductDetails - 商品无 shop 字段")
+    @DisplayName("CH-025 getProductDetails - 商品无额外字段")
     void getProductDetails_noShop() {
         Map<String, Object> data = new HashMap<>();
         data.put("id", 1L);
@@ -242,6 +229,5 @@ class ProductToolsTest {
 
         Map<String, Object> result = productTools.getProductDetails("1");
         assertEquals("手机", result.get("name"));
-        assertNull(result.get("shopName"));
     }
 }

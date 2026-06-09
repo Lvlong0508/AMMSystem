@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.product.controller;
 
-import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -40,8 +40,8 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-001 - GET /api/user/product/all - 正常分页")
     void testGetAllSalableProductsWithData() throws Exception {
-        when(productService.getSalableProductsAbstract(0)).thenReturn(
-                List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
+        when(productService.getSalableProductCards(0)).thenReturn(
+                List.of(new ProductCardDTO(), new ProductCardDTO()));
 
         mockMvc.perform(get("/api/user/product/all").param("page", "0"))
                 .andExpect(status().isOk())
@@ -53,7 +53,7 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-002 - GET /api/user/product/all - 空数据分页")
     void testGetAllSalableProductsEmpty() throws Exception {
-        when(productService.getSalableProductsAbstract(0)).thenReturn(List.of());
+        when(productService.getSalableProductCards(0)).thenReturn(List.of());
 
         mockMvc.perform(get("/api/user/product/all").param("page", "0"))
                 .andExpect(status().isOk())
@@ -113,8 +113,8 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-010 - GET /api/user/product/price-range - 正常区间")
     void testPriceRangeWithResults() throws Exception {
-        when(productService.getProductsByPriceRange(eq(BigDecimal.valueOf(50)), eq(BigDecimal.valueOf(200)), eq(0)))
-                .thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
+        when(productService.getProductCardsByPriceRange(eq(BigDecimal.valueOf(50)), eq(BigDecimal.valueOf(200)), eq(0)))
+                .thenReturn(List.of(new ProductCardDTO(), new ProductCardDTO()));
 
         mockMvc.perform(get("/api/user/product/price-range")
                         .param("minPrice", "50")
@@ -128,7 +128,7 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-011 - GET /api/user/product/price-range - 价格区间无交集")
     void testPriceRangeNoResults() throws Exception {
-        when(productService.getProductsByPriceRange(eq(BigDecimal.valueOf(1000)), eq(BigDecimal.valueOf(10000)), eq(0)))
+        when(productService.getProductCardsByPriceRange(eq(BigDecimal.valueOf(1000)), eq(BigDecimal.valueOf(10000)), eq(0)))
                 .thenReturn(List.of());
 
         mockMvc.perform(get("/api/user/product/price-range")
@@ -178,7 +178,7 @@ class ProductUserControllerTest {
     @Test
     @DisplayName("PR-076 - Exception - 未预期异常返回500")
     void testUnexpectedExceptionReturns500() throws Exception {
-        when(productService.getSalableProductsAbstract(0)).thenThrow(new RuntimeException("数据库连接失败"));
+        when(productService.getSalableProductCards(0)).thenThrow(new RuntimeException("数据库连接失败"));
 
         mockMvc.perform(get("/api/user/product/all").param("page", "0"))
                 .andExpect(status().isInternalServerError())

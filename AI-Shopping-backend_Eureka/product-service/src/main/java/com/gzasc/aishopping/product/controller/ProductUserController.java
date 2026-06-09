@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.product.controller;
 
+import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.common.response.ApiResponse;
-import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -29,7 +29,7 @@ public class ProductUserController {
     @GetMapping("/all")
     public ApiResponse<Map<String, Object>> getAllSalableProducts(@RequestParam(name = "page", defaultValue = "0") int page) {
         try {
-            List<ProductWithImageAbstractDTO> products = productService.getSalableProductsAbstract(page);
+            List<ProductCardDTO> products = productService.getSalableProductCards(page);
             log.info("查询所有商品成功, page={}, size={}", page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
         } catch (ProductException e) {
@@ -74,7 +74,7 @@ public class ProductUserController {
     @GetMapping("/shop/{shopId}")
     public ApiResponse<Map<String, Object>> getProductsByShop(@PathVariable("shopId") Long shopId) {
         try {
-            List<ProductWithImageAbstractDTO> products = productService.getSalableProductsByShopId(shopId);
+            List<ProductCardDTO> products = productService.getSalableProductCardsByShopId(shopId);
             log.info("按店铺查询商品成功, shopId={}, size={}", shopId, products.size());
             return ApiResponse.success(Map.of("products", products));
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public class ProductUserController {
             @RequestParam("maxPrice") BigDecimal maxPrice,
             @RequestParam(name = "page", defaultValue = "0") int page) {
         try {
-            List<ProductWithImageAbstractDTO> products = productService.getProductsByPriceRange(minPrice, maxPrice, page);
+            List<ProductCardDTO> products = productService.getProductCardsByPriceRange(minPrice, maxPrice, page);
             log.info("按价格范围查询商品成功, minPrice={}, maxPrice={}, page={}, size={}", minPrice, maxPrice, page, products.size());
             return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
         } catch (ProductException e) {
