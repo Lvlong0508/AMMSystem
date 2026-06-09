@@ -20,8 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class ProductCommandServiceImpl implements ProductCommandService {
 
-    private static final String DEFAULT_IMAGE_URL = "/image/default/product/0001.jpg";
-
     private final ProductMapper productMapper;
     private final ProductImageInfoMapper productImageInfoMapper;
     private final ImageStorageService imageStorageService;
@@ -71,7 +69,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 product.setImageId(newImage.getId());
             }
 
-            if (oldImageUrl != null && !DEFAULT_IMAGE_URL.equals(oldImageUrl)) {
+            if (oldImageUrl != null) {
                 imageStorageService.deleteImage(oldImageUrl);
             }
         } else {
@@ -83,9 +81,9 @@ public class ProductCommandServiceImpl implements ProductCommandService {
 
     private String getImageUrl(Integer imageId) {
         if (imageId == null || imageId <= 0) {
-            return DEFAULT_IMAGE_URL;
+            return null;
         }
         ProductImageInfo imageInfo = productImageInfoMapper.selectURLById(imageId);
-        return imageInfo != null ? imageInfo.getUrl() : DEFAULT_IMAGE_URL;
+        return imageInfo != null ? imageInfo.getUrl() : null;
     }
 }

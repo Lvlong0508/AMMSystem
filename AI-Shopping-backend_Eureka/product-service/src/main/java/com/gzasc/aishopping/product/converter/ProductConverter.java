@@ -15,12 +15,10 @@ import java.util.stream.Collectors;
 @Component
 public class ProductConverter {
 
-    private static final String DEFAULT_IMAGE_URL = "/image/default/product/0001.jpg";
-
     private String resolveImageUrl(Integer imageId, Map<Integer, String> imageUrlMap) {
         return imageUrlMap != null && imageId != null
-            ? imageUrlMap.getOrDefault(imageId, DEFAULT_IMAGE_URL)
-            : DEFAULT_IMAGE_URL;
+            ? imageUrlMap.get(imageId)
+            : null;
     }
 
     private ShopInfoDTO resolveShopInfo(Long shopId, Map<Long, ShopInfoDTO> shopInfoMap) {

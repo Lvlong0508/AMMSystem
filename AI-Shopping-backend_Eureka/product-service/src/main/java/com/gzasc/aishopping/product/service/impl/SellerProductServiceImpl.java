@@ -26,8 +26,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SellerProductServiceImpl implements SellerProductService {
 
-    private static final String DEFAULT_IMAGE_URL = "/image/default/product/0001.jpg";
-
     private final ProductMapper productMapper;
     private final ProductImageInfoMapper productImageInfoMapper;
     private final ProductConverter productConverter;
@@ -114,10 +112,10 @@ public class SellerProductServiceImpl implements SellerProductService {
 
     private String getImageUrl(Integer imageId) {
         if (imageId == null || imageId <= 0) {
-            return DEFAULT_IMAGE_URL;
+            return null;
         }
         ProductImageInfo imageInfo = productImageInfoMapper.selectURLById(imageId);
-        return imageInfo != null ? imageInfo.getUrl() : DEFAULT_IMAGE_URL;
+        return imageInfo != null ? imageInfo.getUrl() : null;
     }
 
     private Map<Integer, String> buildImageUrlMap(List<Product> products) {
