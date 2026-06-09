@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/internal/product")
@@ -31,6 +33,21 @@ public class InternalProductController {
             return ApiResponse.error(404, "商品不存在");
         }
         return ApiResponse.success(dto);
+    }
+
+    @GetMapping("/page")
+    public ApiResponse<Map<String, Object>> getProductPage(@RequestParam(name = "page", defaultValue = "0") int page) {
+        List<ProductWithImageAbstractDTO> products = productService.getSalableProductsAbstract(page);
+        return ApiResponse.success(Map.of("products", products, "page", page, "size", products.size()));
+    }
+
+    @GetMapping("/detail/{productId}")
+    public ApiResponse<ProductWithImageDetailDTO> getProductDetail(@PathVariable("productId") Long productId) {
+        ProductWithImageDetailDTO product = productService.getProductById(productId);
+        if (product == null) {
+            return ApiResponse.error(404, "商品不存在");
+        }
+        return ApiResponse.success(product);
     }
 
     // 内部接口：批量查询商品抽象信息（订单服务构建订单信息进行抽象商品信息获取）

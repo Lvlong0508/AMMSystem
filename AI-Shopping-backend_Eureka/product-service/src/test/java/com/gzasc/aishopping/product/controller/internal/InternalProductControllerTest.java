@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.product.controller.GlobalExceptionHandler;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
+import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
@@ -91,6 +92,51 @@ class InternalProductControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.imageUrl").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("GET /internal/product/page - 分页查询可售商品成功")
+    void testGetProductPage() throws Exception {
+        ProductWithImageAbstractDTO product = new ProductWithImageAbstractDTO();
+        product.setId(1L);
+        product.setName("测试商品");
+        product.setPrice(BigDecimal.valueOf(99.99));
+        when(productService.getSalableProductsAbstract(0)).thenReturn(List.of(product));
+
+        mockMvc.perform(get("/internal/product/page").param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.products[0].id").value(1))
+                .andExpect(jsonPath("$.data.products[0].name").value("测试商品"))
+                .andExpect(jsonPath("$.data.page").value(0))
+                .andExpect(jsonPath("$.data.size").value(1));
+    }
+
+    @Test
+    @DisplayName("GET /internal/product/detail/{productId} - 查询商品完整详情成功")
+    void testGetProductDetail() throws Exception {
+        ProductWithImageDetailDTO product = new ProductWithImageDetailDTO();
+        product.setId(1L);
+        product.setName("测试商品");
+        product.setPrice(BigDecimal.valueOf(99.99));
+        when(productService.getProductById(1L)).thenReturn(product);
+
+        mockMvc.perform(get("/internal/product/detail/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.id").value(1))
+                .andExpect(jsonPath("$.data.name").value("测试商品"));
+    }
+
+    @Test
+    @DisplayName("GET /internal/product/detail/{productId} - 商品不存在")
+    void testGetProductDetailNotFound() throws Exception {
+        when(productService.getProductById(999L)).thenReturn(null);
+
+        mockMvc.perform(get("/internal/product/detail/999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(404))
+                .andExpect(jsonPath("$.message").value("商品不存在"));
     }
 
     @Test

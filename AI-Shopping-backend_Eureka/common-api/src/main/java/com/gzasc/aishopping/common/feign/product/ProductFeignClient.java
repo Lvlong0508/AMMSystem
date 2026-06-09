@@ -16,10 +16,10 @@ import java.util.Map;
 @FeignClient(name = "product-service")
 public interface ProductFeignClient {
 
-    @GetMapping("/api/user/product/all")
+    @GetMapping("/internal/product/page")
     ApiResponse<Map<String, Object>> getAllProducts(@RequestParam("page") int page);
 
-    @GetMapping("/api/user/product/{productId}")
+    @GetMapping("/internal/product/detail/{productId}")
     ApiResponse<Map<String, Object>> getProductByIdExternal(@PathVariable("productId") Long productId);
 
     @GetMapping("/internal/product/{productId}")
