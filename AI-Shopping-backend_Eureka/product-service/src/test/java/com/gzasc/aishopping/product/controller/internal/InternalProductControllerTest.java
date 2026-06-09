@@ -5,10 +5,7 @@ import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.product.controller.GlobalExceptionHandler;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
-import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
-import com.gzasc.aishopping.product.mapper.ProductMapper;
-import com.gzasc.aishopping.product.model.Product;
-import com.gzasc.aishopping.product.model.ProductImageInfo;
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,17 +39,11 @@ class InternalProductControllerTest {
     private ProductService productService;
 
     @Mock
-    private ProductMapper productMapper;
-
-    @Mock
-    private ProductImageInfoMapper productImageInfoMapper;
-
-    @Mock
     private ProductReservationService reservationService;
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new InternalProductController(productService, productMapper, productImageInfoMapper, reservationService))
+        mockMvc = standaloneSetup(new InternalProductController(productService, reservationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -60,15 +51,14 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/{productId} - 查询商品详情成功")
     void testGetProductByIdFound() throws Exception {
-        Product product = new Product();
-        product.setId(1L);
-        product.setName("测试商品");
-        product.setPrice(BigDecimal.valueOf(99.99));
-        product.setStock(10);
-        product.setShopId(100L);
-        product.setImageId(1);
-        when(productMapper.selectProductById(1L)).thenReturn(product);
-        when(productImageInfoMapper.selectURLById(1)).thenReturn(new ProductImageInfo(1, "http://img.test/a.jpg"));
+        ProductDTO dto = new ProductDTO();
+        dto.setId(1L);
+        dto.setName("测试商品");
+        dto.setPrice(BigDecimal.valueOf(99.99));
+        dto.setStock(10);
+        dto.setShopId(100L);
+        dto.setImageUrl("http://img.test/a.jpg");
+        when(productService.getBasicProductById(1L)).thenReturn(dto);
 
         mockMvc.perform(get("/internal/product/1"))
                 .andExpect(status().isOk())
@@ -81,7 +71,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/{productId} - 商品不存在")
     void testGetProductByIdNotFound() throws Exception {
-        when(productMapper.selectProductById(99999L)).thenReturn(null);
+        when(productService.getBasicProductById(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/internal/product/99999"))
                 .andExpect(status().isOk())
@@ -92,11 +82,10 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/{productId} - 商品无图片时返回空imageUrl")
     void testGetProductByIdNoImage() throws Exception {
-        Product product = new Product();
-        product.setId(2L);
-        product.setName("无图商品");
-        product.setImageId(null);
-        when(productMapper.selectProductById(2L)).thenReturn(product);
+        ProductDTO dto = new ProductDTO();
+        dto.setId(2L);
+        dto.setName("无图商品");
+        when(productService.getBasicProductById(2L)).thenReturn(dto);
 
         mockMvc.perform(get("/internal/product/2"))
                 .andExpect(status().isOk())

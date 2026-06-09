@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service.impl;
 
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.shop.ShopFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
@@ -323,6 +324,27 @@ public class ProductServiceImpl implements ProductService {
             .collect(Collectors.toSet());
         Map<Long, ShopInfoDTO> shopInfoMap = batchGetShopInfo(shopIds);
         return productConverter.toAbstractWithImageDTOList(products, imageUrlMap, shopInfoMap);
+    }
+
+    @Override
+    public ProductDTO getBasicProductById(Long productId) {
+        Product product = productMapper.selectProductById(productId);
+        if (product == null) {
+            return null;
+        }
+        String imageUrl = getImageUrl(product.getImageId());
+        ProductDTO dto = new ProductDTO();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setPrice(product.getPrice());
+        dto.setTags(product.getTags());
+        dto.setDescription(product.getDescription());
+        dto.setStock(product.getStock());
+        dto.setShopId(product.getShopId());
+        dto.setCreatedAt(product.getCreatedAt());
+        dto.setUpdatedAt(product.getUpdatedAt());
+        dto.setImageUrl(imageUrl);
+        return dto;
     }
 
     @Override

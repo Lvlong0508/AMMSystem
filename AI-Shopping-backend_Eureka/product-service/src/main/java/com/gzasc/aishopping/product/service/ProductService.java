@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.product.service;
 
+import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.SellerProductAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
@@ -112,6 +113,8 @@ public interface ProductService {
      * @return 当前页的商品列表
      */
     List<ProductWithImageAbstractDTO> getProductsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
+
+    ProductDTO getBasicProductById(Long productId);
 
     // ==================== 统一创建/更新（含图片） ====================
 

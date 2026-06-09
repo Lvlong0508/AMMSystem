@@ -6,10 +6,6 @@ import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.exception.ProductException;
-import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
-import com.gzasc.aishopping.product.mapper.ProductMapper;
-import com.gzasc.aishopping.product.model.Product;
-import com.gzasc.aishopping.product.model.ProductImageInfo;
 import com.gzasc.aishopping.product.service.ProductReservationService;
 import com.gzasc.aishopping.product.service.ProductService;
 import jakarta.validation.Valid;
@@ -25,32 +21,14 @@ import java.util.List;
 public class InternalProductController {
 
     private final ProductService productService;
-    private final ProductMapper productMapper;
-    private final ProductImageInfoMapper productImageInfoMapper;
     private final ProductReservationService reservationService;
 
     // 内部接口：根据ID查询商品详情（订单服务构建订单信息进行抽象商品信息获取）
     @GetMapping("/{productId}")
     public ApiResponse<ProductDTO> getProductById(@PathVariable("productId") Long productId) {
-        Product product = productMapper.selectProductById(productId);
-        if (product == null) {
+        ProductDTO dto = productService.getBasicProductById(productId);
+        if (dto == null) {
             return ApiResponse.error(404, "商品不存在");
-        }
-        ProductDTO dto = new ProductDTO();
-        dto.setId(product.getId());
-        dto.setName(product.getName());
-        dto.setPrice(product.getPrice());
-        dto.setTags(product.getTags());
-        dto.setDescription(product.getDescription());
-        dto.setStock(product.getStock());
-        dto.setShopId(product.getShopId());
-        dto.setCreatedAt(product.getCreatedAt());
-        dto.setUpdatedAt(product.getUpdatedAt());
-        if (product.getImageId() != null && product.getImageId() > 0) {
-            ProductImageInfo img = productImageInfoMapper.selectURLById(product.getImageId());
-            if (img != null) {
-                dto.setImageUrl(img.getUrl());
-            }
         }
         return ApiResponse.success(dto);
     }
