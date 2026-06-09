@@ -64,11 +64,6 @@ public interface ProductService {
     List<ProductCardDTO> getProductCardsByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page);
 
     /**
-     * 用户端: 分页查询可售商品抽象信息（已废弃）
-     */
-    List<ProductWithImageAbstractDTO> getSalableProductsAbstract(int page);
-
-    /**
      * 删除商品
      * @param productId 商品ID
      * @return 影响的行数

@@ -11,26 +11,18 @@ public interface ProductMapper {
 
     // 先获取抽象信息
     @Select("<script>" +
-            "SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
+            "SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE is_sale = 1 AND id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +
             "</script>")
     List<Product> selectAbstractProductsByIds(@Param("ids") List<Long> ids);
 
-    @Select("<script>" +
-            "SELECT id,name,price,stock,image_id AS imageId FROM products WHERE id IN " +
-            "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
-            "#{id}" +
-            "</foreach>" +
-            "</script>")
-    List<Product> selectCardProductsByIds(@Param("ids") List<Long> ids);
-
     // 再按id获取详情
     @Select("SELECT * FROM products WHERE id = #{id}")
     Product selectProductById(Long id);
 
-    @Select("SELECT * FROM products WHERE name LIKE CONCAT('%', #{name}, '%')")
+    @Select("SELECT * FROM products WHERE name LIKE CONCAT('%', #{name}, '%') AND is_sale = 1")
     List<Product> selectProductsByName(@Param("name") String name);
 
     @Update("UPDATE products SET stock = stock + #{quantity} WHERE id = #{productId}")
@@ -71,7 +63,13 @@ public interface ProductMapper {
     @Select("SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId}")
     List<Product> selectByShopId(@Param("shopId") Long shopId);
 
-    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} LIMIT 20 OFFSET #{offset}")
+    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId} AND is_sale = 1")
+    List<Product> selectSalableByShopId(@Param("shopId") Long shopId);
+
+    @Select("SELECT id,name,price,stock,image_id AS imageId FROM products WHERE is_sale = 1 LIMIT #{limit} OFFSET #{offset}")
+    List<Product> selectCardProductsPage(@Param("offset") int offset, @Param("limit") int limit);
+
+    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE price BETWEEN #{minPrice} AND #{maxPrice} AND is_sale = 1 LIMIT 20 OFFSET #{offset}")
     List<Product> selectByPriceRangeWithPage(@Param("minPrice") BigDecimal minPrice, @Param("maxPrice") BigDecimal maxPrice, @Param("offset") int offset);
 
     @Update("UPDATE products SET image_id = #{imageId}, updated_at = NOW() WHERE id = #{id}")

@@ -139,6 +139,108 @@ class ProductMapperTest {
             assertThat(list).hasSize(2);
         }
 
+        @Test
+        @DisplayName("用户端名称查询不返回下架商品")
+        void selectByName_shouldExcludeUnsaleProducts() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            insertAndReturn(buildProduct(saleId, "过滤测试商品", BigDecimal.valueOf(30), 3));
+            Product unsale = buildProduct(unsaleId, "过滤测试商品", BigDecimal.valueOf(30), 3);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectProductsByName("过滤测试商品");
+
+            assertThat(list).anyMatch(p -> p.getId().equals(saleId));
+            assertThat(list).noneMatch(p -> p.getId().equals(unsaleId));
+        }
+
+        @Test
+        @DisplayName("用户端价格查询不返回下架商品")
+        void selectByPriceRangeWithPage_shouldExcludeUnsaleProducts() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            insertAndReturn(buildProduct(saleId, "price-sale", BigDecimal.valueOf(150), 5));
+            Product unsale = buildProduct(unsaleId, "price-unsale", BigDecimal.valueOf(150), 5);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectByPriceRangeWithPage(BigDecimal.valueOf(100), BigDecimal.valueOf(200), 0);
+
+            assertThat(list).anyMatch(p -> p.getId().equals(saleId));
+            assertThat(list).noneMatch(p -> p.getId().equals(unsaleId));
+        }
+
+        @Test
+        @DisplayName("用户端卡片分页只返回上架商品")
+        void selectCardProductsPage_shouldReturnOnlySaleProducts() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            insertAndReturn(buildProduct(saleId, "card-sale", BigDecimal.valueOf(88), 8));
+            Product unsale = buildProduct(unsaleId, "card-unsale", BigDecimal.valueOf(88), 8);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectCardProductsPage(0, 200);
+
+            assertThat(list).anyMatch(p -> p.getId().equals(saleId));
+            assertThat(list).noneMatch(p -> p.getId().equals(unsaleId));
+        }
+
+        @Test
+        @DisplayName("用户端店铺查询只返回上架商品")
+        void selectSalableByShopId_shouldReturnOnlySaleProducts() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            Product sale = buildProduct(saleId, "shop-sale", BigDecimal.valueOf(66), 6);
+            sale.setShopId(98765L);
+            insertAndReturn(sale);
+            Product unsale = buildProduct(unsaleId, "shop-unsale", BigDecimal.valueOf(66), 6);
+            unsale.setShopId(98765L);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectSalableByShopId(98765L);
+
+            assertThat(list).anyMatch(p -> p.getId().equals(saleId));
+            assertThat(list).noneMatch(p -> p.getId().equals(unsaleId));
+        }
+
+        @Test
+        @DisplayName("用户端批量抽象查询只返回上架商品")
+        void selectAbstractProductsByIds_shouldExcludeUnsaleProducts() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            insertAndReturn(buildProduct(saleId, "abstract-sale", BigDecimal.valueOf(10), 2));
+            Product unsale = buildProduct(unsaleId, "abstract-unsale", BigDecimal.valueOf(20), 3);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectAbstractProductsByIds(List.of(saleId, unsaleId));
+
+            assertThat(list).hasSize(1);
+            assertThat(list.get(0).getId()).isEqualTo(saleId);
+        }
+
+        @Test
+        @DisplayName("商家端店铺查询仍返回上下架全部商品")
+        void selectByShopId_shouldReturnSaleAndUnsaleProductsForMerchant() {
+            Long saleId = uniqueId();
+            Long unsaleId = uniqueId();
+            Product sale = buildProduct(saleId, "merchant-shop-sale", BigDecimal.valueOf(66), 6);
+            sale.setShopId(87654L);
+            insertAndReturn(sale);
+            Product unsale = buildProduct(unsaleId, "merchant-shop-unsale", BigDecimal.valueOf(66), 6);
+            unsale.setShopId(87654L);
+            unsale.setSale(false);
+            insertAndReturn(unsale);
+
+            List<Product> list = productMapper.selectByShopId(87654L);
+
+            assertThat(list).anyMatch(p -> p.getId().equals(saleId));
+            assertThat(list).anyMatch(p -> p.getId().equals(unsaleId));
+        }
+
     }
 
     @Nested
