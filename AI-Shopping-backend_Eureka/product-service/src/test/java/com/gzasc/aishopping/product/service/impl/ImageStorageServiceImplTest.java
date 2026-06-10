@@ -10,6 +10,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.util.unit.DataSize;
 
 import java.io.IOException;
 import java.nio.file.FileSystem;
@@ -30,7 +31,8 @@ class ImageStorageServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        imageStorageService = new ImageStorageServiceImpl(tempDir.toString());
+        imageStorageService = new ImageStorageServiceImpl(tempDir.toString(), DataSize.ofMegabytes(5));
+        ReflectionTestUtils.setField(imageStorageService, "imageBaseUrl", "");
     }
 
     @Test

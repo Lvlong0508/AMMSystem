@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.unit.DataSize;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -20,15 +21,17 @@ import java.util.HexFormat;
 public class ImageStorageServiceImpl implements ImageStorageService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
     private final Path storagePath;
+    private final DataSize maxFileSize;
 
-    @Value("")
+    @Value("${app.image.base-url:http://localhost:8081}")
     private String imageBaseUrl;
 
-    public ImageStorageServiceImpl(@Value("") String storagePath) {
+    public ImageStorageServiceImpl(@Value("${app.image.storage-path}") String storagePath,
+                                   @Value("${app.image.max-file-size:5MB}") DataSize maxFileSize) {
         this.storagePath = Paths.get(storagePath).toAbsolutePath().normalize();
+        this.maxFileSize = maxFileSize;
     }
 
     @Override
@@ -40,8 +43,8 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         if (!"image/jpeg".equals(contentType) && !"image/png".equals(contentType)) {
             throw new ProductException(400, "仅支持 JPG 或 PNG 格式");
         }
-        if (imageFile.getSize() > MAX_FILE_SIZE) {
-            throw new ProductException(400, "图片大小不能超过 5MB");
+        if (imageFile.getSize() > maxFileSize.toBytes()) {
+            throw new ProductException(400, "图片大小不能超过 " + formatMaxFileSize(maxFileSize));
         }
     }
 
@@ -108,5 +111,16 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         byte[] bytes = new byte[count];
         RANDOM.nextBytes(bytes);
         return bytes;
+    }
+
+    private String formatMaxFileSize(DataSize size) {
+        long bytes = size.toBytes();
+        if (bytes % (1024 * 1024) == 0) {
+            return bytes / (1024 * 1024) + "MB";
+        }
+        if (bytes % 1024 == 0) {
+            return bytes / 1024 + "KB";
+        }
+        return bytes + "B";
     }
 }

@@ -23,7 +23,7 @@ public class ProductReservationServiceImpl implements ProductReservationService 
     private final ProductReservationMapper mapper;
     private final ProductStockMapper productStockMapper;
 
-    @Value("")
+    @Value("${order.timeout.payment-minutes:30}")
     private int paymentTimeoutMinutes;
 
     @Override

@@ -1,11 +1,20 @@
+# ============================================================
+# Order Service 基础配置
+# ============================================================
 server:
+  # 订单服务端口
   port: 8082
 
+# ============================================================
+# Spring 应用与基础设施配置
+# ============================================================
 spring:
   application:
+    # 注册到 Eureka 的服务名
     name: order-service
 
   datasource:
+    # 订单服务数据库
     url: jdbc:mysql://localhost:3306/eureka_order?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
@@ -13,6 +22,7 @@ spring:
 
   data:
     redis:
+      # Redis 用于订单事件/缓存等基础能力
       host: localhost
       port: 6379
       database: 0
@@ -23,13 +33,22 @@ spring:
           max-idle: 8
           min-idle: 0
 
+# ============================================================
+# MyBatis 配置
+# ============================================================
 mybatis:
+  # 实体类别名扫描路径
   type-aliases-package: com.gzasc.aishopping.order.model
   configuration:
+    # 数据库下划线字段自动映射为 Java 驼峰属性
     map-underscore-to-camel-case: true
     default-executor-type: simple
+    # 开发期打印 SQL；生产环境可按需关闭
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+# ============================================================
+# Eureka 注册中心配置
+# ============================================================
 eureka:
   client:
     service-url:
@@ -38,22 +57,37 @@ eureka:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
+# ============================================================
+# 订单业务配置
+# ============================================================
 order:
   timeout:
+    # 订单支付超时时间，单位分钟
     payment-minutes: 30
   fallback:
+    # 订单失败/补偿数据本地落盘目录
     dir: ${user.dir}/data/failover
   stream:
+    # Redis Stream 订单事件队列 key
     key: order:events
+    # Redis Stream 消费组名称
     group: order:processors
 
+# ============================================================
+# Feign 调用配置
+# ============================================================
 feign:
   client:
     config:
       default:
+        # 服务间调用连接超时时间，单位毫秒
         connectTimeout: 5000
+        # 服务间调用读取超时时间，单位毫秒
         readTimeout: 5000
 
+# ============================================================
+# 日志配置
+# ============================================================
 logging:
   level:
     com.gzasc.aishopping.order: info
