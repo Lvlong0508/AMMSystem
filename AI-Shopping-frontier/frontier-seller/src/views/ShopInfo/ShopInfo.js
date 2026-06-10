@@ -15,6 +15,16 @@ export function useShopInfo() {
   const logoInputRef = ref(null)
   const logoFile = ref(null)
   const logoPreview = ref('')
+  const dialogVisible = ref(false)
+  const editForm = reactive({
+    name: '',
+    description: '',
+    phone: '',
+    region: [],
+    addressDetail: ''
+  })
+  const editLogoFile = ref(null)
+  const editLogoInputRef = ref(null)
 
   const form = reactive({
     name: '',
@@ -49,6 +59,38 @@ export function useShopInfo() {
     logoFile.value = null
     if (logoInputRef.value) {
       logoInputRef.value.value = ''
+    }
+  }
+
+  function openEditDialog() {
+    editForm.name = form.name
+    editForm.description = form.description
+    editForm.phone = form.phone
+    editForm.region = [...form.region]
+    editForm.addressDetail = form.addressDetail
+    editLogoFile.value = null
+    dialogVisible.value = true
+  }
+
+  function handleEditLogoChange(e) {
+    const file = e.target.files[0]
+    if (!file) {
+      editLogoFile.value = null
+      return
+    }
+    const ext = getExtension(file.name)
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      ElMessage.warning(T.LOGO_TYPE_INVALID)
+      clearEditLogo()
+      return
+    }
+    editLogoFile.value = file
+  }
+
+  function clearEditLogo() {
+    editLogoFile.value = null
+    if (editLogoInputRef.value) {
+      editLogoInputRef.value.value = ''
     }
   }
 
@@ -106,6 +148,38 @@ export function useShopInfo() {
     }
   }
 
+  async function handleEditSave() {
+    saving.value = true
+    try {
+      const fd = new FormData()
+      const shopData = {
+        name: editForm.name,
+        description: editForm.description,
+        phone: editForm.phone,
+        address: buildAddressString(editForm.region, editForm.addressDetail)
+      }
+      fd.append('shop', new Blob([JSON.stringify(shopData)], { type: 'application/json' }))
+      if (editLogoFile.value) {
+        fd.append('logo', editLogoFile.value)
+      }
+      const res = await updateShop(shopId, fd)
+      ElMessage.success(res?.message || T.SAVE_SUCCESS)
+      form.name = editForm.name
+      form.description = editForm.description
+      form.phone = editForm.phone
+      form.region = [...editForm.region]
+      form.addressDetail = editForm.addressDetail
+      if (editLogoFile.value) {
+        loadShopInfo()
+      }
+      dialogVisible.value = false
+    } catch (e) {
+      ElMessage.error(T.SAVE_FAILED)
+    } finally {
+      saving.value = false
+    }
+  }
+
   async function handleToggleStatus() {
     toggling.value = true
     try {
@@ -126,5 +200,10 @@ export function useShopInfo() {
 
   onMounted(loadShopInfo)
 
-  return { T, form, loading, saving, toggling, shopStatus, logoPreview, logoFile, logoInputRef, handleLogoChange, clearLogo, handleSave, handleToggleStatus }
+  return {
+    T, form, loading, saving, toggling, shopStatus, logoPreview,
+    dialogVisible, editForm, editLogoFile, editLogoInputRef,
+    openEditDialog, handleEditSave, handleEditLogoChange, clearEditLogo,
+    handleToggleStatus
+  }
 }
