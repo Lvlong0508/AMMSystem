@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -33,6 +33,7 @@
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <mybatis.version>3.0.3</mybatis.version>
         <langchain4j.version>0.35.0</langchain4j.version>
+
     </properties>
 
     <dependencyManagement>
@@ -55,6 +56,16 @@
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>5.8.25</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy</artifactId>
+                <version>1.18.9</version>
+            </dependency>
+            <dependency>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-agent</artifactId>
+                <version>1.18.9</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -86,3 +97,4 @@
         </pluginManagement>
     </build>
 </project>
+
