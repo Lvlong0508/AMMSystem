@@ -2,7 +2,7 @@ import axios from 'axios'
 import { ElMessageBox } from 'element-plus'
 
 export const request = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: 'http://localhost:8088',
     timeout: 30000
 })
 
