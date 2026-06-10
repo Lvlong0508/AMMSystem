@@ -106,13 +106,16 @@ public class SellerProductServiceImpl implements SellerProductService {
         if (product.isSale()) {
             throw new ProductException(400, "商品在上架中，请先下架 " + productId);
         }
+
+        // 删除磁盘上的图片文件夹
+        imageStorageService.deleteProductFolder(productId);
+
+        // 删除数据库中的图片记录
         if (product.getImageId() != null && product.getImageId() > 0) {
-            ProductImageInfo imageInfo = productImageInfoMapper.selectURLById(product.getImageId());
-            if (imageInfo != null && imageInfo.getUrl() != null) {
-                imageStorageService.deleteImage(imageInfo.getUrl());
-            }
             productImageInfoMapper.deleteById(product.getImageId());
         }
+
+        // 删除商品记录
         return productMapper.deleteProduct(productId);
     }
 

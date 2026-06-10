@@ -15,7 +15,12 @@ public interface ImageStorageService {
     String saveImage(Long productId, MultipartFile file);
 
     /**
-     * 删除图片，支持完整 URL 或相对路径
+     * 删除单张图片文件
      */
     void deleteImage(String imageUrl);
+
+    /**
+     * 删除某个商品的所有图片文件夹（包含文件夹本身）
+     */
+    void deleteProductFolder(Long productId);
 }

@@ -69,6 +69,7 @@ public class ProductCommandServiceImpl implements ProductCommandService {
                 product.setImageId(newImage.getId());
             }
 
+            // 只删除旧图片文件，不碰新保存的文件和文件夹
             if (oldImageUrl != null) {
                 imageStorageService.deleteImage(oldImageUrl);
             }

@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Comparator;
 import java.util.HexFormat;
 
 @Slf4j
@@ -90,20 +91,71 @@ public class ImageStorageServiceImpl implements ImageStorageService {
         if (imageUrl == null || imageUrl.isBlank()) {
             return;
         }
-        String relativePath = imageUrl.replace(imageBaseUrl, "");
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1);
-        }
-        Path filePath = storagePath.resolve(relativePath).normalize();
         try {
+            // 从 URL 中提取 productId 和文件名
+            // URL 格式: {baseUrl}/image/goods/main/{productId}/{fileName}
+            String urlPath = imageUrl;
+            if (imageBaseUrl != null && !imageBaseUrl.isBlank()) {
+                urlPath = imageUrl.replace(imageBaseUrl, "");
+            }
+            if (urlPath.startsWith("/")) {
+                urlPath = urlPath.substring(1);
+            }
+
+            // 期望路径格式: image/goods/main/{productId}/{fileName}
+            String[] parts = urlPath.split("/");
+            if (parts.length < 4) {
+                log.warn("无法解析图片URL路径: {}", imageUrl);
+                return;
+            }
+
+            Long productId = Long.parseLong(parts[parts.length - 2]);
+            String fileName = parts[parts.length - 1];
+
+            Path filePath = storagePath.resolve(String.valueOf(productId)).resolve(fileName).normalize();
+
+            // 安全检查：确保文件在 storagePath 下
+            if (!filePath.startsWith(storagePath)) {
+                log.warn("图片路径越界，拒绝删除: {}", filePath);
+                return;
+            }
+
             boolean deleted = Files.deleteIfExists(filePath);
             if (deleted) {
                 log.info("删除旧图片成功: {}", filePath);
             } else {
                 log.warn("旧图片文件不存在: {}", filePath);
             }
+        } catch (NumberFormatException e) {
+            log.warn("无法从URL中解析商品ID: {}", imageUrl);
         } catch (IOException e) {
-            log.error("删除旧图片失败: {}", filePath, e);
+            log.error("删除旧图片失败: {}", imageUrl, e);
+        }
+    }
+
+    @Override
+    public void deleteProductFolder(Long productId) {
+        if (productId == null) {
+            return;
+        }
+        Path productDir = storagePath.resolve(String.valueOf(productId)).normalize();
+        if (!Files.exists(productDir)) {
+            log.info("商品图片文件夹不存在，跳过删除: {}", productDir);
+            return;
+        }
+        try {
+            Files.walk(productDir)
+                    .sorted(Comparator.reverseOrder())
+                    .forEach(p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                        } catch (IOException e) {
+                            log.warn("删除文件失败: {}", p, e);
+                        }
+                    });
+            log.info("删除商品图片文件夹成功: {}", productDir);
+        } catch (IOException e) {
+            log.error("删除商品图片文件夹失败: {}", productDir, e);
         }
     }
 
