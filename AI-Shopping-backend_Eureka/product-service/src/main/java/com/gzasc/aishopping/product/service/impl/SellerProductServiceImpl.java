@@ -9,6 +9,7 @@ import com.gzasc.aishopping.product.mapper.ProductImageInfoMapper;
 import com.gzasc.aishopping.product.mapper.ProductMapper;
 import com.gzasc.aishopping.product.model.Product;
 import com.gzasc.aishopping.product.model.ProductImageInfo;
+import com.gzasc.aishopping.product.service.ImageStorageService;
 import com.gzasc.aishopping.product.service.ProductShopInfoService;
 import com.gzasc.aishopping.product.service.SellerProductService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class SellerProductServiceImpl implements SellerProductService {
 
     private final ProductMapper productMapper;
     private final ProductImageInfoMapper productImageInfoMapper;
+    private final ImageStorageService imageStorageService;
     private final ProductConverter productConverter;
     private final ProductShopInfoService productShopInfoService;
 
@@ -105,6 +107,10 @@ public class SellerProductServiceImpl implements SellerProductService {
             throw new ProductException(400, "商品在上架中，请先下架 " + productId);
         }
         if (product.getImageId() != null && product.getImageId() > 0) {
+            ProductImageInfo imageInfo = productImageInfoMapper.selectURLById(product.getImageId());
+            if (imageInfo != null && imageInfo.getUrl() != null) {
+                imageStorageService.deleteImage(imageInfo.getUrl());
+            }
             productImageInfoMapper.deleteById(product.getImageId());
         }
         return productMapper.deleteProduct(productId);
