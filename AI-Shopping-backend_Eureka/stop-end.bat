@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 
 echo =========================================
@@ -15,7 +15,6 @@ echo - 8082  (Order Service)
 echo - 8083  (Contact Service)
 echo - 8084  (Logistics Service)
 echo - 8085  (Chat Service)
-echo - 8761 * 旧版 Eureka（如有残留）
 echo.
 
 for /f "tokens=5" %%a in ('netstat -ano ^| findstr 8088') do taskkill /F /PID %%a 2>nul
@@ -31,5 +30,5 @@ taskkill /F /IM java.exe 2>nul
 
 echo.
 echo 所有后端服务已停止。
-echo Nacos Server 需单独停止（如需要）。
+echo Nacos 需单独停止（如需要）。
 pause
