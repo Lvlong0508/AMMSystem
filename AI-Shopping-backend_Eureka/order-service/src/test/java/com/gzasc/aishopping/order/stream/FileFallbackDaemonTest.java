@@ -10,6 +10,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StreamOperations;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +30,8 @@ class FileFallbackDaemonTest {
     private RedisTemplate<String, String> redisTemplate;
     @Mock
     private StreamOperations<String, Object, Object> streamOps;
+    @Mock
+    private RedisStreamConfig redisStreamConfig;
 
     private FileFallbackDaemon daemon;
 
@@ -37,8 +40,10 @@ class FileFallbackDaemonTest {
     @BeforeEach
     void setUp() throws IOException {
         lenient().when(redisTemplate.opsForStream()).thenReturn(streamOps);
-        daemon = new FileFallbackDaemon(redisTemplate);
-        Files.createDirectories(TEST_FALLBACK_DIR);
+        lenient().when(redisStreamConfig.getStreamKey()).thenReturn("order:events");
+        daemon = new FileFallbackDaemon(redisTemplate, redisStreamConfig);
+        ReflectionTestUtils.setField(daemon, "fallbackDirPath", TEST_FALLBACK_DIR.toString());
+        daemon.init();
         cleanup();
     }
 

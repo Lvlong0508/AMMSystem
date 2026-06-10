@@ -19,3 +19,13 @@ mybatis:
   configuration:
     map-underscore-to-camel-case: true
     default-executor-type: simple
+
+order:
+  task:
+    timeout:
+      enabled: false
+  fallback:
+    dir: ${java.io.tmpdir}/order-fallback-test
+  stream:
+    key: order:events
+    group: order:processors

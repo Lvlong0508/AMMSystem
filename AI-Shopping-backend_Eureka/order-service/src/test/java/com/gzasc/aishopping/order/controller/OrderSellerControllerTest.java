@@ -4,7 +4,7 @@ import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.SellerOrderCardDTO;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
-import com.gzasc.aishopping.order.dto.ShipOrderRequest;
+import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.model.ReturnRequest;
 import com.gzasc.aishopping.order.service.OrderService;

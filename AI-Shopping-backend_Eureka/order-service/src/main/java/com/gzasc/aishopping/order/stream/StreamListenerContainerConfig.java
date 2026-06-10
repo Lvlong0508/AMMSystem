@@ -23,7 +23,8 @@ public class StreamListenerContainerConfig {
     @Bean(destroyMethod = "stop")
     StreamMessageListenerContainer<String, MapRecord<String, String, String>> container(
             RedisConnectionFactory cf,
-            OrderEventConsumer consumer) {
+            OrderEventConsumer consumer,
+            RedisStreamConfig redisStreamConfig) {
 
         var opts = StreamMessageListenerContainerOptions
                 .<String, MapRecord<String, String, String>>builder()
@@ -34,8 +35,8 @@ public class StreamListenerContainerConfig {
         var container = StreamMessageListenerContainer.create(cf, opts);
 
         container.receive(
-                Consumer.from(RedisStreamConfig.GROUP_NAME, consumerId),
-                StreamOffset.create(RedisStreamConfig.STREAM_KEY, ReadOffset.lastConsumed()),
+                Consumer.from(redisStreamConfig.getGroupName(), consumerId),
+                StreamOffset.create(redisStreamConfig.getStreamKey(), ReadOffset.lastConsumed()),
                 consumer
         );
 

@@ -26,6 +26,7 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
     private final ProductFeignClient productFeignClient;
     private final LogisticsFeignClient logisticsFeignClient;
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisStreamConfig redisStreamConfig;
 
     @Override
     public void onMessage(MapRecord<String, String, String> record) {
@@ -36,13 +37,14 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
 
         try {
             switch (OrderEventType.valueOf(eventType)) {
-                case STOCK_CONFIRM    -> handleStockConfirm(msg);
-                case STOCK_RESTORE    -> handleStockRestore(msg);
-                case LOGISTICS_CREATE -> handleLogistics(msg);
+                case STOCK_CONFIRM      -> handleStockConfirm(msg);
+                case STOCK_RESTORE      -> handleStockRestore(msg);
+                case LOGISTICS_CREATE   -> handleLogistics(msg);
+                case RESERVATION_RELEASE -> handleReservationRelease(msg);
             }
             redisTemplate.opsForStream().acknowledge(
-                    RedisStreamConfig.STREAM_KEY,
-                    RedisStreamConfig.GROUP_NAME,
+                    redisStreamConfig.getStreamKey(),
+                    redisStreamConfig.getGroupName(),
                     record.getId());
             log.debug("消息确认完成, msgId={}", record.getId());
         } catch (Exception e) {
@@ -86,6 +88,18 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         }
         productFeignClient.restoreStock(new StockDeductRequest(Long.valueOf(o.getProductId()), o.getQuantity()));
         log.info("库存恢复成功, orderId={}", orderId);
+    }
+
+    private void handleReservationRelease(Map<String, String> msg) {
+        String orderId = msg.get("orderId");
+        String idempotentKey = "release:done:" + orderId;
+        Boolean first = redisTemplate.opsForValue().setIfAbsent(idempotentKey, "1", Duration.ofDays(7));
+        if (Boolean.FALSE.equals(first)) {
+            log.info("SKIP releaseReservation 已执行过, orderId={}", orderId);
+            return;
+        }
+        productFeignClient.releaseReservation(orderId);
+        log.info("预占库存释放成功, orderId={}", orderId);
     }
 
     private void handleLogistics(Map<String, String> msg) {

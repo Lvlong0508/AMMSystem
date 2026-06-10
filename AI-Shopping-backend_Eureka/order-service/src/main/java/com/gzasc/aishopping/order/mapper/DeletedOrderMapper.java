@@ -15,7 +15,7 @@ public interface DeletedOrderMapper {
     int insertDeletedOrder(DeletedOrder deletedOrder);
 
     @Select("SELECT * FROM deleted_orders WHERE id = #{id}")
-    @Results({
+    @Results(id = "DeletedOrderResultMap", value = {
             @Result(property = "id", column = "id"),
             @Result(property = "orderId", column = "order_id"),
             @Result(property = "userId", column = "user_id"),
@@ -31,34 +31,10 @@ public interface DeletedOrderMapper {
     DeletedOrder selectDeletedOrderById(Integer id);
 
     @Select("SELECT * FROM deleted_orders ORDER BY deleted_at DESC")
-    @Results({
-            @Result(property = "id", column = "id"),
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "userId", column = "user_id"),
-            @Result(property = "shopId", column = "shop_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "deletedAt", column = "deleted_at")
-    })
+    @ResultMap("com.gzasc.aishopping.order.mapper.DeletedOrderMapper.DeletedOrderResultMap")
     List<DeletedOrder> selectAllDeletedOrders();
 
     @Select("SELECT * FROM deleted_orders WHERE order_id = #{orderId}")
-    @Results({
-            @Result(property = "id", column = "id"),
-            @Result(property = "orderId", column = "order_id"),
-            @Result(property = "userId", column = "user_id"),
-            @Result(property = "shopId", column = "shop_id"),
-            @Result(property = "productId", column = "product_id"),
-            @Result(property = "quantity", column = "quantity"),
-            @Result(property = "totalPrice", column = "total_price"),
-            @Result(property = "orderStatus", column = "order_status"),
-            @Result(property = "orderDate", column = "order_date"),
-            @Result(property = "contactId", column = "contact_id"),
-            @Result(property = "deletedAt", column = "deleted_at")
-    })
+    @ResultMap("com.gzasc.aishopping.order.mapper.DeletedOrderMapper.DeletedOrderResultMap")
     DeletedOrder selectDeletedOrderByOrderId(String orderId);
 }

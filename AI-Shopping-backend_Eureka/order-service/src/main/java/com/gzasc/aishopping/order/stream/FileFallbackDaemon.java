@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.StreamRecords;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,13 +24,18 @@ import java.util.Map;
 public class FileFallbackDaemon {
 
     private final RedisTemplate<String, String> redisTemplate;
+    private final RedisStreamConfig redisStreamConfig;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final Path FALLBACK_DIR = Paths.get("data/failover");
+    @Value("${order.fallback.dir:data/failover}")
+    private String fallbackDirPath;
+
+    private Path fallbackDir;
 
     @PostConstruct
     public void init() throws IOException {
-        Files.createDirectories(FALLBACK_DIR);
+        this.fallbackDir = Paths.get(fallbackDirPath).toAbsolutePath();
+        Files.createDirectories(fallbackDir);
         retryFailed();
     }
 
@@ -44,7 +50,7 @@ public class FileFallbackDaemon {
             redisTemplate.opsForStream().add(
                     StreamRecords.newRecord()
                             .ofMap(msg)
-                            .withStreamKey(RedisStreamConfig.STREAM_KEY)
+                            .withStreamKey(redisStreamConfig.getStreamKey())
             );
             log.debug("消息发送成功 eventType={}, orderId={}", eventType, orderId);
         } catch (Exception e) {
@@ -63,7 +69,7 @@ public class FileFallbackDaemon {
             }
             String json = objectMapper.writeValueAsString(data);
             String filename = "failover-" + System.currentTimeMillis() + "-" + orderId + ".txt";
-            Files.writeString(FALLBACK_DIR.resolve(filename), json);
+            Files.writeString(fallbackDir.resolve(filename), json);
         } catch (IOException e) {
             log.error("写入本地兜底文件失败 eventType={}, orderId={}", eventType, orderId, e);
         }
@@ -72,7 +78,7 @@ public class FileFallbackDaemon {
     @Scheduled(fixedRate = 60000)
     public void retryFailed() throws IOException {
         List<Path> files;
-        try (var stream = Files.list(FALLBACK_DIR)) {
+        try (var stream = Files.list(fallbackDir)) {
             files = stream.filter(p -> p.getFileName().toString().startsWith("failover-")).toList();
         }
         for (Path file : files) {
@@ -81,7 +87,7 @@ public class FileFallbackDaemon {
                 @SuppressWarnings("unchecked")
                 Map<String, String> msg = objectMapper.readValue(content, Map.class);
                 redisTemplate.opsForStream().add(
-                        StreamRecords.newRecord().ofMap(msg).withStreamKey(RedisStreamConfig.STREAM_KEY));
+                        StreamRecords.newRecord().ofMap(msg).withStreamKey(redisStreamConfig.getStreamKey()));
                 Files.delete(file);
                 log.info("补发成功, 文件已清理, file={}", file);
             } catch (Exception e) {

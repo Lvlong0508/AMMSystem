@@ -2,7 +2,6 @@ package com.gzasc.aishopping.order.service.impl;
 
 import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
-import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -17,16 +16,16 @@ import com.gzasc.aishopping.order.id.OrderIdSelector;
 import com.gzasc.aishopping.order.mapper.DeletedOrderMapper;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
+import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.OrderService;
+import com.gzasc.aishopping.order.stream.EventPublisher;
 import com.gzasc.aishopping.order.stream.FileFallbackDaemon;
 import com.gzasc.aishopping.order.stream.OrderEventType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -46,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
     private final ShopFeignClient shopFeignClient;
     private final OrderConverter orderConverter;
     private final FileFallbackDaemon fileFallbackDaemon;
+    private final EventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -120,16 +120,15 @@ public class OrderServiceImpl implements OrderService {
 
         int updated = orderMapper.updateOrderStatusCas(orderId, Order.CANCELLED, Order.PAID);
         if (updated > 0) {
-            StockDeductRequest stockReq = new StockDeductRequest(Long.valueOf(order.getProductId()), order.getQuantity());
-            productFeignClient.restoreStock(stockReq);
-            log.info("已支付订单取消，恢复库存, orderId={}", orderId);
+            log.info("已支付订单取消, 异步恢复库存, orderId={}", orderId);
+            eventPublisher.publishAfterCommit(OrderEventType.STOCK_RESTORE.name(), orderId, null);
             return;
         }
 
         updated = orderMapper.updateOrderStatusCas(orderId, Order.CANCELLED, Order.PENDING);
         if (updated > 0) {
-            productFeignClient.releaseReservation(orderId);
-            log.info("未支付订单取消，释放预占, orderId={}", orderId);
+            log.info("未支付订单取消, 异步释放预占, orderId={}", orderId);
+            eventPublisher.publishAfterCommit(OrderEventType.RESERVATION_RELEASE.name(), orderId, null);
             return;
         }
 
@@ -152,18 +151,9 @@ public class OrderServiceImpl implements OrderService {
 
         log.info("订单发货成功, orderId={}", orderId);
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        fileFallbackDaemon.sendOrFallback(
-                                OrderEventType.LOGISTICS_CREATE.name(), orderId,
-                                Map.of("contactId", String.valueOf(request.getContactId()),
-                                        "trackingNumber", request.getTrackingNumber())
-                        );
-                    }
-                }
-        );
+        eventPublisher.publishAfterCommit(OrderEventType.LOGISTICS_CREATE.name(), orderId,
+                Map.of("contactId", String.valueOf(request.getContactId()),
+                        "trackingNumber", request.getTrackingNumber()));
     }
 
     @Override
@@ -195,18 +185,9 @@ public class OrderServiceImpl implements OrderService {
         log.info("订单支付成功, orderId={}, productId={}, quantity={}",
                 orderId, order.getProductId(), order.getQuantity());
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        fileFallbackDaemon.sendOrFallback(
-                                OrderEventType.STOCK_CONFIRM.name(), orderId,
-                                Map.of("productId", order.getProductId(),
-                                        "quantity", String.valueOf(order.getQuantity()))
-                        );
-                    }
-                }
-        );
+        eventPublisher.publishAfterCommit(OrderEventType.STOCK_CONFIRM.name(), orderId,
+                Map.of("productId", order.getProductId(),
+                        "quantity", String.valueOf(order.getQuantity())));
     }
 
     @Override
@@ -254,15 +235,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("退货确认成功, orderId={}, productId={}, quantity={}",
                 orderId, order.getProductId(), order.getQuantity());
 
-        TransactionSynchronizationManager.registerSynchronization(
-                new TransactionSynchronization() {
-                    @Override
-                    public void afterCommit() {
-                        fileFallbackDaemon.sendOrFallback(
-                                OrderEventType.STOCK_RESTORE.name(), orderId, null);
-                    }
-                }
-        );
+        eventPublisher.publishAfterCommit(OrderEventType.STOCK_RESTORE.name(), orderId, null);
     }
 
     @Override

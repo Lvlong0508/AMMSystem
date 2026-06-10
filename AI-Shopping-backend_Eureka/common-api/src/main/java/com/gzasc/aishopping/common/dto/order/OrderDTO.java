@@ -18,6 +18,9 @@ public class OrderDTO implements Serializable {
     public static final String SHIPPED = "SHIPPED";
     public static final String DELIVERED = "DELIVERED";
     public static final String RETURNED = "RETURNED";
+    public static final String DELETED = "DELETED";
+    public static final String RETURN_PENDING = "RETURN_PENDING";
+    public static final String RETURNING = "RETURNING";
 
     private String orderId;
     private String productId;

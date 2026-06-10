@@ -2,7 +2,6 @@ package com.gzasc.aishopping.order.service;
 
 import com.gzasc.aishopping.common.dto.contact.ContactDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
-import com.gzasc.aishopping.common.dto.product.StockDeductRequest;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.common.dto.product.StockReserveRequest;
 import com.gzasc.aishopping.common.feign.contact.ContactFeignClient;
@@ -19,7 +18,9 @@ import com.gzasc.aishopping.order.mapper.OrderMapper;
 import com.gzasc.aishopping.order.model.DeletedOrder;
 import com.gzasc.aishopping.order.model.Order;
 import com.gzasc.aishopping.order.service.impl.OrderServiceImpl;
+import com.gzasc.aishopping.order.stream.EventPublisher;
 import com.gzasc.aishopping.order.stream.FileFallbackDaemon;
+import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,13 +63,13 @@ class OrderServiceImplTest {
     private OrderConverter orderConverter;
     @Mock
     private FileFallbackDaemon fileFallbackDaemon;
+    @Mock
+    private EventPublisher eventPublisher;
 
     private OrderServiceImpl orderService;
 
     @Captor
     private ArgumentCaptor<StockReserveRequest> stockReserveCaptor;
-    @Captor
-    private ArgumentCaptor<StockDeductRequest> stockDeductCaptor;
     @Captor
     private ArgumentCaptor<Order> orderCaptor;
     @Captor
@@ -101,7 +102,7 @@ class OrderServiceImplTest {
     void setUp() {
         orderService = new OrderServiceImpl(orderMapper, deletedOrderMapper, orderIdSelector,
                 productFeignClient, logisticsFeignClient, contactFeignClient, shopFeignClient,
-                orderConverter, fileFallbackDaemon);
+                orderConverter, fileFallbackDaemon, eventPublisher);
     }
 
     // ==================== 下单 (OR-001 ~ OR-005) ====================
@@ -289,12 +290,13 @@ class OrderServiceImplTest {
 
         orderService.cancelOrder(100L, "ORDER001");
 
-        verify(productFeignClient).releaseReservation("ORDER001");
+        verify(eventPublisher).publishAfterCommit(eq("RESERVATION_RELEASE"), eq("ORDER001"), isNull());
+        verify(productFeignClient, never()).releaseReservation(any());
         verify(productFeignClient, never()).restoreStock(any());
     }
 
     @Test
-    @DisplayName("OR-015 取消 PAID 订单 - 恢复实际库存")
+    @DisplayName("OR-015 取消 PAID 订单 - 异步恢复库存")
     void cancelOrder_paid() {
         Order order = createOrder("ORDER001", 100L, "SHOP001", "PAID");
         when(orderMapper.selectOrderDetailByUser(100L, "ORDER001")).thenReturn(order);
@@ -302,7 +304,8 @@ class OrderServiceImplTest {
 
         orderService.cancelOrder(100L, "ORDER001");
 
-        verify(productFeignClient).restoreStock(any(StockDeductRequest.class));
+        verify(eventPublisher).publishAfterCommit(eq("STOCK_RESTORE"), eq("ORDER001"), isNull());
+        verify(productFeignClient, never()).restoreStock(any());
     }
 
     @Test
@@ -678,7 +681,7 @@ class OrderServiceImplTest {
         orderService.cancelOrder(100L, "ORDER001");
 
         verify(orderMapper).updateOrderStatusCas("ORDER001", "CANCELLED", "PAID");
-        verify(productFeignClient).restoreStock(any(StockDeductRequest.class));
+        verify(eventPublisher).publishAfterCommit(eq("STOCK_RESTORE"), eq("ORDER001"), isNull());
     }
 
     @Test

@@ -41,6 +41,11 @@ eureka:
 order:
   timeout:
     payment-minutes: 30
+  fallback:
+    dir: ${user.dir}/data/failover
+  stream:
+    key: order:events
+    group: order:processors
 
 feign:
   client:

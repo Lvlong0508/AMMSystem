@@ -45,6 +45,8 @@ class OrderEventConsumerTest {
     private ValueOperations<String, String> valueOps;
     @Mock
     private StreamOperations<String, Object, Object> streamOps;
+    @Mock
+    private RedisStreamConfig redisStreamConfig;
 
     private OrderEventConsumer consumer;
 
@@ -76,8 +78,10 @@ class OrderEventConsumerTest {
     void setUp() {
         lenient().when(redisTemplate.opsForValue()).thenReturn(valueOps);
         lenient().when(redisTemplate.opsForStream()).thenReturn(streamOps);
+        lenient().when(redisStreamConfig.getStreamKey()).thenReturn("order:events");
+        lenient().when(redisStreamConfig.getGroupName()).thenReturn("order:processors");
         consumer = new OrderEventConsumer(orderMapper, productFeignClient,
-                logisticsFeignClient, redisTemplate);
+                logisticsFeignClient, redisTemplate, redisStreamConfig);
     }
 
     // ==================== STOCK_CONFIRM (OR-040 ~ OR-041) ====================
@@ -256,6 +260,42 @@ class OrderEventConsumerTest {
         consumer.onMessage(record);
 
         verify(logisticsFeignClient, never()).createLogistics(any());
+    }
+
+    // ==================== RESERVATION_RELEASE (OR-080 ~ OR-081) ====================
+
+    @Test
+    @DisplayName("OR-080 消费 RESERVATION_RELEASE - 释放预占成功")
+    void handleReservationRelease_success() {
+        when(valueOps.setIfAbsent("release:done:ORDER001", "1", Duration.ofDays(7)))
+                .thenReturn(true);
+        when(productFeignClient.releaseReservation("ORDER001"))
+                .thenReturn(ApiResponse.success(null));
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "RESERVATION_RELEASE",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient).releaseReservation("ORDER001");
+    }
+
+    @Test
+    @DisplayName("OR-081 消费 RESERVATION_RELEASE - 幂等跳过")
+    void handleReservationRelease_idempotent() {
+        when(valueOps.setIfAbsent("release:done:ORDER001", "1", Duration.ofDays(7)))
+                .thenReturn(false);
+
+        MapRecord<String, String, String> record = createRecord(Map.of(
+                "eventType", "RESERVATION_RELEASE",
+                "orderId", "ORDER001"
+        ));
+
+        consumer.onMessage(record);
+
+        verify(productFeignClient, never()).releaseReservation(anyString());
     }
 
     // ==================== 未知事件类型 ====================

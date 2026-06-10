@@ -4,7 +4,7 @@ import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.PlaceOrderRequest;
 import com.gzasc.aishopping.order.dto.SellerOrderCardDTO;
 import com.gzasc.aishopping.order.dto.ShipmentOrderCardDTO;
-import com.gzasc.aishopping.order.dto.ShipOrderRequest;
+import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 
 import java.util.List;
