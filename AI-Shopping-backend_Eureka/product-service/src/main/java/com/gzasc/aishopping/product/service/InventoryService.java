@@ -1,4 +1,4 @@
-﻿package com.gzasc.aishopping.product.service;
+package com.gzasc.aishopping.product.service;
 
 public interface InventoryService {
 

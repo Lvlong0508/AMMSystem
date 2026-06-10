@@ -72,6 +72,7 @@
 
 <script setup>
 import { ORDER_MODAL_TEXT as T } from './Text'
+import { useRouter } from 'vue-router'
 import { useOrderModal } from './useOrderModal'
 
 const props = defineProps({
@@ -80,6 +81,7 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'order-placed'])
+const router = useRouter()
 
 const { quantity, contacts, selectedContactId, totalPrice, maxQuantity, canSubmit, submitting, loadingAddress, decrement, increment, handleSubmit } = useOrderModal(props, { emit })
 
@@ -90,6 +92,7 @@ const onQtyInput = () => {
 
 const goManageAddress = () => {
   emit('close')
+  router.push('/contact')
 }
 </script>
 

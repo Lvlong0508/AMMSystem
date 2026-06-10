@@ -1,4 +1,4 @@
-﻿package com.gzasc.aishopping.product.service.impl;
+package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.product.mapper.ProductStockMapper;
 import com.gzasc.aishopping.product.service.InventoryService;

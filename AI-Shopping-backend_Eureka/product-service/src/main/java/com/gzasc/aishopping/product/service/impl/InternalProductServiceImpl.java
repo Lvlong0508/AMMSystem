@@ -1,4 +1,4 @@
-﻿package com.gzasc.aishopping.product.service.impl;
+package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;

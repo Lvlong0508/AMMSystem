@@ -1,4 +1,4 @@
-﻿package com.gzasc.aishopping.product.service;
+package com.gzasc.aishopping.product.service;
 
 import com.gzasc.aishopping.common.dto.product.ProductCardDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;

@@ -1,4 +1,4 @@
-﻿package com.gzasc.aishopping.product.mapper;
+package com.gzasc.aishopping.product.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
