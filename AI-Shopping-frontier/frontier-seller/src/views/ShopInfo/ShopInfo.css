@@ -1,33 +1,49 @@
-.shop-info__toolbar {
+.shop-info {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.shop-info__header {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: 12px;
+  margin-bottom: 24px;
 }
 
 .shop-info__title {
   font-size: var(--text-lg);
   font-weight: 600;
   margin: 0;
+  margin-right: auto;
 }
 
-.shop-info__logo-upload {
+.shop-info__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.shop-info__logo-avatar {
+  border: 2px solid var(--border-color, #dcdfe6);
+}
+
+.shop-info__edit-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.shop-info__logo-preview {
-  width: 80px;
-  height: 80px;
-  border-radius: 8px;
+.shop-info__edit-logo-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   border: 1px solid var(--border-color, #dcdfe6);
   overflow: hidden;
   flex-shrink: 0;
 }
 
-.shop-info__logo-name {
+.shop-info__edit-logo-name {
   font-size: var(--text-sm, 14px);
   color: var(--text-secondary, #909399);
 }
