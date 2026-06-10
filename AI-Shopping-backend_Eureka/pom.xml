@@ -1,4 +1,4 @@
-﻿﻿<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
@@ -32,6 +32,7 @@
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <mybatis.version>3.0.3</mybatis.version>
         <langchain4j.version>0.35.0</langchain4j.version>
+        <lombok.version>1.18.30</lombok.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
 
     </properties>
@@ -60,6 +61,11 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+                <version>4.1.0</version>
+            </dependency>
+            <dependency>
                 <groupId>cn.hutool</groupId>
                 <artifactId>hutool-all</artifactId>
                 <version>5.8.25</version>
@@ -73,8 +79,7 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy-agent</artifactId>
                 <version>1.18.9</version>
-            </dependency>
-        </dependencies>
+            </dependency>        </dependencies>
     </dependencyManagement>
 
     <build>
@@ -93,6 +98,13 @@
                         <source>17</source>
                         <target>17</target>
                         <parameters>true</parameters>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
+                            </path>
+                        </annotationProcessorPaths>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -104,5 +116,3 @@
         </pluginManagement>
     </build>
 </project>
-
-
