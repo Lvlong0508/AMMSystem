@@ -115,8 +115,25 @@ export function useShopProducts() {
 
   function closeDialog() { dialogVisible.value = false }
 
+  const ALLOWED_EXTENSIONS = ['jpg', 'png']
+
+  function getExtension(filename) {
+    return filename.split('.').pop()?.toLowerCase()
+  }
+
   function handleFileChange(e) {
-    if (e.target.files.length > 0) form.value.image = e.target.files[0]
+    const file = e.target.files[0]
+    if (!file) {
+      form.value.image = null
+      return
+    }
+    const ext = getExtension(file.name)
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      ElMessage.warning(T.IMAGE_TYPE_INVALID)
+      e.target.value = ''
+      return
+    }
+    form.value.image = file
   }
 
   function validate() {

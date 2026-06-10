@@ -14,7 +14,7 @@ public interface ShopService {
 
     Shop createShop(CreateShopRequest request, Long userId);
     Shop createShop(CreateShopRequest request, Long userId, MultipartFile logo);
-    void updateShop(Long shopId, UpdateShopRequest request, Long userId);
+    void updateShop(Long shopId, UpdateShopRequest request, Long userId, MultipartFile logo);
     void closeShop(Long shopId, Long userId);
     void openShop(Long shopId, Long userId);
     Shop getShopWithAccessCheck(Long shopId, Long userId);

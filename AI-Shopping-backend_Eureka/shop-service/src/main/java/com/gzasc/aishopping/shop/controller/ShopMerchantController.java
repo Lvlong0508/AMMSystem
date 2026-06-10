@@ -78,13 +78,17 @@ public class ShopMerchantController {
         ));
     }
 
-    @PutMapping("/{shopId}")
+    @PutMapping(value = "/{shopId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ApiResponse<Map<String, Object>> updateShop(
             @PathVariable("shopId") Long shopId,
-            @RequestBody @Valid UpdateShopRequest request,
+            @RequestPart("shop") @Valid UpdateShopRequest request,
+            @RequestPart(value = "logo", required = false) MultipartFile logo,
             @RequestHeader("X-User-Id") Long userId) {
         log.info("更新店铺, shopId={}", shopId);
-        shopService.updateShop(shopId, request, userId);
+        if (logo != null && !logo.isEmpty()) {
+            validateLogo(logo);
+        }
+        shopService.updateShop(shopId, request, userId, logo);
         return ApiResponse.success("更新店铺成功", null);
     }
 

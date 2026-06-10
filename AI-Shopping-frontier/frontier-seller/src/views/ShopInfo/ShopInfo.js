@@ -12,15 +12,45 @@ export function useShopInfo() {
   const saving = ref(false)
   const toggling = ref(false)
   const shopStatus = ref(null)
+  const logoInputRef = ref(null)
+  const logoFile = ref(null)
+  const logoPreview = ref('')
 
   const form = reactive({
     name: '',
     description: '',
     phone: '',
     region: [],
-    addressDetail: '',
-    businessHours: ''
+    addressDetail: ''
   })
+
+  const ALLOWED_EXTENSIONS = ['jpg', 'png']
+
+  function getExtension(filename) {
+    return filename.split('.').pop()?.toLowerCase()
+  }
+
+  function handleLogoChange(e) {
+    const file = e.target.files[0]
+    if (!file) {
+      logoFile.value = null
+      return
+    }
+    const ext = getExtension(file.name)
+    if (!ext || !ALLOWED_EXTENSIONS.includes(ext)) {
+      ElMessage.warning(T.LOGO_TYPE_INVALID)
+      clearLogo()
+      return
+    }
+    logoFile.value = file
+  }
+
+  function clearLogo() {
+    logoFile.value = null
+    if (logoInputRef.value) {
+      logoInputRef.value.value = ''
+    }
+  }
 
   async function loadShopInfo() {
     loading.value = true
@@ -35,7 +65,7 @@ export function useShopInfo() {
       const parsed = parseAddress(shop.address || '')
       form.region = parsed.region
       form.addressDetail = parsed.detail
-      form.businessHours = shop.businessHours || ''
+      logoPreview.value = shop.logourl || ''
       shopStatus.value = shop.status
     } catch (e) {
       console.error('加载商店信息失败:', e)
@@ -48,15 +78,27 @@ export function useShopInfo() {
   async function handleSave() {
     saving.value = true
     try {
-      const payload = {
+      const fd = new FormData()
+      const shopData = {
         name: form.name,
         description: form.description,
         phone: form.phone,
-        address: buildAddressString(form.region, form.addressDetail),
-        businessHours: form.businessHours
+        address: buildAddressString(form.region, form.addressDetail)
       }
-      const res = await updateShop(shopId, payload)
+      fd.append('shop', new Blob([JSON.stringify(shopData)], { type: 'application/json' }))
+      if (logoFile.value) {
+        fd.append('logo', logoFile.value)
+      }
+      const res = await updateShop(shopId, fd)
       ElMessage.success(res?.message || T.SAVE_SUCCESS)
+      if (logoFile.value) {
+        logoPreview.value = ''
+        logoFile.value = null
+        if (logoInputRef.value) {
+          logoInputRef.value.value = ''
+        }
+        loadShopInfo()
+      }
     } catch (e) {
       ElMessage.error(T.SAVE_FAILED)
     } finally {
@@ -84,5 +126,5 @@ export function useShopInfo() {
 
   onMounted(loadShopInfo)
 
-  return { T, form, loading, saving, toggling, shopStatus, handleSave, handleToggleStatus }
+  return { T, form, loading, saving, toggling, shopStatus, logoPreview, logoFile, logoInputRef, handleLogoChange, clearLogo, handleSave, handleToggleStatus }
 }

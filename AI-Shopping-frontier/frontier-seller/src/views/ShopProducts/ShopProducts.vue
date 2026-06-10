@@ -66,7 +66,7 @@
           </el-col>
         </el-row>
         <el-form-item :label="T.LABEL_IMAGE">
-          <input type="file" accept="image/jpeg,image/png" @change="handleFileChange" />
+          <input type="file" accept=".jpg,.png" @change="handleFileChange" />
         </el-form-item>
       </el-form>
       <template #footer>

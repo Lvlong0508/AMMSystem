@@ -10,3 +10,24 @@
   font-weight: 600;
   margin: 0;
 }
+
+.shop-info__logo-upload {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.shop-info__logo-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #dcdfe6);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.shop-info__logo-name {
+  font-size: var(--text-sm, 14px);
+  color: var(--text-secondary, #909399);
+}

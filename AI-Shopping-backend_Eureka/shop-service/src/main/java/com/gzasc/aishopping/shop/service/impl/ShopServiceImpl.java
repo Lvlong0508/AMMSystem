@@ -71,7 +71,7 @@ public class ShopServiceImpl implements ShopService {
 
     @Override
     @Transactional
-    public void updateShop(Long shopId, UpdateShopRequest request, Long userId) {
+    public void updateShop(Long shopId, UpdateShopRequest request, Long userId, MultipartFile logo) {
         Shop shop = shopMapper.selectShopById(shopId);
         if (shop == null) {
             throw new ShopException("店铺不存在");
@@ -83,11 +83,24 @@ public class ShopServiceImpl implements ShopService {
             throw new ShopException("店铺名称不能为空");
         }
         if (shop.getShopInfoId() != null) {
+            ShopInfo currentInfo = shopInfoService.getById(shop.getShopInfoId());
+
+            String logoUrl = request.getLogoId();
+            if (logo != null && !logo.isEmpty()) {
+                if (currentInfo != null && currentInfo.getLogoUrl() != null) {
+                    imageStorageService.deleteImage(currentInfo.getLogoUrl());
+                }
+                logoUrl = imageStorageService.saveImage(shopId, logo);
+            }
+            if (logoUrl == null && currentInfo != null) {
+                logoUrl = currentInfo.getLogoUrl();
+            }
+
             ShopInfo shopInfo = new ShopInfo();
             shopInfo.setId(shop.getShopInfoId());
             shopInfo.setName(request.getName());
             shopInfo.setDescription(request.getDescription());
-            shopInfo.setLogoUrl(request.getLogoId());
+            shopInfo.setLogoUrl(logoUrl);
             shopInfo.setAddress(request.getAddress());
             shopInfo.setPhone(request.getPhone());
             shopInfoService.update(shopInfo);
