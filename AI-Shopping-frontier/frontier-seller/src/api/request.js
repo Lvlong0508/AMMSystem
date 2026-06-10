@@ -17,18 +17,6 @@ request.interceptors.request.use(
         if (merchantId) {
             config.headers['X-User-Id'] = merchantId
         }
-        // 添加角色信息
-        const currentRole = localStorage.getItem('currentRole')
-        if (currentRole) {
-            try {
-                const role = JSON.parse(currentRole)
-                if (role.role) {
-                    config.headers['X-Merchant-Role'] = role.role
-                }
-            } catch (e) {
-                // ignore
-            }
-        }
         const currentShopId = localStorage.getItem('currentShopId')
         if (currentShopId) {
             config.headers['X-Shop-Id'] = currentShopId
