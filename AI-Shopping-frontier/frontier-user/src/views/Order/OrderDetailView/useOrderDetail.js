@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrderById, cancelOrder, payOrder, confirmDelivery } from '@/api/order'
+import { getOrderById, cancelOrder, confirmDelivery } from '@/api/order'
 import { showSuccess, showError } from '@/utils/swal'
 
 export function useOrderDetail() {
@@ -46,14 +46,19 @@ export function useOrderDetail() {
     router.push('/order')
   }
 
+  const showPaymentModal = ref(false)
+
   const handlePay = async () => {
-    try {
-      await payOrder(order.value.orderId)
-      showSuccess('支付成功')
-      await loadOrder()
-    } catch {
-      showError('支付失败')
-    }
+    showPaymentModal.value = true
+  }
+
+  const onPaymentSuccess = async () => {
+    showPaymentModal.value = false
+    await loadOrder()
+  }
+
+  const onPayLater = () => {
+    showPaymentModal.value = false
   }
 
   const handleViewLogistics = () => {}
@@ -90,6 +95,9 @@ export function useOrderDetail() {
     handlePay,
     handleViewLogistics,
     handleReview,
-    confirmAction
+    confirmAction,
+    showPaymentModal,
+    onPaymentSuccess,
+    onPayLater
   }
 }

@@ -3,7 +3,7 @@ import { newChatCounter } from '@/stores/chatStore'
 import { sendMessage } from '@/api/chat'
 import { CHAT_VIEW_TEXT } from './Text'
 import { requireLogin } from '@/stores/authStore'
-import { showError } from '@/utils/swal'
+import { showError, showInfo } from '@/utils/swal'
 
 export function useChatView() {
   const messages = ref([])
@@ -11,6 +11,10 @@ export function useChatView() {
   const inputText = ref('')
   const inputRef = ref(null)
   const messagesRef = ref(null)
+  const selectedProduct = ref(null)
+  const showOrderModal = ref(false)
+  const showPaymentModal = ref(false)
+  const placedOrderId = ref('')
 
   watch(newChatCounter, () => {
     messages.value = []
@@ -49,6 +53,39 @@ export function useChatView() {
     }
   }
 
+  const handleViewDetail = (product) => {
+    const info = [
+      `名称: ${product.name}`,
+      `价格: ¥${product.price?.toFixed(2)}`,
+      `库存: ${product.stock ?? '-'}`,
+      `描述: ${product.description || '暂无描述'}`
+    ].join('\n')
+    showInfo(info, '知道了')
+  }
+
+  const handleBuyNow = (product) => {
+    selectedProduct.value = product
+    showOrderModal.value = true
+  }
+
+  const onOrderPlaced = (orderId) => {
+    showOrderModal.value = false
+    placedOrderId.value = orderId
+    showPaymentModal.value = true
+  }
+
+  const onPaymentSuccess = () => {
+    showPaymentModal.value = false
+    placedOrderId.value = ''
+    selectedProduct.value = null
+  }
+
+  const onPayLater = () => {
+    showPaymentModal.value = false
+    placedOrderId.value = ''
+    selectedProduct.value = null
+  }
+
   onMounted(() => {
     if (inputRef.value?.inputEl) inputRef.value.inputEl.focus()
   })
@@ -59,6 +96,15 @@ export function useChatView() {
     inputText,
     inputRef,
     messagesRef,
-    handleSend
+    handleSend,
+    handleViewDetail,
+    handleBuyNow,
+    showOrderModal,
+    showPaymentModal,
+    selectedProduct,
+    placedOrderId,
+    onOrderPlaced,
+    onPaymentSuccess,
+    onPayLater
   }
 }

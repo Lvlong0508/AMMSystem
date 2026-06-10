@@ -38,6 +38,8 @@
         @review="handleReview"
       />
     </div>
+
+    <PaymentModal :visible="showPaymentModal" :orderId="payingOrder?.orderId" :order="payingOrder" :orderDate="payingOrder?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
   </div>
 </template>
 
@@ -45,6 +47,7 @@
 import { ORDER_LIST_TEXT as T } from './Text'
 import { useOrderList } from './useOrderList'
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
+import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
 const {
   orders,
@@ -57,7 +60,11 @@ const {
   handlePay,
   handleViewLogistics,
   handleConfirm,
-  handleReview
+  handleReview,
+  payingOrder,
+  showPaymentModal,
+  onPaymentSuccess,
+  onPayLater
 } = useOrderList()
 </script>
 

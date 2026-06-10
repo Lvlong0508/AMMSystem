@@ -52,14 +52,23 @@ export function useOrderList() {
     }
   }
 
+  const payingOrder = ref(null)
+  const showPaymentModal = ref(false)
+
   const handlePay = async (order) => {
-    try {
-      await payOrder(order.orderId)
-      showSuccess('支付成功')
-      await loadOrders()
-    } catch {
-      showError('支付失败')
-    }
+    payingOrder.value = order
+    showPaymentModal.value = true
+  }
+
+  const onPaymentSuccess = async () => {
+    showPaymentModal.value = false
+    payingOrder.value = null
+    await loadOrders()
+  }
+
+  const onPayLater = () => {
+    showPaymentModal.value = false
+    payingOrder.value = null
   }
 
   const handleViewLogistics = (order) => {}
@@ -91,6 +100,10 @@ export function useOrderList() {
     handlePay,
     handleViewLogistics,
     handleConfirm,
-    handleReview
+    handleReview,
+    payingOrder,
+    showPaymentModal,
+    onPaymentSuccess,
+    onPayLater
   }
 }

@@ -24,7 +24,8 @@
                 :key="p.id"
                 variant="abstract"
                 :product="p"
-                @viewDetail="(prod) => $emit('viewDetail', prod)"
+                @viewDetail="(prod) => handleViewDetail(prod)"
+                @buyNow="(prod) => handleBuyNow(prod)"
             />
           </div>
         </div>
@@ -60,6 +61,9 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
       </button>
     </div>
+
+    <OrderModal :visible="showOrderModal" :product="selectedProduct" @close="showOrderModal = false" @order-placed="onOrderPlaced" />
+    <PaymentModal :visible="showPaymentModal" :orderId="placedOrderId" :order="selectedProduct" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
   </div>
 </template>
 
@@ -68,8 +72,10 @@ import { CHAT_VIEW_TEXT as T } from './Text'
 import { useChatView } from './useChatView'
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import IInput from '@/components/IInput/IInput.vue'
+import OrderModal from '@/components/OrderModal/OrderModal.vue'
+import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, handleSend } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
 </script>
 
 <style scoped>

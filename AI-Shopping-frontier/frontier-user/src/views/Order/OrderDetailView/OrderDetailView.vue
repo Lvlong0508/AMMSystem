@@ -39,6 +39,8 @@
         </div>
       </div>
     </Teleport>
+
+    <PaymentModal :visible="showPaymentModal" :orderId="order?.orderId" :order="order" :orderDate="order?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
   </div>
 </template>
 
@@ -46,6 +48,7 @@
 import { ORDER_DETAIL_TEXT as T } from './Text'
 import { useOrderDetail } from './useOrderDetail'
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
+import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
 const {
   order,
@@ -59,7 +62,10 @@ const {
   handlePay,
   handleViewLogistics,
   handleReview,
-  confirmAction
+  confirmAction,
+  showPaymentModal,
+  onPaymentSuccess,
+  onPayLater
 } = useOrderDetail()
 </script>
 

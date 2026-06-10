@@ -259,3 +259,24 @@
   background: var(--color-border);
   z-index: 0;
 }
+
+.order-card__timeout {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #d97706;
+  background: #fffbeb;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.order-card__timeout--expired {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.order-card__timeout--detail {
+  margin: 0 24px 16px;
+}

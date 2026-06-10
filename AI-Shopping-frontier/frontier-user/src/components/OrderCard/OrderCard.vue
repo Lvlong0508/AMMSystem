@@ -17,6 +17,12 @@
           <span class="order-card__id">{{ order.orderId }}</span>
           <span class="order-card__date">{{ formatDate(order.orderDate) }}</span>
         </div>
+        <div v-if="order.orderStatus === 'PENDING' && remainingMinutes > 0" class="order-card__timeout">
+          剩余 {{ remainingMinutes }} 分钟内完成支付
+        </div>
+        <div v-if="order.orderStatus === 'PENDING' && remainingMinutes <= 0" class="order-card__timeout order-card__timeout--expired">
+          支付已超时
+        </div>
       </div>
     </div>
     <div class="order-card__divider"></div>
@@ -97,6 +103,12 @@
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('review', order)">{{ T.REVIEW }}</button>
     </div>
+    <div v-if="order.orderStatus === 'PENDING' && remainingMinutes > 0" class="order-card__timeout order-card__timeout--detail">
+      剩余 {{ remainingMinutes }} 分钟内完成支付
+    </div>
+    <div v-if="order.orderStatus === 'PENDING' && remainingMinutes <= 0" class="order-card__timeout order-card__timeout--expired order-card__timeout--detail">
+      支付已超时
+    </div>
   </div>
 </template>
 
@@ -112,7 +124,7 @@ const props = defineProps({
 
 defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'review'])
 
-const { formatDate, timelineProgress, steps } = useOrderCard(props)
+const { formatDate, timelineProgress, steps, remainingMinutes } = useOrderCard(props)
 </script>
 
 <style scoped>
