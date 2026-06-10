@@ -25,13 +25,13 @@ request.interceptors.request.use(
                 if (role.role) {
                     config.headers['X-Merchant-Role'] = role.role
                 }
-                const shopId = role.shopId || localStorage.getItem('currentShopId')
-                if (shopId) {
-                    config.headers['X-Shop-Id'] = shopId
-                }
             } catch (e) {
                 // ignore
             }
+        }
+        const currentShopId = localStorage.getItem('currentShopId')
+        if (currentShopId) {
+            config.headers['X-Shop-Id'] = currentShopId
         }
         return config
     },
