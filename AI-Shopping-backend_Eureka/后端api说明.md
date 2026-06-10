@@ -62,11 +62,11 @@
 
 | 方法 | 路径 | 作用 | 请求体/参数 |
 |------|------|------|-------------|
-| GET | `/api/user/product/all?page=0&size=10` | 分页查询可售商品列表 | `page`、`size` |
+| GET | `/api/user/product/all?page=0` | 分页查询可售商品列表 | `page` |
 | GET | `/api/user/product/{productId}` | 查询商品详情 | `productId` |
-| GET | `/api/user/product/search?name=xxx&page=0&size=10` | 按名称搜索商品 | `name`、`page`、`size` |
-| GET | `/api/user/product/shop/{shopId}?page=0&size=10` | 按店铺查询商品 | `shopId`、`page`、`size` |
-| GET | `/api/user/product/price-range?minPrice=0&maxPrice=100&page=0&size=10` | 按价格区间查询商品 | `minPrice`、`maxPrice`、`page`、`size` |
+| GET | `/api/user/product/search?name=xxx` | 按名称搜索商品 | `name` |
+| GET | `/api/user/product/shop/{shopId}` | 按店铺查询商品 | `shopId` |
+| GET | `/api/user/product/price-range?minPrice=0&maxPrice=100&page=0` | 按价格区间查询商品 | `minPrice`、`maxPrice`、`page` |
 
 ---
 

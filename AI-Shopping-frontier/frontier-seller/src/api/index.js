@@ -8,10 +8,20 @@ export { createAddress, updateAddress, deleteAddress, getAddressList, getShipDef
 export { createLogistics, getAllLogistics, getLogisticsByTrackingNumber, deleteLogistics, getLogisticsByOrder, getLatestLogisticsByOrder } from './logistics'
 
 // Order
-export { getOrderListByShop, getOrderDetail, shipOrder, approveReturn, confirmReturn } from './order'
+export {
+  getOrderListByShop,
+  getShipmentList,
+  getOrderDetail,
+  shipOrder,
+  approveReturn,
+  confirmReturn,
+  getReturnRequestsPending,
+  getReturnRequestsProcessed,
+  reviewReturnRequest
+} from './order'
 
 // Product
-export { createProduct, updateProduct, deleteProduct, getProductById, batchGetProducts, listProduct, unlistProduct } from './product'
+export { createProduct, updateProduct, deleteProduct, getProductById, batchGetProducts, listProduct, unlistProduct, getProductsByShop } from './product'
 
 // Shop
-export { getShopByMerchant, getShopDetail, getShopEmployees, registerShop, updateShop, closeShop, openShop, registerEmployee, removeEmployee } from './shop'
+export { getMyShop, createShop, getShopDetail, updateShop, closeShop, openShop } from './shop'

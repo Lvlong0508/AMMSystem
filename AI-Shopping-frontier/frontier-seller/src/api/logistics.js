@@ -7,7 +7,7 @@ import { request } from './request'
  * 物流记录由商家在发货/退货时创建，也可查询和管理
  */
 
-const LOGISTICS_BASE = '/logistics'
+const LOGISTICS_BASE = '/api/seller/logistics'
 
 /**
  * 创建物流记录

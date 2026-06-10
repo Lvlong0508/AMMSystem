@@ -8,13 +8,13 @@ export { sendMessage } from './chat'
 export { createContact, updateContact, deleteContact, getContactList, setDefaultContact } from './contact'
 
 // Product
-export { getAllProducts, getProductById, searchProducts, getProductsByPriceRange } from './product'
+export { getAllProducts, getProductById, searchProducts, getProductsByPriceRange, getProductsByShop } from './product'
 
 // Order
 export {
   placeOrder, getOrderList, getOrderById,
   cancelOrder, deleteOrder, payOrder,
-  confirmDelivery, submitReturnRequest
+  confirmDelivery, submitReturnRequest, submitReturnLogistics
 } from './order'
 
 // Shop
