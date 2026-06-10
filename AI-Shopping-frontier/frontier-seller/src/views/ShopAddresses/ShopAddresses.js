@@ -57,8 +57,12 @@ export function useShopAddresses() {
   function closeDialog() { dialogVisible.value = false }
 
   function validate() {
-    if (!form.value.name.trim()) { ElMessage.warning(T.NAME_REQUIRED); return false }
-    if (!form.value.phone.trim()) { ElMessage.warning(T.PHONE_REQUIRED); return false }
+    const name = form.value.name.trim()
+    const phone = form.value.phone.trim()
+    if (!name) { ElMessage.warning(T.NAME_REQUIRED); return false }
+    if (name.length > 20) { ElMessage.warning('收货人姓名不能超过20个字'); return false }
+    if (!phone) { ElMessage.warning(T.PHONE_REQUIRED); return false }
+    if (!/^1[3-9]\d{9}$/.test(phone)) { ElMessage.warning('请输入11位标准手机号'); return false }
     if (!form.value.region || form.value.region.length === 0) { ElMessage.warning(T.REGION_REQUIRED); return false }
     return true
   }

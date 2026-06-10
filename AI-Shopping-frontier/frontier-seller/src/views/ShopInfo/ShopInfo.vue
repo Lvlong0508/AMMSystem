@@ -16,69 +16,82 @@
       </el-button>
     </div>
 
-    <el-card v-loading="loading" shadow="never">
-      <div v-if="logoPreview" class="shop-info__logo">
-        <el-avatar :size="100" shape="circle" class="shop-info__logo-avatar">
-          <el-image :src="logoPreview" fit="cover" style="width: 100%; height: 100%" />
-        </el-avatar>
+    <el-card v-loading="loading" class="shop-info__card" shadow="never">
+      <div class="shop-info__hero">
+        <div class="shop-info__logo-panel">
+          <el-avatar :size="180" shape="circle" class="shop-info__logo-avatar">
+            <el-image v-if="logoPreview" :src="logoPreview" fit="cover" style="width: 100%; height: 100%" />
+            <span v-else>{{ (form.name || T.PAGE_TITLE).slice(0, 1) }}</span>
+          </el-avatar>
+        </div>
+        <div class="shop-info__summary">
+          <div class="shop-info__summary-head">
+            <p class="shop-info__eyebrow">STORE PROFILE</p>
+            <h3 class="shop-info__name">{{ form.name || '-' }}</h3>
+          </div>
+          <el-divider />
+          <div class="shop-info__description-block">
+            <span class="shop-info__field-label">{{ T.LABEL_DESC }}</span>
+            <p class="shop-info__description">{{ form.description || '-' }}</p>
+          </div>
+        </div>
       </div>
 
-      <el-descriptions :column="1" border>
-        <el-descriptions-item :label="T.LABEL_NAME">
-          {{ form.name || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="T.LABEL_DESC">
-          {{ form.description || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="T.LABEL_PHONE">
-          {{ form.phone || '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="T.LABEL_REGION">
-          {{ form.region.length ? form.region.join(' / ') : '-' }}
-        </el-descriptions-item>
-        <el-descriptions-item :label="T.LABEL_ADDRESS">
-          {{ form.addressDetail || '-' }}
-        </el-descriptions-item>
-      </el-descriptions>
+      <el-divider class="shop-info__section-divider" />
+
+      <div class="shop-info__details">
+        <div class="shop-info__detail-row">
+          <span class="shop-info__detail-label">{{ T.LABEL_PHONE }}</span>
+          <span class="shop-info__field-value">{{ form.phone || '-' }}</span>
+        </div>
+        <div class="shop-info__detail-row">
+          <span class="shop-info__detail-label">{{ T.LABEL_ADDRESS }}</span>
+          <span class="shop-info__field-value shop-info__field-value--address">{{ displayAddress }}</span>
+        </div>
+      </div>
     </el-card>
 
-    <el-dialog v-model="dialogVisible" :title="T.DIALOG_TITLE" width="600px">
-      <el-form label-position="top">
-        <el-form-item :label="T.LABEL_NAME">
-          <el-input v-model="editForm.name" :placeholder="T.PLACEHOLDER_NAME" :maxlength="100" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_DESC">
-          <el-input v-model="editForm.description" type="textarea" :rows="3" :placeholder="T.PLACEHOLDER_DESC" :maxlength="500" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_PHONE">
-          <el-input v-model="editForm.phone" :placeholder="T.PLACEHOLDER_PHONE" :maxlength="20" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_REGION">
-          <el-cascader
-            v-model="editForm.region"
-            :options="regionOptions"
-            :props="{ expandTrigger: 'hover' }"
-            :placeholder="T.PLACEHOLDER_REGION"
-            clearable
-            style="width: 100%"
-          />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_ADDRESS">
-          <el-input v-model="editForm.addressDetail" :placeholder="T.PLACEHOLDER_ADDRESS" :maxlength="200" />
-        </el-form-item>
-        <el-form-item :label="T.LABEL_LOGO">
-          <div class="shop-info__edit-logo">
-            <el-image
-              v-if="logoPreview && !editLogoFile"
-              :src="logoPreview"
-              class="shop-info__edit-logo-preview"
-              fit="cover"
+    <el-dialog v-model="dialogVisible" :title="T.DIALOG_TITLE" width="min(920px, calc(100vw - 32px))" class="shop-info__dialog">
+      <el-form ref="editFormRef" class="shop-info__edit-form" :model="editForm" :rules="editRules" label-position="top">
+        <div class="shop-info__edit-column shop-info__edit-column--primary">
+          <el-form-item :label="T.LABEL_LOGO">
+            <div class="shop-info__edit-logo">
+              <el-image
+                v-if="editLogoPreview || logoPreview"
+                :src="editLogoPreview || logoPreview"
+                class="shop-info__edit-logo-preview"
+                fit="cover"
+              />
+              <input ref="editLogoInputRef" type="file" accept=".jpg,.png" @change="handleEditLogoChange" />
+              <span v-if="editLogoFile" class="shop-info__edit-logo-name">{{ editLogoFile.name }}</span>
+              <el-button v-if="editLogoFile" type="danger" link @click="clearEditLogo">{{ T.BTN_CLEAR_LOGO }}</el-button>
+            </div>
+          </el-form-item>
+          <el-form-item :label="T.LABEL_NAME" prop="name">
+            <el-input v-model="editForm.name" :placeholder="T.PLACEHOLDER_NAME" :maxlength="20" show-word-limit />
+          </el-form-item>
+          <el-form-item :label="T.LABEL_DESC" prop="description">
+            <el-input v-model="editForm.description" type="textarea" :rows="6" :placeholder="T.PLACEHOLDER_DESC" :maxlength="500" show-word-limit />
+          </el-form-item>
+        </div>
+        <div class="shop-info__edit-column">
+          <el-form-item :label="T.LABEL_PHONE" prop="phone">
+            <el-input v-model="editForm.phone" :placeholder="T.PLACEHOLDER_PHONE" :maxlength="11" />
+          </el-form-item>
+          <el-form-item :label="T.LABEL_REGION">
+            <el-cascader
+              v-model="editForm.region"
+              :options="regionOptions"
+              :props="{ expandTrigger: 'hover' }"
+              :placeholder="T.PLACEHOLDER_REGION"
+              clearable
+              style="width: 100%"
             />
-            <input ref="editLogoInputRef" type="file" accept=".jpg,.png" @change="handleEditLogoChange" />
-            <span v-if="editLogoFile" class="shop-info__edit-logo-name">{{ editLogoFile.name }}</span>
-            <el-button v-if="editLogoFile" type="danger" link @click="clearEditLogo">{{ T.BTN_CLEAR_LOGO }}</el-button>
-          </div>
-        </el-form-item>
+          </el-form-item>
+          <el-form-item :label="T.LABEL_ADDRESS" prop="addressDetail">
+            <el-input v-model="editForm.addressDetail" :placeholder="T.PLACEHOLDER_ADDRESS" :maxlength="200" show-word-limit />
+          </el-form-item>
+        </div>
       </el-form>
       <template #footer>
         <el-button @click="dialogVisible = false">{{ T.BTN_CANCEL }}</el-button>
@@ -97,8 +110,8 @@ import { regionData } from 'element-china-area-data'
 const regionOptions = regionData
 
 const {
-  T, form, loading, saving, toggling, shopStatus, logoPreview,
-  dialogVisible, editForm, editLogoFile, editLogoInputRef,
+  T, form, displayAddress, loading, saving, toggling, shopStatus, logoPreview,
+  dialogVisible, editFormRef, editForm, editRules, editLogoFile, editLogoPreview, editLogoInputRef,
   openEditDialog, handleEditSave, handleEditLogoChange, clearEditLogo, handleToggleStatus
 } = useShopInfo()
 </script>

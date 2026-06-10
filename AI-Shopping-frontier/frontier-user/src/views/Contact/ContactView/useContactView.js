@@ -1,6 +1,6 @@
 import { ref, onMounted, nextTick } from 'vue'
 import { getContactList, setDefaultContact, deleteContact, createContact } from '@/api/contact'
-import { showSuccess, showError } from '@/utils/swal'
+import { showSuccess, showError, showWarning } from '@/utils/swal'
 
 export function useContactView() {
   const contacts = ref([])
@@ -59,9 +59,18 @@ export function useContactView() {
     const phone = formPhone.value.trim()
     const address = formAddr.value.trim()
     if (!name || !phone || !address) {
-      formError.value = '请填写完整信息'
+      showWarning('请填写完整信息')
       return
     }
+    if (name.length > 20) {
+      showWarning('收件人姓名不能超过20个字')
+      return
+    }
+    if (!/^1[3-9]\d{9}$/.test(phone)) {
+      showWarning('请输入11位标准手机号')
+      return
+    }
+    formError.value = ''
     formSubmitting.value = true
     formError.value = ''
     try {

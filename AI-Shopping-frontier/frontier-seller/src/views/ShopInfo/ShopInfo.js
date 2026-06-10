@@ -1,4 +1,4 @@
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getShopDetail, updateShop, closeShop, openShop } from '@/api/shop'
@@ -16,6 +16,7 @@ export function useShopInfo() {
   const logoFile = ref(null)
   const logoPreview = ref('')
   const dialogVisible = ref(false)
+  const editFormRef = ref(null)
   const editForm = reactive({
     name: '',
     description: '',
@@ -24,6 +25,7 @@ export function useShopInfo() {
     addressDetail: ''
   })
   const editLogoFile = ref(null)
+  const editLogoPreview = ref('')
   const editLogoInputRef = ref(null)
 
   const form = reactive({
@@ -33,6 +35,24 @@ export function useShopInfo() {
     region: [],
     addressDetail: ''
   })
+
+  const displayAddress = computed(() => buildAddressString(form.region, form.addressDetail) || '-')
+
+  const editRules = {
+    name: [
+      { required: true, message: '店铺名称不能为空', trigger: 'blur' },
+      { max: 20, message: '店铺名称不能超过20个字', trigger: 'blur' }
+    ],
+    description: [
+      { max: 500, message: '店铺简介不能超过500个字', trigger: 'blur' }
+    ],
+    phone: [
+      { pattern: /^$|^1[3-9]\d{9}$/, message: '请输入11位标准手机号', trigger: 'blur' }
+    ],
+    addressDetail: [
+      { max: 200, message: '店铺地址不能超过200个字', trigger: 'blur' }
+    ]
+  }
 
   const ALLOWED_EXTENSIONS = ['jpg', 'png']
 
@@ -62,6 +82,13 @@ export function useShopInfo() {
     }
   }
 
+  function revokeEditLogoPreview() {
+    if (editLogoPreview.value) {
+      URL.revokeObjectURL(editLogoPreview.value)
+      editLogoPreview.value = ''
+    }
+  }
+
   function openEditDialog() {
     editForm.name = form.name
     editForm.description = form.description
@@ -69,13 +96,14 @@ export function useShopInfo() {
     editForm.region = [...form.region]
     editForm.addressDetail = form.addressDetail
     editLogoFile.value = null
+    revokeEditLogoPreview()
     dialogVisible.value = true
   }
 
   function handleEditLogoChange(e) {
     const file = e.target.files[0]
     if (!file) {
-      editLogoFile.value = null
+      clearEditLogo()
       return
     }
     const ext = getExtension(file.name)
@@ -84,11 +112,14 @@ export function useShopInfo() {
       clearEditLogo()
       return
     }
+    revokeEditLogoPreview()
     editLogoFile.value = file
+    editLogoPreview.value = URL.createObjectURL(file)
   }
 
   function clearEditLogo() {
     editLogoFile.value = null
+    revokeEditLogoPreview()
     if (editLogoInputRef.value) {
       editLogoInputRef.value.value = ''
     }
@@ -149,6 +180,10 @@ export function useShopInfo() {
   }
 
   async function handleEditSave() {
+    if (editFormRef.value) {
+      const valid = await editFormRef.value.validate().catch(() => false)
+      if (!valid) return
+    }
     saving.value = true
     try {
       const fd = new FormData()
@@ -172,6 +207,7 @@ export function useShopInfo() {
       if (editLogoFile.value) {
         loadShopInfo()
       }
+      clearEditLogo()
       dialogVisible.value = false
     } catch (e) {
       ElMessage.error(T.SAVE_FAILED)
@@ -201,8 +237,8 @@ export function useShopInfo() {
   onMounted(loadShopInfo)
 
   return {
-    T, form, loading, saving, toggling, shopStatus, logoPreview,
-    dialogVisible, editForm, editLogoFile, editLogoInputRef,
+    T, form, displayAddress, loading, saving, toggling, shopStatus, logoPreview,
+    dialogVisible, editFormRef, editForm, editRules, editLogoFile, editLogoPreview, editLogoInputRef,
     openEditDialog, handleEditSave, handleEditLogoChange, clearEditLogo,
     handleToggleStatus
   }
