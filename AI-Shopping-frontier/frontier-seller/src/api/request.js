@@ -1,4 +1,4 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 import { ElMessageBox } from 'element-plus'
 
 export const request = axios.create({
@@ -25,8 +25,9 @@ request.interceptors.request.use(
                 if (role.role) {
                     config.headers['X-Merchant-Role'] = role.role
                 }
-                if (role.shopId) {
-                    config.headers['X-Shop-Id'] = role.shopId
+                const shopId = role.shopId || localStorage.getItem('currentShopId')
+                if (shopId) {
+                    config.headers['X-Shop-Id'] = shopId
                 }
             } catch (e) {
                 // ignore
@@ -55,3 +56,4 @@ request.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
