@@ -25,7 +25,7 @@ export function useShopAddresses() {
     loading.value = true
     try {
       const res = await getAddressList()
-      addresses.value = res?.data ? (Array.isArray(res.data) ? res.data : []) : []
+      addresses.value = res?.data?.addresses || []
     } catch (e) {
       ElMessage.error('加载失败')
       addresses.value = []
