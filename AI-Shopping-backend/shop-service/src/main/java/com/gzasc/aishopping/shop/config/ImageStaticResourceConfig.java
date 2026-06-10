@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class ImageStaticResourceConfig implements WebMvcConfigurer {
 
-    @Value("${app.image.resource-location:file:./AI-Shopping-backend_Eureka/static/image/}")
+    @Value("${app.image.resource-location:file:./AI-Shopping-backend/static/image/}")
     private String resourceLocation;
 
     @Override

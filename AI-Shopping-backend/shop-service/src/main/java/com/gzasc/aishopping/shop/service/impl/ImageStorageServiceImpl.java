@@ -26,7 +26,7 @@ public class ImageStorageServiceImpl implements ImageStorageService {
     @Value("${app.image.base-url:http://localhost:8087}")
     private String imageBaseUrl;
 
-    public ImageStorageServiceImpl(@Value("${app.image.storage-path:./AI-Shopping-backend_Eureka/static/image/shop/logo}") String storagePath) {
+    public ImageStorageServiceImpl(@Value("${app.image.storage-path:./AI-Shopping-backend/static/image/shop/logo}") String storagePath) {
         this.storagePath = Paths.get(storagePath).toAbsolutePath().normalize();
     }
 
