@@ -14,9 +14,11 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
-eureka:
-  client:
-    enabled: false
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
 ip-rate-limit:
   max-requests: 300
   time-window-seconds: 60

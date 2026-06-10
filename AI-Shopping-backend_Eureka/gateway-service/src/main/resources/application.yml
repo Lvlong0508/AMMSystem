@@ -131,6 +131,9 @@ spring:
           uri: lb://shop-service
           predicates:
             - Path=/api/user/shop/**
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
 
 # Sa-Token配置 (与auth-service保持一致)
 sa-token:
@@ -149,14 +152,6 @@ sa-token:
 ip-rate-limit:
   max-requests: 300
   time-window-seconds: 60
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://admin:admin@localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
 logging:
   level:

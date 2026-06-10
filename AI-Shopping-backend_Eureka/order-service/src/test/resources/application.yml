@@ -10,9 +10,11 @@ spring:
     config:
       enabled: false
 
-eureka:
-  client:
-    enabled: false
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
 
 mybatis:
   type-aliases-package: com.gzasc.aishopping.order.model

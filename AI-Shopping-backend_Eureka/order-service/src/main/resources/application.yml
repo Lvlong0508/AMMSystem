@@ -1,4 +1,4 @@
-# ============================================================
+﻿﻿# ============================================================
 # Order Service 基础配置
 # ============================================================
 server:
@@ -10,7 +10,7 @@ server:
 # ============================================================
 spring:
   application:
-    # 注册到 Eureka 的服务名
+    # 注册到 Nacos 的服务名
     name: order-service
 
   datasource:
@@ -32,6 +32,10 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
 
 # ============================================================
 # MyBatis 配置
@@ -45,17 +49,6 @@ mybatis:
     default-executor-type: simple
     # 开发期打印 SQL；生产环境可按需关闭
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-
-# ============================================================
-# Eureka 注册中心配置
-# ============================================================
-eureka:
-  client:
-    service-url:
-      defaultZone: http://admin:admin@localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
 
 # ============================================================
 # 订单业务配置
@@ -91,3 +84,4 @@ feign:
 logging:
   level:
     com.gzasc.aishopping.order: info
+

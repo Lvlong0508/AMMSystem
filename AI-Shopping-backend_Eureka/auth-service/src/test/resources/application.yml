@@ -20,9 +20,11 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
 
-eureka:
-  client:
-    enabled: false
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
 
 sa-token:
   token-name: satoken

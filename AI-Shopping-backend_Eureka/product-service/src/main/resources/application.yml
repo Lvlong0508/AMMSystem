@@ -1,4 +1,4 @@
-# ============================================================
+﻿﻿# ============================================================
 # Product Service 基础配置
 # ============================================================
 server:
@@ -10,7 +10,7 @@ server:
 # ============================================================
 spring:
   application:
-    # 注册到 Eureka 的服务名
+    # 注册到 Nacos 的服务名
     name: product-service
 
   datasource:
@@ -25,6 +25,10 @@ spring:
       # Spring Multipart 上传限制，需大于等于业务图片限制 app.image.max-file-size
       max-file-size: 10MB
       max-request-size: 10MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
 
 # ============================================================
 # 业务参数配置
@@ -48,17 +52,6 @@ mybatis:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 # ============================================================
-# Eureka 注册中心配置
-# ============================================================
-eureka:
-  client:
-    service-url:
-      defaultZone: http://admin:admin@localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
-
-# ============================================================
 # 应用自定义配置
 # ============================================================
 app:
@@ -80,3 +73,4 @@ app:
       fixed-rate: 120000
       # 运行时动态读取开关的 yml 文件路径
       config-path: src/main/resources/application.yml
+

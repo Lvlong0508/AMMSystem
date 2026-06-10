@@ -11,11 +11,13 @@ spring:
     init:
       mode: always
   autoconfigure:
-    exclude: org.springframework.cloud.netflix.eureka.EurekaClientAutoConfiguration,org.springframework.cloud.client.discovery.simple.SimpleDiscoveryClientAutoConfiguration
+    exclude: com.alibaba.cloud.nacos.NacosDiscoveryAutoConfiguration
 
-eureka:
-  client:
-    enabled: false
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
 
 order:
   timeout:

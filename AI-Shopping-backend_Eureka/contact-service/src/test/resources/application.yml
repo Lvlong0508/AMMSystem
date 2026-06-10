@@ -16,8 +16,8 @@ mybatis:
     map-underscore-to-camel-case: true
     default-executor-type: simple
 
-eureka:
-  client:
-    enabled: false
-    register-with-eureka: false
-    fetch-registry: false
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false

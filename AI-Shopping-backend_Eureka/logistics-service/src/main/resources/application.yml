@@ -9,16 +9,12 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
     password: 123456
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
 
 mybatis:
   type-aliases-package: com.gzasc.aishopping.logistics.model
   configuration:
     map-underscore-to-camel-case: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://admin:admin@localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true
-    instance-id: ${spring.application.name}:${server.port}
