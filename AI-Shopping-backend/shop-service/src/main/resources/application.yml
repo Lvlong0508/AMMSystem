@@ -1,0 +1,36 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: shop-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/eureka_shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: ${DB_PASSWORD:123456}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
+
+mybatis:
+  type-aliases-package: com.gzasc.aishopping.shop.model
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  image:
+    base-url: http://localhost:8087
+    storage-path: ${project.root:./AI-Shopping-backend}/static/image/shop/logo
+    resource-location: file:${project.root:./AI-Shopping-backend}/static/image/
