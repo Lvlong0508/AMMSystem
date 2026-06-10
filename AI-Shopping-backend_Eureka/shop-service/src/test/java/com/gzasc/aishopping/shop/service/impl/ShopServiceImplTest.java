@@ -105,8 +105,9 @@ class ShopServiceImplTest {
 
         Shop existingShop = new Shop(shopId, userId, 10L, 1, null, null);
         when(shopMapper.selectShopById(shopId)).thenReturn(existingShop);
+        when(shopInfoService.getById(10L)).thenReturn(new ShopInfo(10L, "旧店铺名", "旧描述", "old-logo", null, null));
 
-        shopService.updateShop(shopId, request, userId);
+        shopService.updateShop(shopId, request, userId, null);
 
         verify(shopInfoService).update(argThat(si ->
                 "新店铺名".equals(si.getName()) &&
@@ -126,7 +127,7 @@ class ShopServiceImplTest {
         when(shopMapper.selectShopById(shopId)).thenReturn(existingShop);
 
         ShopException ex = assertThrows(ShopException.class,
-                () -> shopService.updateShop(shopId, request, userId));
+                () -> shopService.updateShop(shopId, request, userId, null));
         assertEquals("无权操作该店铺", ex.getMessage());
     }
 
@@ -139,7 +140,7 @@ class ShopServiceImplTest {
         when(shopMapper.selectShopById(shopId)).thenReturn(null);
 
         ShopException ex = assertThrows(ShopException.class,
-                () -> shopService.updateShop(shopId, new UpdateShopRequest(), userId));
+                () -> shopService.updateShop(shopId, new UpdateShopRequest(), userId, null));
         assertEquals("店铺不存在", ex.getMessage());
     }
 
@@ -154,7 +155,7 @@ class ShopServiceImplTest {
         when(shopMapper.selectShopById(shopId)).thenReturn(new Shop(shopId, userId, 10L, 1, null, null));
 
         ShopException ex = assertThrows(ShopException.class,
-                () -> shopService.updateShop(shopId, request, userId));
+                () -> shopService.updateShop(shopId, request, userId, null));
         assertEquals("店铺名称不能为空", ex.getMessage());
 
         verify(shopInfoService, never()).update(any());

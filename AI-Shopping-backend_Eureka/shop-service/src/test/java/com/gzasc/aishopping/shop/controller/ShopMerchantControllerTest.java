@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
@@ -122,17 +122,20 @@ class ShopMerchantControllerTest {
     @Test
     @DisplayName("更新店铺成功")
     void updateShop_success() throws Exception {
-        mockMvc.perform(put("/api/seller/shop/1")
-                        .header("X-User-Id", 1001L)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"name":"新店铺","description":"新描述","logoId":"new-logo"}
-                                """))
+        MockMultipartFile shopPart = new MockMultipartFile(
+                "shop", "", "application/json",
+                """{"name":"新店铺","description":"新描述","logoId":"new-logo"}""".getBytes()
+        );
+
+        mockMvc.perform(multipart("/api/seller/shop/1")
+                        .file(shopPart)
+                        .with(request -> { request.setMethod("PUT"); return request; })
+                        .header("X-User-Id", 1001L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("更新店铺成功"));
 
-        verify(shopService).updateShop(eq(1L), any(UpdateShopRequest.class), eq(1001L));
+        verify(shopService).updateShop(eq(1L), any(UpdateShopRequest.class), eq(1001L), isNull());
     }
 
     // ========== 关闭/开启店铺 ==========
