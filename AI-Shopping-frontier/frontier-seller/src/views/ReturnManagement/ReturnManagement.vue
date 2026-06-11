@@ -44,7 +44,7 @@
           </div>
         </div>
         <div v-if="item.status === 'applying'" class="return-card__actions">
-          <el-button type="warning" size="small" @click="handleApprove(item)">
+          <el-button type="warning" @click="handleApprove(item)">
             {{ T.BTN_APPROVE }}
           </el-button>
         </div>
