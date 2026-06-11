@@ -94,12 +94,12 @@ function reset() {
   selectedContactId.value = ''
 }
 
-watch(() => props.visible, (v) => {
-  if (v && props.contacts.length > 0) {
+watch([() => props.visible, () => props.contacts], () => {
+  if (props.visible && props.contacts.length > 0 && !selectedContactId.value) {
     const defaultContact = props.contacts.find(c => c.isDefault)
     selectedContactId.value = defaultContact ? defaultContact.id : props.contacts[0].id
   }
-  if (!v) reset()
+  if (!props.visible) reset()
 })
 </script>
 
