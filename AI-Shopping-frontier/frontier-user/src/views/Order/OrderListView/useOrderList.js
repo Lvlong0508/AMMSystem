@@ -83,7 +83,7 @@ export function useOrderList() {
     payingOrder.value = null
   }
 
-  const handleViewLogistics = (order) => {}
+  const handleViewLogistics = (order) => { router.push(`/order/${order.orderId}`) }
 
   const handleConfirm = async (order) => {
     const result = await showConfirm('确认收货', '确认已收到商品？', '确认收货', '再想想')
