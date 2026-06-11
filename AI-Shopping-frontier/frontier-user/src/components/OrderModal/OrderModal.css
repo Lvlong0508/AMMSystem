@@ -2,26 +2,27 @@
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 1000;
   background: rgba(0, 0, 0, 0.4);
 }
 
 .order-modal {
-  width: 100%;
+  width: 90%;
   max-width: 480px;
   background: #fff;
-  border-radius: 16px 16px 0 0;
-  animation: orderModalSlideUp 0.3s ease-out;
+  border-radius: 16px;
+  animation: orderModalScaleIn 0.25s ease-out;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
-@keyframes orderModalSlideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
+@keyframes orderModalScaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .order-modal__header {

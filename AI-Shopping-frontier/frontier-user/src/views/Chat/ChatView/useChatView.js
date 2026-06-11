@@ -15,6 +15,7 @@ export function useChatView() {
   const showOrderModal = ref(false)
   const showPaymentModal = ref(false)
   const placedOrderId = ref('')
+  const placedOrder = ref(null)
 
   watch(newChatCounter, () => {
     messages.value = []
@@ -68,21 +69,24 @@ export function useChatView() {
     showOrderModal.value = true
   }
 
-  const onOrderPlaced = (orderId) => {
+  const onOrderPlaced = (order) => {
     showOrderModal.value = false
-    placedOrderId.value = orderId
+    placedOrderId.value = order.orderId
+    placedOrder.value = order
     showPaymentModal.value = true
   }
 
   const onPaymentSuccess = () => {
     showPaymentModal.value = false
     placedOrderId.value = ''
+    placedOrder.value = null
     selectedProduct.value = null
   }
 
   const onPayLater = () => {
     showPaymentModal.value = false
     placedOrderId.value = ''
+    placedOrder.value = null
     selectedProduct.value = null
   }
 
@@ -103,6 +107,7 @@ export function useChatView() {
     showPaymentModal,
     selectedProduct,
     placedOrderId,
+    placedOrder,
     onOrderPlaced,
     onPaymentSuccess,
     onPayLater

@@ -65,15 +65,16 @@
   margin: 0;
 }
 .chat-view__bubble-wrap {
-  max-width: 85%;
   animation: fadeSlideUp 300ms ease-out both;
 }
 .chat-view__bubble-wrap--user {
   align-self: flex-end;
+  max-width: 85%;
   flex-direction: row-reverse;
 }
 .chat-view__bubble-wrap--ai {
-  align-self: flex-start;
+  align-self: stretch;
+  width: 100%;
 }
 .chat-view__bubble {
   padding: 14px 20px;
@@ -93,16 +94,42 @@
   color: #fff;
   border-radius: 20px 4px 20px 20px;
 }
+.chat-view__ai-response {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  padding: 8px 28px 2px;
+}
+.chat-view__ai-text {
+  color: #0F172A;
+  font-size: 18px;
+  line-height: 1.75;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-view__data-divider {
+  height: 1px;
+  margin: 22px 0 20px;
+  background: #E2E8F0;
+}
 .chat-view__product-row {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 12px;
-  margin-top: 16px;
+}
+.chat-view__loading {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  animation: fadeSlideUp 300ms ease-out both;
 }
 .chat-view__typing {
   display: flex;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 0;
+  padding: 12px 0;
 }
 .chat-view__dot {
   width: 10px;

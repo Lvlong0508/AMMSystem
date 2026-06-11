@@ -368,14 +368,16 @@ public class OrderServiceImpl implements OrderService {
             .map(id -> {
                 try {
                     ApiResponse<ShopInfoDTO> resp = shopFeignClient.getShopInfo(Long.valueOf(id));
-                    return resp != null ? resp.getData() : null;
+                    if (resp != null && resp.getData() != null) {
+                        return Map.entry(Long.valueOf(id), resp.getData());
+                    }
                 } catch (Exception e) {
                     log.warn("获取店铺信息失败, shopId={}", id, e);
-                    return null;
                 }
+                return null;
             })
             .filter(Objects::nonNull)
-            .collect(Collectors.toMap(ShopInfoDTO::getId, s -> s, (a, b) -> a));
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a));
     }
 
     private Map<Integer, ContactDTO> buildContactMap(List<Order> orders) {

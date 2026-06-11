@@ -22,24 +22,21 @@
                 <span class="payment-modal__summary-label">{{ T.ORDER_ID }}</span>
                 <span class="payment-modal__summary-value">{{ orderId }}</span>
               </div>
-              <div class="payment-modal__summary-row">
-                <span class="payment-modal__summary-label">商品</span>
-                <span class="payment-modal__summary-value">{{ order?.productName || '-' }}</span>
-              </div>
-              <div class="payment-modal__summary-row">
-                <span class="payment-modal__summary-label">数量</span>
-                <span class="payment-modal__summary-value">x{{ order?.quantity || '-' }}</span>
+              <div class="payment-modal__product-summary">
+                <img v-if="productImage" class="payment-modal__product-img" :src="productImage" :alt="order.productName" />
+                <div v-else class="payment-modal__product-img-placeholder">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+                </div>
+                <div class="payment-modal__product-info">
+                  <span class="payment-modal__product-name">{{ order?.productName || '-' }}</span>
+                  <span class="payment-modal__product-quantity">x{{ order?.quantity || '-' }}</span>
+                </div>
               </div>
               <div class="payment-modal__summary-divider"></div>
               <div class="payment-modal__total-row">
                 <span class="payment-modal__total-label">{{ T.TOTAL }}</span>
-                <span class="payment-modal__total-amount">¥{{ (order?.totalPrice || 0).toFixed(2) }}</span>
+                <span class="payment-modal__total-amount">¥{{ Number(order?.totalPrice || 0).toFixed(2) }}</span>
               </div>
-            </div>
-
-            <div v-if="remainingMinutes <= 10" class="payment-modal__timeout">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              <span>{{ T.TIMEOUT_WARNING.replace('{minutes}', remainingMinutes) }}</span>
             </div>
 
             <span class="payment-modal__section-label">{{ T.PAY_METHOD }}</span>
@@ -80,13 +77,12 @@ import { usePaymentModal } from './usePaymentModal'
 const props = defineProps({
   visible: { type: Boolean, default: false },
   orderId: { type: String, default: '' },
-  order: { type: Object, default: null },
-  orderDate: { type: [String, Date], default: null }
+  order: { type: Object, default: null }
 })
 
-const emit = defineEmits(['close', 'pay-success', 'pay-later', 'timeout'])
+const emit = defineEmits(['close', 'pay-success', 'pay-later'])
 
-const { selectedMethod, paying, paid, methods, remainingMinutes, handlePay, handlePayLater } = usePaymentModal(props, { emit })
+const { selectedMethod, paying, paid, methods, handlePay, handlePayLater, productImage } = usePaymentModal(props, { emit })
 </script>
 
 <style scoped>

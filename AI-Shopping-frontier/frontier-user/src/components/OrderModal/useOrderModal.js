@@ -34,7 +34,13 @@ export function useOrderModal(props, { emit }) {
     submitting.value = true
     try {
       const oid = await placeOrder({ productId: props.product.id, quantity: quantity.value, contactId: selectedContactId.value })
-      emit("order-placed", oid)
+      emit("order-placed", {
+        orderId: oid,
+        productName: props.product.name,
+        imageUrl: props.product.imageUrl,
+        quantity: quantity.value,
+        totalPrice: totalPrice.value,
+      })
     } catch (e) { showError(e.message || "下单失败") }
     finally { submitting.value = false }
   }

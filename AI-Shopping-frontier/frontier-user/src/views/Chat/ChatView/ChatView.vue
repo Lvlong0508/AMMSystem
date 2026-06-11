@@ -16,8 +16,13 @@
           :class="[msg.role === 'user' ? 'chat-view__bubble-wrap--user' : 'chat-view__bubble-wrap--ai']"
           :style="{ animationDelay: `${idx * 0.1}s` }"
       >
-        <div class="chat-view__bubble" :class="msg.role === 'user' ? 'chat-view__bubble--user' : 'chat-view__bubble--ai'">
+        <div v-if="msg.role === 'user'" class="chat-view__bubble chat-view__bubble--user">
           {{ msg.text }}
+        </div>
+
+        <div v-else class="chat-view__ai-response">
+          <div class="chat-view__ai-text">{{ msg.text }}</div>
+          <div v-if="msg.products && msg.products.length" class="chat-view__data-divider"></div>
           <div v-if="msg.products && msg.products.length" class="chat-view__product-row">
             <ProductCard
                 v-for="p in msg.products"
@@ -31,13 +36,11 @@
         </div>
       </div>
 
-      <div v-if="loading" class="chat-view__bubble-wrap chat-view__bubble-wrap--ai">
-        <div class="chat-view__bubble chat-view__bubble--ai">
-          <div class="chat-view__typing">
-            <span class="chat-view__dot"></span>
-            <span class="chat-view__dot"></span>
-            <span class="chat-view__dot"></span>
-          </div>
+      <div v-if="loading" class="chat-view__loading">
+        <div class="chat-view__typing">
+          <span class="chat-view__dot"></span>
+          <span class="chat-view__dot"></span>
+          <span class="chat-view__dot"></span>
         </div>
       </div>
     </div>
@@ -63,7 +66,7 @@
     </div>
 
     <OrderModal :visible="showOrderModal" :product="selectedProduct" @close="showOrderModal = false" @order-placed="onOrderPlaced" />
-    <PaymentModal :visible="showPaymentModal" :orderId="placedOrderId" :order="selectedProduct" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
+    <PaymentModal :visible="showPaymentModal" :orderId="placedOrderId" :order="placedOrder" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
   </div>
 </template>
 
@@ -75,7 +78,7 @@ import IInput from '@/components/IInput/IInput.vue'
 import OrderModal from '@/components/OrderModal/OrderModal.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, placedOrder, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
 </script>
 
 <style scoped>

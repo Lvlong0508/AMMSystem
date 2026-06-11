@@ -1,26 +1,9 @@
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed } from 'vue'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 
 const PROGRESS_LABEL = '已完成'
 
 export function useOrderCard(props) {
-  const remainingMinutes = ref(0)
-  let timer = null
-
-  const updateCountdown = () => {
-    if (!props.order?.orderDate) return
-    const elapsed = Math.floor((Date.now() - new Date(props.order.orderDate).getTime()) / 60000)
-    remainingMinutes.value = Math.max(0, 30 - elapsed)
-  }
-
-  onMounted(() => {
-    if (props.order?.orderStatus === 'PENDING' && props.order?.orderDate) {
-      updateCountdown()
-      timer = setInterval(updateCountdown, 60000)
-    }
-  })
-
-  onUnmounted(() => { if (timer) clearInterval(timer) })
   const formatDate = (date) => {
     if (!date) return '-'
     const d = new Date(date)
@@ -52,5 +35,5 @@ export function useOrderCard(props) {
     return `${idx + 1}/${statusOrder.length} ${PROGRESS_LABEL}`
   })
 
-  return { formatDate, timelineProgress, steps, remainingMinutes }
+  return { formatDate, timelineProgress, steps }
 }
