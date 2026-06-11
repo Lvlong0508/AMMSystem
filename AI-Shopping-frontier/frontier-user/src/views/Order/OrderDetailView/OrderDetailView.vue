@@ -133,7 +133,7 @@ watch(logisticsVisible, (v) => {
   inset: 0;
   background: rgba(15,23,42,0.4);
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
   z-index: 1000;
   animation: fadeIn 250ms ease-out;
@@ -142,9 +142,9 @@ watch(logisticsVisible, (v) => {
   width: 100%;
   max-width: 500px;
   background: #fff;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 40px 32px calc(env(safe-area-inset-bottom) + 24px);
-  animation: slideUp 300ms ease-out;
+  border-radius: var(--radius-xl);
+  padding: 40px 32px 32px;
+  animation: fadeIn 300ms ease-out;
 }
 .action-sheet__content {
   text-align: center;
@@ -189,10 +189,6 @@ watch(logisticsVisible, (v) => {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
-}
-@keyframes slideUp {
-  from { transform: translateY(100%); }
-  to { transform: translateY(0); }
 }
 @keyframes shimmer {
   0% { background-position: 200% 0; }
