@@ -101,10 +101,10 @@ public class SellerProductServiceImpl implements SellerProductService {
     public int deleteProduct(Long productId) {
         Product product = productMapper.selectProductById(productId);
         if (product == null) {
-            throw new ProductException(404, "商品不存在 " + productId);
+            throw new ProductException(404, "商品不存在");
         }
         if (product.isSale()) {
-            throw new ProductException(400, "商品在上架中，请先下架 " + productId);
+            throw new ProductException(400, "商品在上架中，请先下架");
         }
 
         // 删除磁盘上的图片文件夹

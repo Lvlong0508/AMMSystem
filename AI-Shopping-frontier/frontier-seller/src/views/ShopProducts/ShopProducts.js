@@ -215,7 +215,7 @@ export function useShopProducts() {
         ElMessage.error(res?.message || '删除失败')
       }
     } catch (e) {
-      ElMessage.error('删除失败')
+      ElMessage.error(e.response?.data?.message || '删除失败')
     }
   }
 
