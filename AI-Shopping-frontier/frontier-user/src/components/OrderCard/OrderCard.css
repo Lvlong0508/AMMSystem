@@ -30,8 +30,8 @@
   gap: 8px;
 }
 .order-card__shop-logo {
-  width: 24px;
-  height: 24px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
@@ -221,6 +221,51 @@
 .order-card--detail .order-card__contact-addr {
   margin: 4px 0 0;
   color: var(--color-text-secondary);
+}
+
+
+/* 顶部行：状态 + 地址 */
+.order-card--detail .order-card__top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 20px 24px 0;
+  gap: 16px;
+}
+.order-card--detail .order-card__top-left {
+  flex-shrink: 0;
+}
+.order-card--detail .order-card__top-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 20px;
+  color: var(--color-text-primary);
+  text-align: right;
+  margin-left: auto;
+}
+.order-card--detail .order-card__top-right svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: var(--color-text-tertiary);
+}
+.order-card--detail .order-card__top-contact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+.order-card--detail .order-card__top-contact .order-card__contact-name {
+  font-weight: 600;
+}
+.order-card--detail .order-card__top-contact .order-card__contact-phone {
+  color: var(--color-text-secondary);
+}
+.order-card--detail .order-card__top-contact .order-card__contact-addr {
+  color: var(--color-text-secondary);
+  margin: 0;
 }
 
 /* 详情分段 */

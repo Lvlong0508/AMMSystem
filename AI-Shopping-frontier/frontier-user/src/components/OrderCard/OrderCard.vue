@@ -56,20 +56,20 @@
   
   <div v-else class="order-card order-card--detail">
     <!-- 状态行 + 地址行 -->
-    <div class="order-card__detail-row" v-if="order.orderStatus">
-      <StatusTag :status="order.orderStatus" />
-    </div>
-    <div class="order-card__address" v-if="order.contactName">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <div>
-        <span class="order-card__contact-name">{{ order.contactName }}</span>
-        <span class="order-card__contact-phone">{{ order.contactPhone }}</span>
-        <p class="order-card__contact-addr">{{ order.contactAddress }}</p>
+    <div class="order-card__top-row" v-if="order.orderStatus || order.contactName">
+      <div class="order-card__top-left" v-if="order.orderStatus">
+        <StatusTag :status="order.orderStatus" />
+      </div>
+      <div class="order-card__top-right" v-if="order.contactName">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <div class="order-card__top-contact">
+          <span class="order-card__contact-name">{{ order.contactName }}</span>
+          <span class="order-card__contact-phone">{{ order.contactPhone }}</span>
+          <p class="order-card__contact-addr">{{ order.contactAddress }}</p>
+        </div>
       </div>
     </div>
-
-    <div class="order-card__divider" v-if="order.contactName || order.orderStatus"></div>
-
+    <div class="order-card__divider"></div>
     <!-- 店铺信息 -->
     <div class="order-card__shop-section" v-if="order.shopName">
       <div class="order-card__shop-info">
@@ -163,4 +163,5 @@ const { formatDate, timelineProgress, steps } = useOrderCard(props)
 <style scoped>
 @import './OrderCard.css';
 </style>
+
 
