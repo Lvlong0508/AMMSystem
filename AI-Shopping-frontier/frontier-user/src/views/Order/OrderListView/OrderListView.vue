@@ -43,6 +43,13 @@
 
     <PaymentModal :visible="showPaymentModal" :orderId="payingOrder?.orderId" :order="payingOrder" :orderDate="payingOrder?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
     <LogisticsModal :visible="logisticsVisible" :loading="logisticsLoading" :logisticsList="logisticsList" @close="logisticsVisible = false" />
+    <ReturnLogisticsModal
+      :visible="showReturnLogisticsModal"
+      :contacts="contacts"
+      :loading-address="loadingAddress"
+      @close="showReturnLogisticsModal = false"
+      @submit="onLogisticsSubmit"
+    />
   </div>
 </template>
 
@@ -53,6 +60,7 @@ import { useOrderList } from './useOrderList'
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 import LogisticsModal from '@/components/LogisticsModal/LogisticsModal.vue'
+import ReturnLogisticsModal from '@/components/ReturnLogisticsModal/ReturnLogisticsModal.vue'
 import { useLogisticsModal } from '@/components/LogisticsModal/useLogisticsModal'
 
 const {
@@ -69,6 +77,11 @@ const {
   handleConfirm,
   handleReturn,
   handleSubmitLogistics,
+  onLogisticsSubmit,
+  returnLogisticsOrder,
+  showReturnLogisticsModal,
+  contacts,
+  loadingAddress,
   payingOrder,
   showPaymentModal,
   onPaymentSuccess,

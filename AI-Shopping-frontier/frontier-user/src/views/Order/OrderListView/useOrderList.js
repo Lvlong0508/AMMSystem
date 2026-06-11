@@ -2,6 +2,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder, submitReturnRequest, submitReturnLogistics } from '@/api/order'
 import { getContactList } from '@/api/contact'
+import ReturnLogisticsModal from '@/components/ReturnLogisticsModal/ReturnLogisticsModal.vue'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 import Swal from 'sweetalert2'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
@@ -132,42 +133,32 @@ export function useOrderList() {
     }
   }
 
+  const returnLogisticsOrder = ref(null)
+  const showReturnLogisticsModal = ref(false)
+  const contacts = ref([])
+  const loadingAddress = ref(false)
+
   const handleSubmitLogistics = async (order) => {
-    let contacts = []
+    returnLogisticsOrder.value = order
+    showReturnLogisticsModal.value = true
+    loadingAddress.value = true
     try {
       const res = await getContactList()
-      contacts = res?.data?.contacts || res?.contacts || []
-    } catch {}
+      contacts.value = res?.data?.contacts || res?.contacts || []
+    } catch {
+      contacts.value = []
+    } finally {
+      loadingAddress.value = false
+    }
+  }
 
-    const { value: formValues } = await Swal.fire({
-      title: '填写退货物流',
-      html: `
-        <div style="text-align:left">
-          <label style="display:block;margin-bottom:4px;font-weight:500">快递单号</label>
-          <input id="swal-tracking" class="swal2-input" placeholder="请输入快递单号" style="width:100%;box-sizing:border-box">
-          <label style="display:block;margin:12px 0 4px;font-weight:500">选择地址</label>
-          <select id="swal-contact" class="swal2-input" style="width:100%;box-sizing:border-box">
-            ${contacts.map(c => `<option value="${c.id}">${c.name} ${c.phone} - ${c.address}</option>`).join('')}
-          </select>
-        </div>
-      `,
-      showCancelButton: true,
-      confirmButtonText: '提交',
-      cancelButtonText: '取消',
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#6b7280',
-      preConfirm: () => {
-        const tracking = document.getElementById('swal-tracking').value.trim()
-        const contactId = document.getElementById('swal-contact').value
-        if (!tracking) return Swal.showValidationMessage('请输入快递单号')
-        if (!contactId) return Swal.showValidationMessage('请选择地址')
-        return { trackingNumber: tracking, contactId: Number(contactId) }
-      }
-    })
-    if (!formValues) return
+  const onLogisticsSubmit = async (data) => {
+    if (!returnLogisticsOrder.value) return
     try {
-      await submitReturnLogistics(order.orderId, formValues)
+      await submitReturnLogistics(returnLogisticsOrder.value.orderId, data)
       showSuccess('退货物流已提交')
+      showReturnLogisticsModal.value = false
+      returnLogisticsOrder.value = null
       await loadOrders()
     } catch (e) {
       showError(e?.response?.data?.message || '提交退货物流失败')
@@ -192,6 +183,11 @@ export function useOrderList() {
     handleConfirm,
     handleReturn,
     handleSubmitLogistics,
+    onLogisticsSubmit,
+    returnLogisticsOrder,
+    showReturnLogisticsModal,
+    contacts,
+    loadingAddress,
     payingOrder,
     showPaymentModal,
     onPaymentSuccess,

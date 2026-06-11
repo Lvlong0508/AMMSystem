@@ -1,0 +1,8 @@
+export const TITLE = '填写退货物流'
+export const TRACKING_LABEL = '快递单号'
+export const TRACKING_PLACEHOLDER = '请输入快递单号'
+export const ADDRESS_LABEL = '选择地址'
+export const BTN_SUBMIT = '提交'
+export const BTN_CANCEL = '取消'
+export const LOADING_ADDRESS = '加载地址中...'
+export const NO_ADDRESS = '暂无地址，请先添加地址'
