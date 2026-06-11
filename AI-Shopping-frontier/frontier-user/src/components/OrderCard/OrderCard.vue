@@ -53,24 +53,21 @@
     </div>
   </div>
 
-  
   <div v-else class="order-card order-card--detail">
-    <!-- 状态行 + 地址行 -->
-    <div class="order-card__detail-row" v-if="order.orderStatus">
-      <StatusTag :status="order.orderStatus" />
-    </div>
-    <div class="order-card__address" v-if="order.contactName">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <div>
+    <div class="order-card__top-row" v-if="order.orderStatus || order.contactName">
+      <div class="order-card__top-status" v-if="order.orderStatus">
+        <StatusTag :status="order.orderStatus" />
+      </div>
+      <div class="order-card__top-address" v-if="order.contactName">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         <span class="order-card__contact-name">{{ order.contactName }}</span>
         <span class="order-card__contact-phone">{{ order.contactPhone }}</span>
-        <p class="order-card__contact-addr">{{ order.contactAddress }}</p>
+        <span class="order-card__contact-addr">{{ order.contactAddress }}</span>
       </div>
     </div>
 
-    <div class="order-card__divider" v-if="order.contactName || order.orderStatus"></div>
+    <div class="order-card__divider"></div>
 
-    <!-- 店铺信息 -->
     <div class="order-card__shop-section" v-if="order.shopName">
       <div class="order-card__shop-info">
         <img v-if="order.shopLogoUrl" class="order-card__shop-logo" :src="order.shopLogoUrl" :alt="order.shopName" />
@@ -81,7 +78,6 @@
 
     <div class="order-card__divider" v-if="order.shopName"></div>
 
-    <!-- 商品信息 -->
     <div class="order-card__detail-section">
       <div class="order-card__section-label">{{ T.PRODUCT_INFO }}</div>
       <div class="order-card__product-row">
@@ -101,7 +97,6 @@
 
     <div class="order-card__divider"></div>
 
-    <!-- 价格信息 -->
     <div class="order-card__detail-section" v-if="order.totalPrice">
       <div class="order-card__section-label">{{ T.TOTAL }}</div>
       <div class="order-card__price-section">
@@ -111,7 +106,6 @@
 
     <div class="order-card__divider" v-if="order.totalPrice"></div>
 
-    <!-- 订单信息 -->
     <div class="order-card__detail-section">
       <div class="order-card__section-label">{{ T.ORDER_INFO }}</div>
       <div class="order-card__info-grid">
@@ -132,7 +126,6 @@
 
     <div class="order-card__divider"></div>
 
-    <!-- 操作栏 -->
     <div class="order-card__actions">
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('pay', order)">{{ T.PAY }}</button>
@@ -145,6 +138,8 @@
       <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
+</template>
+
 <script setup>
 import { ORDER_CARD_TEXT as T } from './Text'
 import { useOrderCard } from './useOrderCard'
