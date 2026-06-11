@@ -8,6 +8,7 @@
   VIEW_LOGISTICS: '查看物流',
   CONFIRM: '确认收货',
   RETURN: '退货',
+  SUBMIT_LOGISTICS: '填写退货物流',
   DELETE: '删除订单',
   ORDER_DATE: '下单时间',
   TRACKING: '物流单号',

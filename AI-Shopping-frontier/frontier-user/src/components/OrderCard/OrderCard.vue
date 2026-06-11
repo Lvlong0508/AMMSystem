@@ -47,6 +47,7 @@
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
+      <button v-if="order.orderStatus === 'RETURN_PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('submitLogistics', order)">{{ T.SUBMIT_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.RETURN }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
       <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
@@ -140,6 +141,7 @@
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
+      <button v-if="order.orderStatus === 'RETURN_PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('submitLogistics', order)">{{ T.SUBMIT_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.RETURN }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
       <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
@@ -157,7 +159,7 @@ const props = defineProps({
   order: { type: Object, required: true }
 })
 
-defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'return', 'delete'])
+defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'return', 'delete', 'submitLogistics'])
 
 const { formatDate, timelineProgress, steps } = useOrderCard(props)
 </script>

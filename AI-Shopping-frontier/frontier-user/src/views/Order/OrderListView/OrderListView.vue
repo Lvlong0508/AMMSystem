@@ -37,6 +37,7 @@
         @viewLogistics="handleViewLogistics"
         @confirm="handleConfirm"
         @return="handleReturn"
+        @submitLogistics="handleSubmitLogistics"
       />
     </div>
 
@@ -67,6 +68,7 @@ const {
   handleViewLogistics,
   handleConfirm,
   handleReturn,
+  handleSubmitLogistics,
   payingOrder,
   showPaymentModal,
   onPaymentSuccess,

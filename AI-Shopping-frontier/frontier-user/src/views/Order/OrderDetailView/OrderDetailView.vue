@@ -20,6 +20,7 @@
           @viewLogistics="handleViewLogistics"
           @confirm="showActionSheet = true; actionType = 'confirm'"
           @return="handleReturn"
+          @submitLogistics="handleSubmitLogistics"
         />
       </template>
 
@@ -70,6 +71,7 @@ const {
   handleViewLogistics,
   logisticsVisible,
   handleReturn,
+  handleSubmitLogistics,
   confirmAction,
   showPaymentModal,
   onPaymentSuccess,

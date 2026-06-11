@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder, submitReturnRequest } from '@/api/order'
+import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder, submitReturnRequest, submitReturnLogistics } from '@/api/order'
+import { getContactList } from '@/api/contact'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 import Swal from 'sweetalert2'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
@@ -17,6 +18,9 @@ export function useOrderList() {
     { key: ORDER_STATUS.PAID, label: STATUS_TEXT[ORDER_STATUS.PAID] },
     { key: ORDER_STATUS.SHIPPED, label: STATUS_TEXT[ORDER_STATUS.SHIPPED] },
     { key: ORDER_STATUS.DELIVERED, label: STATUS_TEXT[ORDER_STATUS.DELIVERED] },
+    { key: ORDER_STATUS.RETURN_PENDING, label: STATUS_TEXT[ORDER_STATUS.RETURN_PENDING] },
+    { key: ORDER_STATUS.RETURNING, label: STATUS_TEXT[ORDER_STATUS.RETURNING] },
+    { key: ORDER_STATUS.RETURNED, label: STATUS_TEXT[ORDER_STATUS.RETURNED] },
     { key: ORDER_STATUS.CANCELLED, label: STATUS_TEXT[ORDER_STATUS.CANCELLED] }
   ]
 
@@ -128,6 +132,48 @@ export function useOrderList() {
     }
   }
 
+  const handleSubmitLogistics = async (order) => {
+    let contacts = []
+    try {
+      const res = await getContactList()
+      contacts = res?.data?.contacts || res?.contacts || []
+    } catch {}
+
+    const { value: formValues } = await Swal.fire({
+      title: '填写退货物流',
+      html: `
+        <div style="text-align:left">
+          <label style="display:block;margin-bottom:4px;font-weight:500">快递单号</label>
+          <input id="swal-tracking" class="swal2-input" placeholder="请输入快递单号" style="width:100%;box-sizing:border-box">
+          <label style="display:block;margin:12px 0 4px;font-weight:500">选择地址</label>
+          <select id="swal-contact" class="swal2-input" style="width:100%;box-sizing:border-box">
+            ${contacts.map(c => `<option value="${c.id}">${c.name} ${c.phone} - ${c.address}</option>`).join('')}
+          </select>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '提交',
+      cancelButtonText: '取消',
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      preConfirm: () => {
+        const tracking = document.getElementById('swal-tracking').value.trim()
+        const contactId = document.getElementById('swal-contact').value
+        if (!tracking) return Swal.showValidationMessage('请输入快递单号')
+        if (!contactId) return Swal.showValidationMessage('请选择地址')
+        return { trackingNumber: tracking, contactId: Number(contactId) }
+      }
+    })
+    if (!formValues) return
+    try {
+      await submitReturnLogistics(order.orderId, formValues)
+      showSuccess('退货物流已提交')
+      await loadOrders()
+    } catch (e) {
+      showError(e?.response?.data?.message || '提交退货物流失败')
+    }
+  }
+
   onMounted(loadOrders)
 
   return {
@@ -145,6 +191,7 @@ export function useOrderList() {
     handleViewLogistics,
     handleConfirm,
     handleReturn,
+    handleSubmitLogistics,
     payingOrder,
     showPaymentModal,
     onPaymentSuccess,
