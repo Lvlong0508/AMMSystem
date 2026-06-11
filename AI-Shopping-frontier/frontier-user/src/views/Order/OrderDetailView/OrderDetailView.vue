@@ -61,7 +61,8 @@ const {
   actionDesc,
   actionConfirmText,
   goBack,
-  handlePay,
+    handlePay,
+    handleDelete,
   handleViewLogistics,
   handleReview,
   confirmAction,
@@ -192,4 +193,3 @@ const {
 }
 
 </style>
-
