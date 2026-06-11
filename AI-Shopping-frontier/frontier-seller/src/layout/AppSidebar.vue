@@ -25,29 +25,35 @@
         </router-link>
 
         <div class="sidebar__group">
-          <div class="sidebar__group-title" v-show="!app.sidebarCollapsed">
+          <div class="sidebar__group-title" :class="{ 'sidebar__group-title--expanded': expandedGroups.has('orders') }" @click="toggleGroup('orders')" v-show="!app.sidebarCollapsed">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg>
             <span>订单管理</span>
+            <svg class="sidebar__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
-          <router-link :to="`/shop/${shop.currentShopId}/orders`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/orders') }">
-            <span v-show="!app.sidebarCollapsed">订单列表</span>
-          </router-link>
-          <router-link :to="`/shop/${shop.currentShopId}/returns`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/returns') }">
-            <span v-show="!app.sidebarCollapsed">退货管理</span>
-          </router-link>
+          <div class="sidebar__sub-items" v-show="expandedGroups.has('orders') && !app.sidebarCollapsed">
+            <router-link :to="`/shop/${shop.currentShopId}/orders`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/orders') }">
+              <span>订单列表</span>
+            </router-link>
+            <router-link :to="`/shop/${shop.currentShopId}/returns`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/returns') }">
+              <span>退货管理</span>
+            </router-link>
+          </div>
         </div>
 
         <div class="sidebar__group">
-          <div class="sidebar__group-title" v-show="!app.sidebarCollapsed">
+          <div class="sidebar__group-title" :class="{ 'sidebar__group-title--expanded': expandedGroups.has('settings') }" @click="toggleGroup('settings')" v-show="!app.sidebarCollapsed">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
             <span>店铺设置</span>
+            <svg class="sidebar__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
-          <router-link :to="`/shop/${shop.currentShopId}/info`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/info') }">
-            <span v-show="!app.sidebarCollapsed">商店信息</span>
-          </router-link>
-          <router-link :to="`/shop/${shop.currentShopId}/addresses`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/addresses') }">
-            <span v-show="!app.sidebarCollapsed">地址管理</span>
-          </router-link>
+          <div class="sidebar__sub-items" v-show="expandedGroups.has('settings') && !app.sidebarCollapsed">
+            <router-link :to="`/shop/${shop.currentShopId}/info`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/info') }">
+              <span>商店信息</span>
+            </router-link>
+            <router-link :to="`/shop/${shop.currentShopId}/addresses`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/addresses') }">
+              <span>地址管理</span>
+            </router-link>
+          </div>
         </div>
       </template>
     </nav>
@@ -55,6 +61,7 @@
 </template>
 
 <script setup>
+import { reactive, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useShopStore } from '@/store/shop'
 import { useAppStore } from '@/store/app'
@@ -62,6 +69,30 @@ import { useAppStore } from '@/store/app'
 const route = useRoute()
 const shop = useShopStore()
 const app = useAppStore()
+const expandedGroups = reactive(new Set())
+
+function toggleGroup(name) {
+  if (expandedGroups.has(name)) {
+    expandedGroups.delete(name)
+  } else {
+    expandedGroups.add(name)
+  }
+}
+
+watch(() => route.path, (path) => {
+  if (path.includes('/orders') || path.includes('/returns')) {
+    expandedGroups.add('orders')
+  }
+  if (path.includes('/info') || path.includes('/addresses')) {
+    expandedGroups.add('settings')
+  }
+})
+
+watch(() => app.sidebarCollapsed, (collapsed) => {
+  if (collapsed) {
+    expandedGroups.clear()
+  }
+})
 </script>
 
 <style scoped>
@@ -154,6 +185,33 @@ const app = useAppStore()
   font-weight: 600;
   color: #999;
   white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.sidebar__group-title:hover {
+  background: #f0f2ff;
+  color: #4361ee;
+}
+
+.sidebar__group-title--expanded {
+  color: #4361ee;
+}
+
+.sidebar__arrow {
+  margin-left: auto;
+  transition: transform 0.2s;
+}
+
+.sidebar__group-title--expanded .sidebar__arrow {
+  transform: rotate(90deg);
+}
+
+.sidebar__sub-items {
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar__sub-item {
