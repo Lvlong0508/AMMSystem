@@ -110,8 +110,9 @@
           </el-select>
           <div v-if="!contactsLoading && contacts.length === 0" style="color: var(--color-text-secondary); font-size: var(--text-xs); margin-top: 4px">{{ T.NO_CONTACTS }}</div>
         </el-form-item>
-        <el-form-item :label="T.LABEL_TRACKING">
+        <el-form-item prop="trackingNumber" :label="T.LABEL_TRACKING">
           <el-input v-model="shipForm.trackingNumber" :placeholder="T.PLACEHOLDER_TRACKING" />
+          <div style="color: var(--color-text-placeholder, #c0c4cc); font-size: 12px; margin-top: 4px; line-height: 1.4">{{ T.TRACKING_RULE }}</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -124,7 +125,7 @@
 
 <script setup>
 import { useShip } from "./Ship.js"
-const { T, orders, loading, searchKeyword, pendingShipCount, contacts, contactsLoading, detailVisible, detailLoading, selectedOrder, shipVisible, shipForm, shipping, ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText, formatPrice, formatDate, showOrderDetail, closeDetail, showShipDialog, closeShipDialog, handleShip } = useShip()
+const { T, orders, loading, searchKeyword, pendingShipCount, contacts, contactsLoading, detailVisible, detailLoading, selectedOrder, shipVisible, shipFormRef, shipForm, shipping, trackingRule, ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText, formatPrice, formatDate, showOrderDetail, closeDetail, showShipDialog, closeShipDialog, handleShip } = useShip()
 </script>
 
 <style scoped src="./Ship.css"></style>

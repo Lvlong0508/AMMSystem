@@ -1,7 +1,7 @@
 import { ref, onMounted, computed } from "vue"
 import { ElMessage } from "element-plus"
 import { getShipmentList, getOrderDetail, shipOrder } from "@/api/order"
-import { getShipDefaultAddress } from "@/api/contact"
+import { getAddressList } from "@/api/contact"
 import { useShopStore } from "@/store/shop"
 import { ORDER_STATUS, STATUS_TEXT } from "@/config/orderStatus"
 import * as T from "./Text.js"
@@ -31,7 +31,8 @@ export function useShip() {
 
   const trackingRule = [
     { required: true, message: "请输入物流单号", trigger: "blur" },
-    { pattern: /^[A-Za-z0-9\-]{6,20}$/, message: T.TRACKING_INVALID, trigger: "blur" }
+    { pattern: /^[A-Za-z0-9\-]{6,20}$/, message: T.TRACKING_INVALID, trigger: "blur" },
+    { pattern: /^[A-Za-z0-9\-]{6,20}$/, message: T.TRACKING_INVALID, trigger: "change" }
   ]
 
   const pendingShipCount = computed(() => orders.value.length)
@@ -83,18 +84,20 @@ export function useShip() {
   async function loadContacts() {
     contactsLoading.value = true
     try {
-      const res = await getShipDefaultAddress()
-      if (res?.data) {
-        contacts.value = Array.isArray(res.data) ? res.data : [res.data]
+      const res = await getAddressList()
+      if (res?.data?.addresses) {
+        // addressType: 1=发货地址, 2=退货地址
+        contacts.value = res.data.addresses.filter(a => a.addressType === 1)
         if (contacts.value.length > 0 && !shipForm.value.selectedContactId) {
-          shipForm.value.selectedContactId = contacts.value[0].id
+          const defaultContact = contacts.value.find(c => c.isDefault === 1) || contacts.value[0]
+          shipForm.value.selectedContactId = defaultContact.id
         }
       } else {
         contacts.value = []
       }
     } catch (error) {
-      console.error("加载联系人失败", error)
-      ElMessage.error("加载联系人失败")
+      console.error("加载地址列表失败", error)
+      ElMessage.error("加载地址列表失败")
       contacts.value = []
     } finally {
       contactsLoading.value = false
