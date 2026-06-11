@@ -11,7 +11,7 @@ export function useLogisticsModal() {
     logisticsList.value = []
     try {
       const res = await getLogisticsByOrderId(orderId)
-      logisticsList.value = res?.data || []
+      logisticsList.value = res || []
     } catch (e) {
       console.error("获取物流信息失败", e)
       showError("获取物流信息失败")
