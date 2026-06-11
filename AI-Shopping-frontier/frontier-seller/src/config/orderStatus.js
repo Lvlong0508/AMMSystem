@@ -9,9 +9,9 @@ export const ORDER_STATUS = {
   CANCELLED: 'CANCELLED', // 已取消
   SHIPPED: 'SHIPPED',     // 已发货
   DELIVERED: 'DELIVERED', // 已送达
-  RETURNED: 'RETURNED',   // 已退货
-  RETURN_REQUESTED: 'RETURN_REQUESTED',
-  RETURN_APPROVED: 'RETURN_APPROVED',
+  RETURN_PENDING: 'RETURN_PENDING', // 待退货
+  RETURNING: 'RETURNING',           // 退货中
+  RETURNED: 'RETURNED',             // 已退货
 }
 
 // 状态中文映射
@@ -21,9 +21,9 @@ export const STATUS_TEXT = {
   [ORDER_STATUS.CANCELLED]: '已取消',
   [ORDER_STATUS.SHIPPED]: '已发货',
   [ORDER_STATUS.DELIVERED]: '已送达',
+  [ORDER_STATUS.RETURN_PENDING]: '待退货',
+  [ORDER_STATUS.RETURNING]: '退货中',
   [ORDER_STATUS.RETURNED]: '已退货',
-  [ORDER_STATUS.RETURN_REQUESTED]: '退货申请中',
-  [ORDER_STATUS.RETURN_APPROVED]: '退货审核通过',
 }
 
 // 状态CSS类名映射
@@ -33,9 +33,9 @@ export const STATUS_CLASS = {
   [ORDER_STATUS.CANCELLED]: 'status-cancelled',
   [ORDER_STATUS.SHIPPED]: 'status-shipped',
   [ORDER_STATUS.DELIVERED]: 'status-delivered',
+  [ORDER_STATUS.RETURN_PENDING]: 'status-return-pending',
+  [ORDER_STATUS.RETURNING]: 'status-returning',
   [ORDER_STATUS.RETURNED]: 'status-returned',
-  [ORDER_STATUS.RETURN_REQUESTED]: 'status-return-requested',
-  [ORDER_STATUS.RETURN_APPROVED]: 'status-return-approved',
 }
 
 // 状态流转验证（前端校验用）

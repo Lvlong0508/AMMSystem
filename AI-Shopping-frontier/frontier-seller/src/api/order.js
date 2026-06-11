@@ -70,4 +70,4 @@ export const reviewReturnRequest = (orderId, shopId, status) =>
   request.put(`${ORDER_BASE}/return-requests/${orderId}/review`, { status }, { params: { shopId } })
 
 export const approveReturn = (orderId, shopId) =>
-  reviewReturnRequest(orderId, shopId, 'AGREED')
+  reviewReturnRequest(orderId, shopId, 'agreed')

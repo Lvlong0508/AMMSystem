@@ -6,7 +6,7 @@ export function useOrderCard(props) {
   const statusText = computed(() => STATUS_TEXT[props.order.orderStatus] || props.order.orderStatus)
 
   const statusType = computed(() => {
-    const m = { PENDING: 'info', PAID: 'warning', SHIPPED: 'primary', DELIVERED: 'success', CANCELLED: 'danger', RETURNED: 'danger', RETURN_REQUESTED: 'warning', RETURN_APPROVED: 'warning' }
+    const m = { PENDING: 'info', PAID: 'warning', SHIPPED: 'primary', DELIVERED: 'success', CANCELLED: 'danger', RETURN_PENDING: 'warning', RETURNING: 'warning', RETURNED: 'danger' }
     return m[props.order.orderStatus] || 'info'
   })
 

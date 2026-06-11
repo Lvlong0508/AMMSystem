@@ -1,42 +1,58 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getOrderListByShop, getOrderDetail, approveReturn, confirmReturn } from '@/api/order'
-import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
+import { getReturnRequestsPending, getReturnRequestsProcessed, getOrderDetail, approveReturn, confirmReturn } from '@/api/order'
 import * as T from './Text.js'
+
+const RETURN_STATUS_TEXT = {
+  applying: '待审核',
+  agreed: '已同意',
+  rejected: '已拒绝'
+}
+
+const RETURN_STATUS_TYPE = {
+  applying: 'warning',
+  agreed: 'success',
+  rejected: 'danger'
+}
 
 export function useReturnManagement() {
   const route = useRoute()
   const shopId = route.params.shopId
-  const orders = ref([])
   const loading = ref(false)
+  const activeTab = ref('pending')
+  const pendingList = ref([])
+  const processedList = ref([])
   const detailVisible = ref(false)
   const selectedOrder = ref(null)
+
+  const list = computed(() =>
+    activeTab.value === 'pending' ? pendingList.value : processedList.value
+  )
 
   async function loadOrders() {
     loading.value = true
     try {
-      const res = await getOrderListByShop(shopId)
-      let list = res?.data || res?.orders || []
-      orders.value = list.filter(o =>
-        o.orderStatus === ORDER_STATUS.RETURNED ||
-        o.orderStatus === 'RETURN_REQUESTED' ||
-        o.orderStatus === 'RETURN_APPROVED'
-      )
+      const [pendingRes, processedRes] = await Promise.all([
+        getReturnRequestsPending(shopId),
+        getReturnRequestsProcessed(shopId)
+      ])
+      pendingList.value = pendingRes?.data || pendingRes?.list || []
+      processedList.value = processedRes?.data || processedRes?.list || []
     } catch (e) {
-      console.error('加载退货订单失败:', e)
+      console.error('加载退货请求失败:', e)
       ElMessage.error('加载失败')
     } finally {
       loading.value = false
     }
   }
 
-  async function showDetail(order) {
+  async function showDetail(item) {
     try {
-      const res = await getOrderDetail(shopId, order.orderId)
-      selectedOrder.value = res?.data || order
+      const res = await getOrderDetail(shopId, item.orderId)
+      selectedOrder.value = { ...item, ...(res?.data || {}) }
     } catch {
-      selectedOrder.value = order
+      selectedOrder.value = item
     }
     detailVisible.value = true
   }
@@ -46,9 +62,9 @@ export function useReturnManagement() {
     selectedOrder.value = null
   }
 
-  async function handleApprove(order) {
+  async function handleApprove(item) {
     try {
-      const res = await approveReturn(order.orderId, shopId)
+      const res = await approveReturn(item.orderId, shopId)
       ElMessage.success(res?.message || '审核通过')
       closeDetail()
       await loadOrders()
@@ -57,9 +73,9 @@ export function useReturnManagement() {
     }
   }
 
-  async function handleConfirm(order) {
+  async function handleConfirm(item) {
     try {
-      const res = await confirmReturn(order.orderId, shopId)
+      const res = await confirmReturn(item.orderId, shopId)
       ElMessage.success(res?.message || '确认成功')
       closeDetail()
       await loadOrders()
@@ -68,24 +84,16 @@ export function useReturnManagement() {
     }
   }
 
-  function getStatusType(status) {
-    const map = {
-      RETURN_REQUESTED: 'warning',
-      RETURN_APPROVED: 'primary',
-      RETURNED: 'success'
-    }
-    return map[status] || 'info'
-  }
-
-  function getStatusText(status) { return STATUS_TEXT[status] || status }
+  function getStatusText(status) { return RETURN_STATUS_TEXT[status] || status }
+  function getStatusType(status) { return RETURN_STATUS_TYPE[status] || 'info' }
   function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleString('zh-CN') : '-' }
-  function formatPrice(price) { return price != null ? `¥${Number(price).toFixed(2)}` : '-' }
 
   onMounted(loadOrders)
 
   return {
-    T, orders, loading, detailVisible, selectedOrder,
+    T, list, loading, activeTab, pendingList, processedList,
+    detailVisible, selectedOrder,
     loadOrders, handleApprove, handleConfirm, showDetail, closeDetail,
-    getStatusType, getStatusText, formatDate, formatPrice
+    getStatusText, getStatusType, formatDate
   }
 }
