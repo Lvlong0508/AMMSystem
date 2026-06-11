@@ -33,3 +33,5 @@ export const BTN_SHIPPING = "发货中..."
 export const LABEL_SELECT_CONTACT = "选择发货地址"
 export const NO_CONTACTS = "暂无可用发货地址"
 export const SECTION_CONTACT = "收货信息"
+export const TRACKING_RULE = '6-20位字母、数字或连字符'
+export const TRACKING_INVALID = '物流单号格式不正确，请输入6-20位字母、数字或连字符'

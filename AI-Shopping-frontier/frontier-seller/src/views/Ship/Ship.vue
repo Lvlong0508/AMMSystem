@@ -97,13 +97,13 @@
     </el-dialog>
 
     <!-- 发货弹窗 -->
-    <el-dialog v-model="shipVisible" :title="T.DIALOG_SHIP" width="500px" :close-on-click-modal="false">
+    <el-dialog v-model="shipVisible" :title="T.DIALOG_SHIP" width="500px" :close-on-click-modal="false" @closed="shipFormRef?.resetFields?.()">
       <div v-if="selectedOrder" style="margin-bottom: 16px">
         <p><strong>{{ T.LABEL_ORDER_ID }}:</strong> {{ selectedOrder.orderId }}</p>
         <p><strong>{{ T.LABEL_CONTACT_NAME }}:</strong> {{ selectedOrder.contactName }} {{ selectedOrder.contactPhone }}</p>
         <p><strong>{{ T.LABEL_CONTACT_ADDRESS }}:</strong> {{ selectedOrder.contactAddress }}</p>
       </div>
-      <el-form label-position="top">
+      <el-form ref="shipFormRef" :model="shipForm" :rules="{ trackingNumber: trackingRule }" label-position="top">
         <el-form-item :label="T.LABEL_SELECT_CONTACT">
           <el-select v-model="shipForm.selectedContactId" style="width: 100%" :loading="contactsLoading" :placeholder="T.LABEL_SELECT_CONTACT">
             <el-option v-for="c in contacts" :key="c.id" :label="`${c.name} - ${c.phone} - ${c.address}`" :value="c.id" />

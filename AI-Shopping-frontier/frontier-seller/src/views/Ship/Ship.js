@@ -20,6 +20,7 @@ export function useShip() {
   const detailLoading = ref(false)
 
   const shipVisible = ref(false)
+  const shipFormRef = ref(null)
   const shipForm = ref({
     orderId: "",
     trackingNumber: "",
@@ -27,6 +28,11 @@ export function useShip() {
     selectedContactId: null,
   })
   const shipping = ref(false)
+
+  const trackingRule = [
+    { required: true, message: "请输入物流单号", trigger: "blur" },
+    { pattern: /^[A-Za-z0-9\-]{6,20}$/, message: T.TRACKING_INVALID, trigger: "blur" }
+  ]
 
   const pendingShipCount = computed(() => orders.value.length)
 
@@ -64,27 +70,15 @@ export function useShip() {
 
   function getStatusType(status) {
     const map = {
-      PENDING: "info",
-      PAID: "warning",
-      SHIPPED: "primary",
-      DELIVERED: "success",
-      CANCELLED: "danger",
-      RETURNED: "danger",
+      PENDING: "info", PAID: "warning", SHIPPED: "primary",
+      DELIVERED: "success", CANCELLED: "danger", RETURNED: "danger",
     }
     return map[status] || "info"
   }
 
-  function getStatusText(status) {
-    return STATUS_TEXT[status] || status
-  }
-
-  function formatPrice(price) {
-    return price != null ? `¥${Number(price).toFixed(2)}` : "-"
-  }
-
-  function formatDate(dateStr) {
-    return dateStr ? new Date(dateStr).toLocaleString("zh-CN") : "-"
-  }
+  function getStatusText(status) { return STATUS_TEXT[status] || status }
+  function formatPrice(price) { return price != null ? "¥" + Number(price).toFixed(2) : "-" }
+  function formatDate(dateStr) { return dateStr ? new Date(dateStr).toLocaleString("zh-CN") : "-" }
 
   async function loadContacts() {
     contactsLoading.value = true
@@ -114,8 +108,7 @@ export function useShip() {
       detailLoading.value = true
       try {
         const res = await getOrderDetail(shopStore.currentShopId, order.orderId)
-        if (res?.data)
-          selectedOrder.value = { ...order, ...res.data }
+        if (res?.data) selectedOrder.value = { ...order, ...res.data }
       } catch (error) {
         console.error("获取订单详情失败:", error)
       } finally {
@@ -124,34 +117,22 @@ export function useShip() {
     }
   }
 
-  function closeDetail() {
-    detailVisible.value = false
-    selectedOrder.value = null
-  }
+  function closeDetail() { detailVisible.value = false; selectedOrder.value = null }
 
   async function showShipDialog(order) {
-    shipForm.value = {
-      orderId: order.orderId,
-      trackingNumber: "",
-      shippingDate: new Date().toISOString().slice(0, 16),
-      selectedContactId: null,
-    }
+    shipForm.value = { orderId: order.orderId, trackingNumber: "", shippingDate: new Date().toISOString().slice(0, 16), selectedContactId: null }
     selectedOrder.value = order
     shipVisible.value = true
     await loadContacts()
   }
 
-  function closeShipDialog() {
-    shipVisible.value = false
-  }
+  function closeShipDialog() { shipVisible.value = false }
 
   async function handleShip() {
-    if (!shipForm.value.trackingNumber.trim()) {
-      ElMessage.warning("请输入物流单号")
-      return
-    }
-    if (!shipForm.value.selectedContactId) {
-      ElMessage.warning("请选择发货地址")
+    if (!shipFormRef.value) return
+    try {
+      await shipFormRef.value.validate()
+    } catch (_e) {
       return
     }
     shipping.value = true
@@ -182,30 +163,12 @@ export function useShip() {
   })
 
   return {
-    T,
-    orders: filteredOrders,
-    loading,
-    searchKeyword,
-    pendingShipCount,
-    contacts,
-    contactsLoading,
-    detailVisible,
-    detailLoading,
-    selectedOrder,
-    shipVisible,
-    shipForm,
-    shipping,
-    ORDER_STATUS,
-    loadOrders,
-    handleSearch,
-    getStatusType,
-    getStatusText,
-    formatPrice,
-    formatDate,
-    showOrderDetail,
-    closeDetail,
-    showShipDialog,
-    closeShipDialog,
-    handleShip,
+    T, orders: filteredOrders, loading, searchKeyword, pendingShipCount,
+    contacts, contactsLoading,
+    detailVisible, detailLoading, selectedOrder,
+    shipVisible, shipFormRef, shipForm, shipping, trackingRule,
+    ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText,
+    formatPrice, formatDate, showOrderDetail, closeDetail,
+    showShipDialog, closeShipDialog, handleShip,
   }
 }
