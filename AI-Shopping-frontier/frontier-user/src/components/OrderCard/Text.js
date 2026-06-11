@@ -7,7 +7,7 @@
   PAY: '去支付',
   VIEW_LOGISTICS: '查看物流',
   CONFIRM: '确认收货',
-  REVIEW: '评价',
+  RETURN: '退货',
   DELETE: '删除订单',
   ORDER_DATE: '下单时间',
   TRACKING: '物流单号',

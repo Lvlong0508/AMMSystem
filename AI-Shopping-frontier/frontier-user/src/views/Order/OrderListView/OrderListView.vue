@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="order-list-view" style="max-width:960px;margin:0 auto">
     <div class="order-list-view__filters">
       <button
@@ -36,7 +36,7 @@
         @pay="handlePay"
         @viewLogistics="handleViewLogistics"
         @confirm="handleConfirm"
-        @review="handleReview"
+        @return="handleReturn"
       />
     </div>
 
@@ -66,7 +66,7 @@ const {
   handlePay,
   handleViewLogistics,
   handleConfirm,
-  handleReview,
+  handleReturn,
   payingOrder,
   showPaymentModal,
   onPaymentSuccess,

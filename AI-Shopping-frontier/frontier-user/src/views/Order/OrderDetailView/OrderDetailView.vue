@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="order-detail-view">
     <div class="order-detail-view__inner">
       <div class="order-detail-view__back" @click="goBack">
@@ -19,7 +19,7 @@
           @pay="handlePay"
           @viewLogistics="handleViewLogistics"
           @confirm="showActionSheet = true; actionType = 'confirm'"
-          @review="handleReview"
+          @return="handleReturn"
         />
       </template>
 
@@ -69,7 +69,7 @@ const {
     handleDelete,
   handleViewLogistics,
   logisticsVisible,
-  handleReview,
+  handleReturn,
   confirmAction,
   showPaymentModal,
   onPaymentSuccess,

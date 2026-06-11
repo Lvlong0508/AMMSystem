@@ -1,6 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrderById, cancelOrder, confirmDelivery, deleteOrder } from '@/api/order'
+import { getOrderById, cancelOrder, confirmDelivery, deleteOrder, submitReturnRequest } from '@/api/order'
+import Swal from 'sweetalert2'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
 
 export function useOrderDetail() {
@@ -79,7 +80,30 @@ export function useOrderDetail() {
     logisticsVisible.value = true
   }
 
-  const handleReview = () => {}
+  const handleReturn = async () => {
+    const { value: reason } = await Swal.fire({
+      title: '退货申请',
+      input: 'textarea',
+      inputLabel: '请输入退货原因',
+      inputPlaceholder: '请简要描述退货原因...',
+      showCancelButton: true,
+      confirmButtonText: '提交申请',
+      cancelButtonText: '取消',
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#6b7280',
+      inputValidator: (value) => {
+        if (!value) return '请输入退货原因'
+      }
+    })
+    if (!reason) return
+    try {
+      await submitReturnRequest(order.value.orderId, { returnReason: reason })
+      showSuccess('退货申请已提交，等待商家审核')
+      await loadOrder()
+    } catch (e) {
+      showError(e?.response?.data?.message || '提交退货申请失败')
+    }
+  }
 
   const confirmAction = async () => {
     showActionSheet.value = false
@@ -112,7 +136,7 @@ export function useOrderDetail() {
     handlePay,
     handleDelete,
     handleViewLogistics,
-    handleReview,
+    handleReturn,
     confirmAction,
     showPaymentModal,
     onPaymentSuccess,
