@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="order-detail-view">
     <div class="order-detail-view__inner">
       <div class="order-detail-view__back" @click="goBack">
