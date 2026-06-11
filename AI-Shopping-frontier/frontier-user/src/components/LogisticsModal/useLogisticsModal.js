@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { getLogisticsInfo } from "@/api/order"
+import { getLogisticsByOrderId } from "@/api/logistics"
 import { showError } from "@/utils/swal"
 
 export function useLogisticsModal() {
@@ -10,7 +10,7 @@ export function useLogisticsModal() {
     loading.value = true
     logisticsList.value = []
     try {
-      const res = await getLogisticsInfo(orderId)
+      const res = await getLogisticsByOrderId(orderId)
       logisticsList.value = res?.data || []
     } catch (e) {
       console.error("获取物流信息失败", e)
