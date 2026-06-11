@@ -41,14 +41,18 @@
     </div>
 
     <PaymentModal :visible="showPaymentModal" :orderId="payingOrder?.orderId" :order="payingOrder" :orderDate="payingOrder?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
+    <LogisticsModal :visible="logisticsVisible" :loading="logisticsLoading" :logisticsList="logisticsList" @close="logisticsVisible = false" />
   </div>
 </template>
 
 <script setup>
+import { watch } from 'vue'
 import { ORDER_LIST_TEXT as T } from './Text'
 import { useOrderList } from './useOrderList'
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
+import LogisticsModal from '@/components/LogisticsModal/LogisticsModal.vue'
+import { useLogisticsModal } from '@/components/LogisticsModal/useLogisticsModal'
 
 const {
   orders,
@@ -66,8 +70,16 @@ const {
   payingOrder,
   showPaymentModal,
   onPaymentSuccess,
-  onPayLater
+  onPayLater,
+  logisticsVisible,
+  logisticsOrderId,
 } = useOrderList()
+
+const { loading: logisticsLoading, logisticsList, loadLogistics } = useLogisticsModal()
+
+watch(logisticsVisible, (v) => {
+  if (v && logisticsOrderId.value) loadLogistics(logisticsOrderId.value)
+})
 </script>
 
 <style scoped>

@@ -73,7 +73,11 @@ export function useOrderDetail() {
     }
   }
 
-  const handleViewLogistics = () => {}
+  const logisticsVisible = ref(false)
+
+  const handleViewLogistics = () => {
+    logisticsVisible.value = true
+  }
 
   const handleReview = () => {}
 
@@ -96,6 +100,7 @@ export function useOrderDetail() {
   onMounted(loadOrder)
 
   return {
+    logisticsVisible,
     order,
     loading,
     showActionSheet,

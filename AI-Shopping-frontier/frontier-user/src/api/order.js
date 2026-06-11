@@ -44,3 +44,6 @@ export const submitReturnRequest = (orderId, data) =>
 /** ????????? { trackingNumber, contactId }? */
 export const submitReturnLogistics = (orderId, data) =>
   request.post('/api/user/order/' + orderId + '/return-logistics', data)
+/** 获取订单物流信息 */
+export const getLogisticsInfo = (orderId) =>
+  request.get('/api/user/logistics/order/' + orderId)

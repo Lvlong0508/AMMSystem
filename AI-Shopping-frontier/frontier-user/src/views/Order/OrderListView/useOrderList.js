@@ -54,6 +54,8 @@ export function useOrderList() {
 
   const payingOrder = ref(null)
   const showPaymentModal = ref(false)
+  const logisticsVisible = ref(false)
+  const logisticsOrderId = ref('')
 
   const handleDelete = async (order) => {
     const result = await showConfirm('确认删除', '删除后无法恢复，确定要删除该订单吗？', '确认删除', '再想想')
@@ -83,7 +85,10 @@ export function useOrderList() {
     payingOrder.value = null
   }
 
-  const handleViewLogistics = (order) => { router.push(`/order/${order.orderId}`) }
+  const handleViewLogistics = (order) => {
+    logisticsOrderId.value = order.orderId
+    logisticsVisible.value = true
+  }
 
   const handleConfirm = async (order) => {
     const result = await showConfirm('确认收货', '确认已收到商品？', '确认收货', '再想想')
@@ -102,6 +107,8 @@ export function useOrderList() {
   onMounted(loadOrders)
 
   return {
+    logisticsVisible,
+    logisticsOrderId,
     orders,
     loading,
     activeFilter,

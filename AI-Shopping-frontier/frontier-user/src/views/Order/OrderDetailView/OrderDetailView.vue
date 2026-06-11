@@ -43,14 +43,18 @@
       </Teleport>
 
       <PaymentModal :visible="showPaymentModal" :orderId="order?.orderId" :order="order" :orderDate="order?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
+    <LogisticsModal :visible="logisticsVisible" :loading="logisticsLoading" :logisticsList="logisticsList" @close="logisticsVisible = false" />
     </div>
   </div>
 </template>
 <script setup>
 import { ORDER_DETAIL_TEXT as T } from './Text'
-import { useOrderDetail } from './useOrderDetail'
+import { watch } from "vue"
+import { useOrderDetail } from "./useOrderDetail"
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
+import LogisticsModal from '@/components/LogisticsModal/LogisticsModal.vue'
+import { useLogisticsModal } from '@/components/LogisticsModal/useLogisticsModal'
 
 const {
   order,
@@ -64,12 +68,19 @@ const {
     handlePay,
     handleDelete,
   handleViewLogistics,
+  logisticsVisible,
   handleReview,
   confirmAction,
   showPaymentModal,
   onPaymentSuccess,
-  onPayLater
+  onPayLater,
 } = useOrderDetail()
+
+const { loading: logisticsLoading, logisticsList, loadLogistics } = useLogisticsModal()
+
+watch(logisticsVisible, (v) => {
+  if (v && order.value?.orderId) loadLogistics(order.value.orderId)
+})
 </script>
 
 <style scoped>
