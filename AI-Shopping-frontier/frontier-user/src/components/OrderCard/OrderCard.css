@@ -55,16 +55,16 @@
   gap: 16px;
 }
 .order-card__thumb {
-  width: 52px;
-  height: 52px;
+  width: 88px;
+  height: 88px;
   border-radius: 8px;
   overflow: hidden;
   background: #f1f5f9;
   flex-shrink: 0;
 }
 .order-card__thumb-img {
-  width: 52px;
-  height: 52px;
+  width: 88px;
+  height: 88px;
   object-fit: cover;
   display: block;
 }
@@ -254,7 +254,7 @@
 .order-card--detail .order-card__top-contact {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
   gap: 2px;
 }
 .order-card--detail .order-card__top-contact .order-card__contact-name {
