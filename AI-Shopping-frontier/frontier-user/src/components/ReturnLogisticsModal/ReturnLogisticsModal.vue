@@ -1,52 +1,61 @@
 <template>
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="fade">
       <div v-if="visible" class="rl-overlay" @click="$emit('close')">
-        <div class="rl-modal" @click.stop>
-          <div class="rl-modal__header">
-            <h2 class="rl-modal__title">{{ T.TITLE }}</h2>
-            <button class="rl-modal__close" @click="$emit('close')">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>
-
-          <div class="rl-modal__body">
-            <div class="rl-field">
-              <label class="rl-field__label">{{ T.TRACKING_LABEL }}</label>
-              <IInput
-                v-model="trackingNumber"
-                :placeholder="T.TRACKING_PLACEHOLDER"
-                type="text"
-              />
+        <Transition name="scale" appear>
+          <div class="rl-modal" @click.stop>
+            <div class="rl-modal__header">
+              <span class="rl-modal__title">{{ T.TITLE }}</span>
+              <button class="rl-modal__close" @click="$emit('close')">✕</button>
             </div>
 
-            <div class="rl-field">
-              <label class="rl-field__label">{{ T.ADDRESS_LABEL }}</label>
-              <div v-if="loadingAddress" class="rl-field__loading">{{ T.LOADING_ADDRESS }}</div>
-              <select v-else v-model="selectedContactId" class="rl-select">
-                <option v-if="contacts.length === 0" value="" disabled>{{ T.NO_ADDRESS }}</option>
-                <option
-                  v-for="c in contacts"
-                  :key="c.id"
-                  :value="c.id"
-                >
-                  {{ c.name }} {{ c.phone }} - {{ c.address }}
-                </option>
-              </select>
+            <div class="rl-modal__body">
+              <div class="rl-field">
+                <label class="rl-field__label">{{ T.TRACKING_LABEL }}</label>
+                <input
+                  v-model="trackingNumber"
+                  class="rl-input"
+                  :placeholder="T.TRACKING_PLACEHOLDER"
+                  type="text"
+                />
+              </div>
+
+              <div class="rl-field">
+                <label class="rl-field__label">{{ T.ADDRESS_LABEL }}</label>
+                <div v-if="loadingAddress" class="rl-loading">{{ T.LOADING_ADDRESS }}</div>
+                <div v-else-if="contacts.length === 0" class="rl-empty">{{ T.NO_ADDRESS }}</div>
+                <div v-else class="rl-address-list">
+                  <div
+                    v-for="c in contacts"
+                    :key="c.id"
+                    class="rl-address-item"
+                    :class="{ 'rl-address-item--selected': selectedContactId === c.id }"
+                    @click="selectedContactId = c.id"
+                  >
+                    <div class="rl-address-item__radio">
+                      <div v-if="selectedContactId === c.id" class="rl-address-item__radio-dot"></div>
+                    </div>
+                    <div class="rl-address-item__info">
+                      <div class="rl-address-item__top">
+                        <span class="rl-address-item__name">{{ c.name }}</span>
+                        <span class="rl-address-item__phone">{{ c.phone }}</span>
+                        <span v-if="c.isDefault" class="rl-address-item__badge">默认</span>
+                      </div>
+                      <div class="rl-address-item__addr">{{ c.address }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rl-modal__footer">
+              <button class="rl-btn rl-btn--secondary" @click="$emit('close')">{{ T.BTN_CANCEL }}</button>
+              <button class="rl-btn rl-btn--primary" :disabled="!canSubmit" @click="handleSubmit">
+                {{ T.BTN_SUBMIT }}
+              </button>
             </div>
           </div>
-
-          <div class="rl-modal__footer">
-            <button class="rl-btn rl-btn--secondary" @click="$emit('close')">{{ T.BTN_CANCEL }}</button>
-            <button
-              class="rl-btn rl-btn--primary"
-              :disabled="!canSubmit"
-              @click="handleSubmit"
-            >
-              {{ T.BTN_SUBMIT }}
-            </button>
-          </div>
-        </div>
+        </Transition>
       </div>
     </Transition>
   </Teleport>
@@ -55,7 +64,6 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import * as T from './Text.js'
-import IInput from '@/components/IInput/IInput.vue'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
@@ -87,8 +95,9 @@ function reset() {
 }
 
 watch(() => props.visible, (v) => {
-  if (v && props.contacts.length > 0 && !selectedContactId.value) {
-    selectedContactId.value = props.contacts[0].id
+  if (v && props.contacts.length > 0) {
+    const defaultContact = props.contacts.find(c => c.isDefault)
+    selectedContactId.value = defaultContact ? defaultContact.id : props.contacts[0].id
   }
   if (!v) reset()
 })
