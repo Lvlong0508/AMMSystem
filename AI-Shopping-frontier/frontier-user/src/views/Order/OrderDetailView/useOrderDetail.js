@@ -67,7 +67,7 @@ export function useOrderDetail() {
     try {
       await deleteOrder(order.value.orderId)
       showSuccess('订单已删除')
-      await loadOrder()
+      router.push('/order')
     } catch {
       showError('删除失败')
     }
