@@ -1,4 +1,4 @@
-export const ORDER_CARD_TEXT = {
+﻿export const ORDER_CARD_TEXT = {
   PRODUCT_PLACEHOLDER: '商品',
   SHOP_PLACEHOLDER: '店铺',
   QTY_LABEL: 'x',
@@ -13,5 +13,11 @@ export const ORDER_CARD_TEXT = {
   TRACKING: '物流单号',
   SHOP: '店铺',
   TIMELINE_TITLE: '订单进度',
-  PROGRESS_LABEL: '已完成'
+  PROGRESS_LABEL: '已完成',
+  ORDER_ID: '订单编号',
+  TOTAL: '合计',
+  PRODUCT_INFO: '商品信息',
+  ORDER_INFO: '订单信息',
+  SHOP_INFO: '店铺信息',
+  DELIVERY_ADDR: '收货地址'
 }

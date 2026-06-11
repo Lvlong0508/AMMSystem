@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div v-if="variant === 'abstract'" class="order-card order-card--abstract">
     <div class="order-card__main" @click="$emit('click')">
       <div class="order-card__shop-row">
@@ -53,40 +53,14 @@
     </div>
   </div>
 
+  
   <div v-else class="order-card order-card--detail">
-    <div class="order-card__detail-header">
-      <span class="order-card__detail-title">{{ T.ORDER_DETAIL }}</span>
+    <!-- 状态行 + 地址行 -->
+    <div class="order-card__detail-row" v-if="order.orderStatus">
       <StatusTag :status="order.orderStatus" />
     </div>
-
-    <div class="order-card__detail-section">
-      <div class="order-card__thumb">
-        <svg width="52" height="52" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
-      </div>
-      <div class="order-card__detail-product-info">
-        <span class="order-card__product-name">{{ order.productName || T.PRODUCT_PLACEHOLDER }}</span>
-        <span class="order-card__price">¥{{ order.totalPrice.toFixed(2) }}</span>
-        <span class="order-card__qty">{{ T.QTY_LABEL }}{{ order.quantity }} · {{ order.shopName || T.SHOP_PLACEHOLDER }}</span>
-      </div>
-    </div>
-
-    <div class="order-card__info-grid">
-      <div class="order-card__info-item">
-        <span class="order-card__info-label">{{ T.ORDER_DATE }}</span>
-        <span class="order-card__info-value">{{ formatDate(order.orderDate) }}</span>
-      </div>
-      <div class="order-card__info-item">
-        <span class="order-card__info-label">{{ T.TRACKING }}</span>
-        <span class="order-card__info-value">{{ order.trackingNumber || '-' }}</span>
-      </div>
-      <div class="order-card__info-item">
-        <span class="order-card__info-label">{{ T.SHOP }}</span>
-        <span class="order-card__info-value">{{ order.shopName || T.SHOP_PLACEHOLDER }}</span>
-      </div>
-    </div>
-
-    <div class="order-card__address">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <div class="order-card__address" v-if="order.contactName">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       <div>
         <span class="order-card__contact-name">{{ order.contactName }}</span>
         <span class="order-card__contact-phone">{{ order.contactPhone }}</span>
@@ -94,24 +68,71 @@
       </div>
     </div>
 
-    <div class="order-card__timeline">
-      <div class="order-card__timeline-header">
-        <span>{{ T.TIMELINE_TITLE }}</span>
-        <span class="order-card__timeline-progress">{{ timelineProgress }}</span>
+    <div class="order-card__divider" v-if="order.contactName || order.orderStatus"></div>
+
+    <!-- 店铺信息 -->
+    <div class="order-card__shop-section" v-if="order.shopName">
+      <div class="order-card__shop-info">
+        <img v-if="order.shopLogoUrl" class="order-card__shop-logo" :src="order.shopLogoUrl" :alt="order.shopName" />
+        <svg v-else width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+        <span class="order-card__shop-name">{{ order.shopName }}</span>
       </div>
-      <div class="order-card__steps">
-        <div v-for="(step, i) in steps" :key="i" class="order-card__step" :class="{ 'order-card__step--done': step.done, 'order-card__step--active': step.active }">
-          <div class="order-card__step-circle">
-            <svg v-if="step.done" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <span class="order-card__step-label">{{ step.label }}</span>
-          <span v-if="i === 0" class="order-card__step-date">{{ formatDate(order.orderDate) }}</span>
+    </div>
+
+    <div class="order-card__divider" v-if="order.shopName"></div>
+
+    <!-- 商品信息 -->
+    <div class="order-card__detail-section">
+      <div class="order-card__section-label">{{ T.PRODUCT_INFO }}</div>
+      <div class="order-card__product-row">
+        <div class="order-card__thumb">
+          <img v-if="order.productImageUrl" class="order-card__thumb-img" :src="order.productImageUrl" :alt="order.productName" />
+          <svg v-else width="52" height="52" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
         </div>
-        <div v-if="steps.length > 1" class="order-card__step-line"></div>
+        <div class="order-card__product-details">
+          <span class="order-card__product-name">{{ order.productName || T.PRODUCT_PLACEHOLDER }}</span>
+          <div v-if="order.productType" class="order-card__tag-row">
+            <span v-for="tag in String(order.productType).split(',')" :key="tag" class="order-card__tag">{{ tag.trim() }}</span>
+          </div>
+          <span class="order-card__qty">{{ T.QTY_LABEL }}{{ order.quantity }}</span>
+        </div>
       </div>
     </div>
 
     <div class="order-card__divider"></div>
+
+    <!-- 价格信息 -->
+    <div class="order-card__detail-section" v-if="order.totalPrice">
+      <div class="order-card__section-label">{{ T.TOTAL }}</div>
+      <div class="order-card__price-section">
+        <span class="order-card__price">¥{{ Number(order.totalPrice).toFixed(2) }}</span>
+      </div>
+    </div>
+
+    <div class="order-card__divider" v-if="order.totalPrice"></div>
+
+    <!-- 订单信息 -->
+    <div class="order-card__detail-section">
+      <div class="order-card__section-label">{{ T.ORDER_INFO }}</div>
+      <div class="order-card__info-grid">
+        <div class="order-card__info-item">
+          <span class="order-card__info-label">{{ T.ORDER_ID }}</span>
+          <span class="order-card__info-value">{{ order.orderId }}</span>
+        </div>
+        <div class="order-card__info-item" v-if="order.orderDate">
+          <span class="order-card__info-label">{{ T.ORDER_DATE }}</span>
+          <span class="order-card__info-value">{{ formatDate(order.orderDate) }}</span>
+        </div>
+        <div class="order-card__info-item" v-if="order.trackingNumber">
+          <span class="order-card__info-label">{{ T.TRACKING }}</span>
+          <span class="order-card__info-value">{{ order.trackingNumber }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="order-card__divider"></div>
+
+    <!-- 操作栏 -->
     <div class="order-card__actions">
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('pay', order)">{{ T.PAY }}</button>
@@ -124,8 +145,6 @@
       <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
-</template>
-
 <script setup>
 import { ORDER_CARD_TEXT as T } from './Text'
 import { useOrderCard } from './useOrderCard'
@@ -144,3 +163,4 @@ const { formatDate, timelineProgress, steps } = useOrderCard(props)
 <style scoped>
 @import './OrderCard.css';
 </style>
+

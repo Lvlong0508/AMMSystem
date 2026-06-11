@@ -1,4 +1,4 @@
-.order-card {
+﻿.order-card {
   background: var(--color-surface);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
@@ -102,7 +102,7 @@
   white-space: nowrap;
 }
 
-/* 价格行 */
+/* 价格行 (abstract) */
 .order-card__price-row {
   display: flex;
   justify-content: space-between;
@@ -141,6 +141,8 @@
   height: 1px;
   background: var(--color-border-light);
 }
+
+/* 操作栏 */
 .order-card__actions {
   display: flex;
   justify-content: flex-end;
@@ -184,83 +186,96 @@
   border-color: #dc2626;
 }
 
+/* ===== 详情卡样式 ===== */
 .order-card--detail {
   padding: 0;
 }
-.order-card__detail-header {
+
+/* 状态行 */
+.order-card--detail .order-card__detail-row {
+  padding: 20px 24px 0;
+}
+
+/* 地址 */
+.order-card--detail .order-card__address {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 24px 0;
-}
-.order-card__detail-title {
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-.order-card__detail-section {
-  display: flex;
-  gap: 20px;
-  padding: 20px 24px;
-}
-.order-card__detail-product-info {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.order-card__qty {
-  font-size: 18px;
-  color: var(--color-text-secondary);
-}
-.order-card__info-grid {
-  background: var(--color-bg);
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.order-card__info-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 20px;
-}
-.order-card__info-label {
-  color: var(--color-text-tertiary);
-}
-.order-card__info-value {
-  color: var(--color-text-primary);
-  font-family: var(--font-mono);
-}
-.order-card__address {
-  display: flex;
-  gap: 12px;
-  padding: 20px 24px;
+  gap: 10px;
+  padding: 16px 24px 20px;
   font-size: 20px;
   color: var(--color-text-primary);
 }
-.order-card__address svg {
+.order-card--detail .order-card__address svg {
   width: 20px;
   height: 20px;
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 3px;
+  color: var(--color-text-tertiary);
 }
-.order-card__contact-name {
+.order-card--detail .order-card__contact-name {
   font-weight: 600;
-  margin-right: 12px;
+  margin-right: 10px;
 }
-.order-card__contact-phone {
+.order-card--detail .order-card__contact-phone {
   color: var(--color-text-secondary);
 }
-.order-card__contact-addr {
+.order-card--detail .order-card__contact-addr {
   margin: 4px 0 0;
   color: var(--color-text-secondary);
 }
-.order-card__timeline {
+
+/* 详情分段 */
+.order-card--detail .order-card__detail-section {
+  padding: 20px 24px;
+}
+.order-card--detail .order-card__section-label {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  margin-bottom: 14px;
+}
+
+/* 店铺信息 */
+.order-card--detail .order-card__shop-section {
+  padding: 20px 24px;
+}
+
+/* 价格信息 */
+.order-card--detail .order-card__price-section {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 订单信息 grid */
+.order-card--detail .order-card__info-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.order-card--detail .order-card__info-item {
+  display: flex;
+  justify-content: space-between;
+  font-size: 18px;
+}
+.order-card--detail .order-card__info-label {
+  color: var(--color-text-tertiary);
+}
+.order-card--detail .order-card__info-value {
+  color: var(--color-text-primary);
+  font-family: var(--font-mono);
+}
+
+/* 商品数量 */
+.order-card--detail .order-card__qty {
+  font-size: 18px;
+  color: var(--color-text-secondary);
+}
+
+/* 时间线 */
+.order-card--detail .order-card__timeline {
   padding: 20px 24px;
   background: var(--color-bg);
 }
-.order-card__timeline-header {
+.order-card--detail .order-card__timeline-header {
   display: flex;
   justify-content: space-between;
   font-size: 20px;
@@ -268,17 +283,17 @@
   color: var(--color-text-primary);
   font-weight: 500;
 }
-.order-card__timeline-progress {
+.order-card--detail .order-card__timeline-progress {
   color: var(--color-text-tertiary);
   font-weight: 400;
 }
-.order-card__steps {
+.order-card--detail .order-card__steps {
   display: flex;
   align-items: flex-start;
   position: relative;
   gap: 0;
 }
-.order-card__step {
+.order-card--detail .order-card__step {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -286,7 +301,7 @@
   position: relative;
   gap: 8px;
 }
-.order-card__step-circle {
+.order-card--detail .order-card__step-circle {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -298,31 +313,31 @@
   color: var(--color-text-tertiary);
   transition: all 300ms ease-out;
 }
-.order-card__step-circle svg {
+.order-card--detail .order-card__step-circle svg {
   width: 16px;
   height: 16px;
 }
-.order-card__step--done .order-card__step-circle {
+.order-card--detail .order-card__step--done .order-card__step-circle {
   background: var(--color-success);
   border-color: var(--color-success);
   color: #fff;
 }
-.order-card__step--active .order-card__step-circle {
+.order-card--detail .order-card__step--active .order-card__step-circle {
   border-color: var(--color-accent);
   background: var(--color-accent-light);
   color: var(--color-accent);
 }
-.order-card__step-label {
+.order-card--detail .order-card__step-label {
   font-size: 16px;
   color: var(--color-text-secondary);
   text-align: center;
 }
-.order-card__step-date {
+.order-card--detail .order-card__step-date {
   font-size: 14px;
   color: var(--color-text-tertiary);
   font-family: var(--font-mono);
 }
-.order-card__step-line {
+.order-card--detail .order-card__step-line {
   position: absolute;
   top: 15px;
   left: calc(50% + 18px);
@@ -332,6 +347,7 @@
   z-index: 0;
 }
 
+/* 超时标记 */
 .order-card__timeout {
   display: inline-flex;
   align-items: center;
@@ -343,12 +359,10 @@
   border-radius: 4px;
   margin-top: 4px;
 }
-
 .order-card__timeout--expired {
   color: #dc2626;
   background: #fef2f2;
 }
-
 .order-card__timeout--detail {
   margin: 0 24px 16px;
 }
