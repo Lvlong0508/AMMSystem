@@ -104,10 +104,14 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
 
     private void handleLogistics(Map<String, String> msg) {
         String orderId = msg.get("orderId");
-        ApiResponse<Map<String, Object>> existing = logisticsFeignClient.getLatestLogistics(orderId, "DELIVERY");
-        if (existing != null && existing.getData() != null) {
-            log.info("SKIP logistics 已创建, orderId={}", orderId);
-            return;
+        try {
+            ApiResponse<Map<String, Object>> existing = logisticsFeignClient.getLatestLogistics(orderId, "DELIVERY");
+            if (existing != null && existing.getData() != null) {
+                log.info("SKIP logistics 已创建, orderId={}", orderId);
+                return;
+            }
+        } catch (Exception e) {
+            log.warn("查询物流信息异常, 继续创建物流记录, orderId={}", orderId, e);
         }
         LogisticsRequest req = new LogisticsRequest();
         req.setOrderId(orderId);

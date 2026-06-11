@@ -99,9 +99,7 @@ public class LogisticsServiceImpl implements LogisticsService {
     @Override
     public LogisticsResponse getLatestLogistics(String orderId, String type) {
         Logistics logistics = logisticsMapper.selectLatestLogisticsByOrderIdAndType(orderId, type);
-        if (logistics == null) {
-            throw new LogisticsException("物流信息不存在");
-        }
-        return logisticsConverter.toResponse(logistics);
+        return logistics == null ? null : logisticsConverter.toResponse(logistics);
     }
 }
+

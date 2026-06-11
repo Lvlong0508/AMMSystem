@@ -148,16 +148,15 @@ class InternalLogisticsControllerTest {
     }
 
     @Test
-    @DisplayName("LG-019 内部查询最新物流 - 不存在返回LogisticsException")
-    void getLatestLogistics_notFound_throwsException() throws Exception {
-        when(logisticsService.getLatestLogistics("ORD003", "RETURN"))
-                .thenThrow(new LogisticsException("物流信息不存在"));
+    @DisplayName("LG-019 内部查询最新物流 - 不存在返回null")
+    void getLatestLogistics_notFound_returnsNull() throws Exception {
+        when(logisticsService.getLatestLogistics("ORD003", "RETURN")).thenReturn(null);
 
         mockMvc.perform(get("/internal/logistics/order/ORD003/latest")
                         .param("type", "RETURN"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("物流信息不存在"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isEmpty());
     }
 
     @Test

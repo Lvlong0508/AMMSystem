@@ -263,13 +263,13 @@ class LogisticsServiceImplTest {
     }
 
     @Test
-    @DisplayName("LG-013 查询最新物流 - 不存在抛出LogisticsException")
-    void getLatestLogistics_notFound_throwsException() {
+    @DisplayName("LG-013 查询最新物流 - 不存在返回null")
+    void getLatestLogistics_notFound_returnsNull() {
         when(logisticsMapper.selectLatestLogisticsByOrderIdAndType("ORD001", "RETURN")).thenReturn(null);
 
-        LogisticsException ex = assertThrows(LogisticsException.class,
-                () -> logisticsService.getLatestLogistics("ORD001", "RETURN"));
-        assertEquals("物流信息不存在", ex.getMessage());
+        LogisticsResponse result = logisticsService.getLatestLogistics("ORD001", "RETURN");
+
+        assertNull(result);
     }
 
     @Test
