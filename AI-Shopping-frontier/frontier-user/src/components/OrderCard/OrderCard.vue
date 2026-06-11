@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div v-if="variant === 'abstract'" class="order-card order-card--abstract">
     <div class="order-card__main" @click="$emit('click')">
       <div class="order-card__shop-row">
@@ -14,7 +14,7 @@
       <div class="order-card__product-row">
         <div class="order-card__thumb">
           <img v-if="order.productImageUrl" class="order-card__thumb-img" :src="order.productImageUrl" :alt="order.productName" />
-          <svg v-else width="52" height="52" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
+          <svg v-else width="88" height="88" viewBox="0 0 52 52" fill="none"><rect width="88" height="88" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
         </div>
         <div class="order-card__product-details">
           <span class="order-card__product-name">{{ order.productName || T.PRODUCT_PLACEHOLDER }}</span>
@@ -87,7 +87,7 @@
       <div class="order-card__product-row">
         <div class="order-card__thumb">
           <img v-if="order.productImageUrl" class="order-card__thumb-img" :src="order.productImageUrl" :alt="order.productName" />
-          <svg v-else width="52" height="52" viewBox="0 0 52 52" fill="none"><rect width="52" height="52" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
+          <svg v-else width="88" height="88" viewBox="0 0 52 52" fill="none"><rect width="88" height="88" rx="8" fill="#f1f5f9"/><path d="M18 22h16l-2 14H20l-2-14z" stroke="#94a3b8" stroke-width="1.5"/><circle cx="22" cy="36" r="2" fill="#94a3b8"/><circle cx="32" cy="36" r="2" fill="#94a3b8"/></svg>
         </div>
         <div class="order-card__product-details">
           <span class="order-card__product-name">{{ order.productName || T.PRODUCT_PLACEHOLDER }}</span>
@@ -145,6 +145,8 @@
       <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
+</template>
+
 <script setup>
 import { ORDER_CARD_TEXT as T } from './Text'
 import { useOrderCard } from './useOrderCard'
