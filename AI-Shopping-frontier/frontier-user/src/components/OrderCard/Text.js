@@ -8,6 +8,7 @@ export const ORDER_CARD_TEXT = {
   VIEW_LOGISTICS: '查看物流',
   CONFIRM: '确认收货',
   REVIEW: '评价',
+  DELETE: '删除订单',
   ORDER_DATE: '下单时间',
   TRACKING: '物流单号',
   SHOP: '店铺',

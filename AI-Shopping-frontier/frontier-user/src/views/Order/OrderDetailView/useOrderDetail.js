@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrderById, cancelOrder, confirmDelivery } from '@/api/order'
-import { showSuccess, showError } from '@/utils/swal'
+import { getOrderById, cancelOrder, confirmDelivery, deleteOrder } from '@/api/order'
+import { showSuccess, showError, showConfirm } from '@/utils/swal'
 
 export function useOrderDetail() {
   const route = useRoute()
@@ -32,7 +32,7 @@ export function useOrderDetail() {
   const loadOrder = async () => {
     loading.value = true
     try {
-      const orderId = route.params.orderId
+      const orderId = route.params.id
       const res = await getOrderById(orderId)
       order.value = res.data || res
     } catch {
@@ -59,6 +59,18 @@ export function useOrderDetail() {
 
   const onPayLater = () => {
     showPaymentModal.value = false
+  }
+
+  const handleDelete = async () => {
+    const confirmed = await showConfirm('确认删除', '删除后无法恢复，确定要删除该订单吗？', '确认删除', '再想想')
+    if (!confirmed.isConfirmed) return
+    try {
+      await deleteOrder(order.value.orderId)
+      showSuccess('订单已删除')
+      await loadOrder()
+    } catch {
+      showError('删除失败')
+    }
   }
 
   const handleViewLogistics = () => {}
@@ -93,6 +105,7 @@ export function useOrderDetail() {
     actionConfirmText,
     goBack,
     handlePay,
+    handleDelete,
     handleViewLogistics,
     handleReview,
     confirmAction,

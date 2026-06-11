@@ -41,12 +41,15 @@
     <div class="order-card__divider"></div>
 
     <div class="order-card__actions">
-      <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
+      <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('pay', order)">{{ T.PAY }}</button>
+      <button v-if="order.orderStatus === 'PAID'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('review', order)">{{ T.REVIEW }}</button>
+      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
+      <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
 
@@ -110,12 +113,15 @@
 
     <div class="order-card__divider"></div>
     <div class="order-card__actions">
-      <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
+      <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('pay', order)">{{ T.PAY }}</button>
+      <button v-if="order.orderStatus === 'PAID'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('cancel', order)">{{ T.CANCEL }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('review', order)">{{ T.REVIEW }}</button>
+      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
+      <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
 </template>
@@ -130,7 +136,7 @@ const props = defineProps({
   order: { type: Object, required: true }
 })
 
-defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'review'])
+defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'review', 'delete'])
 
 const { formatDate, timelineProgress, steps } = useOrderCard(props)
 </script>

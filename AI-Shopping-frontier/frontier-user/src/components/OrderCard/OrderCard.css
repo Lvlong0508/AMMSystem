@@ -148,18 +148,19 @@
   padding: 16px 24px;
 }
 .order-card__action-btn {
-  padding: 12px 28px;
+  padding: 6px 18px;
   border-radius: var(--radius-pill);
-  font-size: 18px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 250ms ease-out;
   border: none;
   font-family: var(--font-body);
+  line-height: 1.4;
 }
 .order-card__action-btn--outline {
   background: transparent;
-  border: 2px solid var(--color-border);
+  border: 1.5px solid var(--color-border);
   color: var(--color-text-secondary);
 }
 .order-card__action-btn--outline:hover {
@@ -172,6 +173,15 @@
 }
 .order-card__action-btn--primary:hover {
   opacity: 0.9;
+}
+.order-card__action-btn--danger {
+  background: transparent;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+}
+.order-card__action-btn--danger:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
 }
 
 .order-card--detail {

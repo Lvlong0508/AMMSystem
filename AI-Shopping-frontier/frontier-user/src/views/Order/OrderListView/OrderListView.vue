@@ -1,5 +1,5 @@
 <template>
-  <div class="order-list-view">
+  <div class="order-list-view" style="max-width:960px;margin:0 auto">
     <div class="order-list-view__filters">
       <button
         v-for="f in filters"
@@ -32,6 +32,7 @@
         class="order-list-view__item"
         @click="handleViewDetail(order)"
         @cancel="handleCancel"
+        @delete="handleDelete"
         @pay="handlePay"
         @viewLogistics="handleViewLogistics"
         @confirm="handleConfirm"

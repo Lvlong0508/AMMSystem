@@ -1,6 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getOrderList, cancelOrder, payOrder, confirmDelivery } from '@/api/order'
+import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder } from '@/api/order'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
 
@@ -55,6 +55,18 @@ export function useOrderList() {
   const payingOrder = ref(null)
   const showPaymentModal = ref(false)
 
+  const handleDelete = async (order) => {
+    const result = await showConfirm('确认删除', '删除后无法恢复，确定要删除该订单吗？', '确认删除', '再想想')
+    if (!result.isConfirmed) return
+    try {
+      await deleteOrder(order.orderId)
+      showSuccess('订单已删除')
+      await loadOrders()
+    } catch {
+      showError('删除失败')
+    }
+  }
+
   const handlePay = async (order) => {
     payingOrder.value = order
     showPaymentModal.value = true
@@ -97,6 +109,7 @@ export function useOrderList() {
     filteredOrders,
     handleViewDetail,
     handleCancel,
+    handleDelete,
     handlePay,
     handleViewLogistics,
     handleConfirm,
