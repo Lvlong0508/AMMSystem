@@ -7,6 +7,7 @@ import dev.langchain4j.internal.Json;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Type;
 
 public class JacksonJsonCodec implements Json.JsonCodec {
 
@@ -30,6 +31,15 @@ public class JacksonJsonCodec implements Json.JsonCodec {
     public <T> T fromJson(String json, Class<T> type) {
         try {
             return objectMapper.readValue(json, type);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public <T> T fromJson(String json, Type type) {
+        try {
+            return objectMapper.readValue(json, objectMapper.constructType(type));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

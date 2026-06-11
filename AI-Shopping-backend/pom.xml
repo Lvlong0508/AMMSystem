@@ -31,7 +31,8 @@
         <spring-boot.version>3.2.3</spring-boot.version>
         <spring-cloud.version>2023.0.0</spring-cloud.version>
         <mybatis.version>3.0.3</mybatis.version>
-        <langchain4j.version>0.35.0</langchain4j.version>
+        <langchain4j.version>0.36.2</langchain4j.version>
+        <dashscope.version>2.16.9</dashscope.version>
         <lombok.version>1.18.30</lombok.version>
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
 
@@ -64,6 +65,11 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-loadbalancer</artifactId>
                 <version>4.1.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dashscope-sdk-java</artifactId>
+                <version>${dashscope.version}</version>
             </dependency>
             <dependency>
                 <groupId>cn.hutool</groupId>
