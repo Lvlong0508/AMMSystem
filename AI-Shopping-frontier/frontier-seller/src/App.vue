@@ -1,7 +1,7 @@
 <template>
   <router-view v-slot="{ Component, route: r }">
     <transition name="el-fade-in-linear" mode="out-in">
-      <component :is="Component" :key="r.path" />
+      <component :is="Component" />
     </transition>
   </router-view>
 </template>
