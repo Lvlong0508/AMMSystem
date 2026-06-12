@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.model;
+package com.gzasc.aishopping.chat.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

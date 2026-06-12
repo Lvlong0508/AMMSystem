@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.chat.service.impl;
 
-import com.gzasc.aishopping.chat.model.ChatMessages;
+import com.gzasc.aishopping.chat.entity.ChatMessages;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.ChatMessageDeserializer;
 import dev.langchain4j.data.message.ChatMessageSerializer;
