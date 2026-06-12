@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.context;
+package com.gzasc.aishopping.chat.config.web;
 
 public class UserContext {
     private static final ThreadLocal<Long> userIdHolder = new InheritableThreadLocal<>();

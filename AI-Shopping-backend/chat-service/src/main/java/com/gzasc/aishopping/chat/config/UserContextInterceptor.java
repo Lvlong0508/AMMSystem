@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.chat.config;
 
-import com.gzasc.aishopping.chat.context.UserContext;
+import com.gzasc.aishopping.chat.config.web.UserContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;

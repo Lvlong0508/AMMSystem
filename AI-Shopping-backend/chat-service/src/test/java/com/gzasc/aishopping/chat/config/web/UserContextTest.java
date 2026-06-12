@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.context;
+package com.gzasc.aishopping.chat.config.web;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

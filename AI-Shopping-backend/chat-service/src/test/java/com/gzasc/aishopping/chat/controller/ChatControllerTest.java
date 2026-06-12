@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.AiService.Assistant;
-import com.gzasc.aishopping.chat.context.UserContext;
+import com.gzasc.aishopping.chat.config.web.UserContext;
 import com.gzasc.aishopping.chat.dto.AiResponse;
 import com.gzasc.aishopping.chat.dto.OrderData;
 import com.gzasc.aishopping.chat.dto.OrderItem;
