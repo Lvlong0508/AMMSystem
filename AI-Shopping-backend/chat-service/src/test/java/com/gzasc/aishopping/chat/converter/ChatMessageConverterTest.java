@@ -1,8 +1,6 @@
 package com.gzasc.aishopping.chat.converter;
 
 import com.gzasc.aishopping.chat.dto.MessageVO;
-import com.gzasc.aishopping.chat.dto.ProductItem;
-import dev.langchain4j.agent.tool.ToolExecutionRequest;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.data.message.ChatMessage;
 import dev.langchain4j.data.message.SystemMessage;
@@ -17,18 +15,30 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ChatMessageConverterTest {
 
+    private static final String PRODUCT_JSON = """
+            {
+              "message": "为您找到以下商品",
+              "reason": "调用接口获取商品列表",
+              "data": {
+                "type": "product",
+                "products": [
+                  {"id":1,"name":"手机","price":2999.0,"tags":"tag","description":"desc","stock":100,"imageUrl":"url","shopName":"shop"}
+                ]
+              }
+            }""";
+
+    private static final String FENCED_PRODUCT_JSON = "```json\n" + PRODUCT_JSON + "\n```";
+
     @Test
     @DisplayName("空列表返回空 List")
     void emptyList() {
-        List<MessageVO> result = ChatMessageConverter.toMessageList(List.of());
-        assertTrue(result.isEmpty());
+        assertTrue(ChatMessageConverter.toMessageList(List.of()).isEmpty());
     }
 
     @Test
     @DisplayName("null 返回空 List")
     void nullList() {
-        List<MessageVO> result = ChatMessageConverter.toMessageList(null);
-        assertTrue(result.isEmpty());
+        assertTrue(ChatMessageConverter.toMessageList(null).isEmpty());
     }
 
     @Test
@@ -41,12 +51,24 @@ class ChatMessageConverterTest {
         );
         List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
         assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("ToolExecutionResultMessage 被跳过")
+    void toolExecutionResultSkipped() {
+        var messages = List.<ChatMessage>of(
+                new UserMessage("推荐商品"),
+                new ToolExecutionResultMessage("tool", "{}", "[{\"id\":1}]"),
+                new AiMessage("结果是")
+        );
+        List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
+        assertEquals(2, result.size());
         assertEquals("user", result.get(0).getRole());
         assertEquals("ai", result.get(1).getRole());
     }
 
     @Test
-    @DisplayName("一轮对话 - UserMessage + AiMessage（无 tool）")
+    @DisplayName("简单对话 — UserMessage + 纯文本 AiMessage")
     void simpleConversation() {
         var messages = List.<ChatMessage>of(
                 new UserMessage("你好"),
@@ -65,42 +87,65 @@ class ChatMessageConverterTest {
     }
 
     @Test
-    @DisplayName("带 tool call 的对话 - UserMessage + ToolExecutionResult + AiMessage")
-    void toolCallConversation() {
+    @DisplayName("用户消息截断格式指令")
+    void userTextCleaned() {
+        String dirty = "有什么商品\nYou must answer strictly in the following JSON format: {\"message\": \"...\"}";
+        assertEquals("有什么商品", ChatMessageConverter.cleanUserText(dirty));
+    }
+
+    @Test
+    @DisplayName("用户消息无格式指令时原样返回")
+    void userTextNoFormatter() {
+        assertEquals("你好", ChatMessageConverter.cleanUserText("你好"));
+    }
+
+    @Test
+    @DisplayName("AI JSON 回复（带 markdown 围栏）")
+    void aiJsonWithFences() {
+        var parsed = ChatMessageConverter.parseAiText(FENCED_PRODUCT_JSON);
+        assertEquals("为您找到以下商品", parsed.text());
+        assertNotNull(parsed.products());
+        assertEquals(1, parsed.products().size());
+        assertEquals("手机", parsed.products().get(0).name());
+    }
+
+    @Test
+    @DisplayName("AI JSON 回复（无围栏）")
+    void aiJsonWithoutFences() {
+        var parsed = ChatMessageConverter.parseAiText(PRODUCT_JSON);
+        assertEquals("为您找到以下商品", parsed.text());
+        assertNotNull(parsed.products());
+        assertEquals(1, parsed.products().size());
+    }
+
+    @Test
+    @DisplayName("AI 纯文本回复（非 JSON）")
+    void aiPlainText() {
+        var parsed = ChatMessageConverter.parseAiText("您好，请问有什么可以帮您？");
+        assertEquals("您好，请问有什么可以帮您？", parsed.text());
+        assertNull(parsed.products());
+    }
+
+    @Test
+    @DisplayName("带 tool call 的完整对话轮次")
+    void fullToolCallConversation() {
         var messages = List.<ChatMessage>of(
-                new UserMessage("有哪些商品"),
-                new ToolExecutionResultMessage("product_tool", "{\"id\":\"1\"}", "{\"type\":\"product\",\"products\":[{\"id\":1,\"name\":\"手机\",\"price\":2999.0,\"tags\":\"tag\",\"description\":\"desc\",\"stock\":100,\"imageUrl\":\"url\",\"shopName\":\"shop\"}]}"),
-                new AiMessage("为您找到以下商品")
+                new SystemMessage("system"),
+                new UserMessage("有什么商品\nYou must answer strictly in the following JSON format: {...}"),
+                new AiMessage(""),
+                new ToolExecutionResultMessage("tool", "{}", "[{\"id\":1}]"),
+                new AiMessage(FENCED_PRODUCT_JSON)
         );
         List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
         assertEquals(2, result.size());
 
         assertEquals("user", result.get(0).getRole());
-        assertNull(result.get(0).getProducts());
+        assertEquals("有什么商品", result.get(0).getText());
 
         assertEquals("ai", result.get(1).getRole());
         assertEquals("为您找到以下商品", result.get(1).getText());
         assertNotNull(result.get(1).getProducts());
         assertEquals(1, result.get(1).getProducts().size());
-        assertEquals("手机", result.get(1).getProducts().get(0).name());
-    }
-
-    @Test
-    @DisplayName("AiMessage 无 text()（纯 tool call 阶段）被跳过")
-    void aiMessageWithoutTextSkipped() {
-        var messages = List.<ChatMessage>of(
-                new UserMessage("查询商品"),
-                AiMessage.from(ToolExecutionRequest.builder().id("1").name("tool").arguments("{}").build()),
-                new ToolExecutionResultMessage("tool", "{\"id\":\"1\"}", "{\"type\":\"product\",\"products\":[{\"id\":1,\"name\":\"手机\",\"price\":2999.0}]}"),
-                new AiMessage("结果如下")
-        );
-        List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
-        assertEquals(2, result.size());
-
-        assertEquals("user", result.get(0).getRole());
-        assertEquals("ai", result.get(1).getRole());
-        assertEquals("结果如下", result.get(1).getText());
-        assertNotNull(result.get(1).getProducts());
     }
 
     @Test
@@ -109,9 +154,8 @@ class ChatMessageConverterTest {
         var messages = List.<ChatMessage>of(
                 new UserMessage("你好"),
                 new AiMessage("你好！"),
-                new UserMessage("有什么手机"),
-                new ToolExecutionResultMessage("tool", "{}", "{\"type\":\"product\",\"products\":[{\"id\":1,\"name\":\"手机\",\"price\":2999.0}]}"),
-                new AiMessage("推荐这款手机")
+                new UserMessage("有什么商品\nYou must answer strictly in the following JSON format: {...}"),
+                new AiMessage(FENCED_PRODUCT_JSON)
         );
         List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
         assertEquals(4, result.size());
@@ -120,19 +164,5 @@ class ChatMessageConverterTest {
         assertNull(result.get(1).getProducts());
         assertNull(result.get(2).getProducts());
         assertNotNull(result.get(3).getProducts());
-    }
-
-    @Test
-    @DisplayName("JSON 解析失败时静默跳过，products 为 null")
-    void invalidJsonSkipsSilently() {
-        var messages = List.<ChatMessage>of(
-                new UserMessage("查商品"),
-                new ToolExecutionResultMessage("tool", "{}", "invalid json"),
-                new AiMessage("抱歉没找到")
-        );
-        List<MessageVO> result = ChatMessageConverter.toMessageList(messages);
-        assertEquals(2, result.size());
-        assertEquals("ai", result.get(1).getRole());
-        assertNull(result.get(1).getProducts());
     }
 }
