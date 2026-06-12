@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.chat.tools;
 
 import com.gzasc.aishopping.chat.exception.AiToolException;
+import com.gzasc.aishopping.chat.service.impl.ChatSessionService;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import org.junit.jupiter.api.DisplayName;
@@ -23,8 +24,13 @@ class OrderToolsTest {
     @Mock
     private OrderFeignClient orderFeignClient;
 
+    @Mock
+    private ChatSessionService chatSessionService;
+
     @InjectMocks
     private OrderTools orderTools;
+
+    private static final String SESSION_ID = "507f1f77bcf86cd799439011";
 
     @Test
     @DisplayName("CH-026 getOrderById - 正常查询")
@@ -34,9 +40,10 @@ class OrderToolsTest {
         order.put("orderStatus", "PAID");
         order.put("totalPrice", 5998.0);
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(ApiResponse.success(order));
 
-        Map<String, Object> result = orderTools.getOrderById("ORD001", 100L);
+        Map<String, Object> result = orderTools.getOrderById("ORD001", SESSION_ID);
         assertEquals("ORD001", result.get("orderId"));
         assertEquals("PAID", result.get("orderStatus"));
         assertEquals(5998.0, result.get("totalPrice"));
@@ -45,20 +52,22 @@ class OrderToolsTest {
     @Test
     @DisplayName("CH-027 getOrderById - Feign 返回 null")
     void getOrderById_feignNull() throws Exception {
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getOrderById("ORD999", 100L)).thenReturn(null);
 
         AiToolException ex = assertThrows(AiToolException.class,
-                () -> orderTools.getOrderById("ORD999", 100L));
+                () -> orderTools.getOrderById("ORD999", SESSION_ID));
         assertEquals("订单不存在", ex.getMessage());
     }
 
     @Test
     @DisplayName("CH-028 getOrderById - Feign 返回错误状态码")
     void getOrderById_errorCode() throws Exception {
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getOrderById("ORD001", 100L)).thenReturn(ApiResponse.error(500, "服务异常"));
 
         AiToolException ex = assertThrows(AiToolException.class,
-                () -> orderTools.getOrderById("ORD001", 100L));
+                () -> orderTools.getOrderById("ORD001", SESSION_ID));
         assertEquals("订单不存在", ex.getMessage());
     }
 
@@ -72,9 +81,10 @@ class OrderToolsTest {
         order2.put("orderId", "ORD002");
         order2.put("orderStatus", "SHIPPED");
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order1, order2)));
 
-        List<Map<String, Object>> result = orderTools.getAllOrders(100L);
+        List<Map<String, Object>> result = orderTools.getAllOrders(SESSION_ID);
         assertEquals(2, result.size());
         assertEquals("ORD001", result.get(0).get("orderId"));
         assertEquals("ORD002", result.get(1).get("orderId"));
@@ -83,9 +93,10 @@ class OrderToolsTest {
     @Test
     @DisplayName("CH-032 getAllOrders - Feign 返回错误状态码")
     void getAllOrders_errorCode() throws Exception {
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.error(500, "服务异常"));
 
-        List<Map<String, Object>> result = orderTools.getAllOrders(100L);
+        List<Map<String, Object>> result = orderTools.getAllOrders(SESSION_ID);
         assertTrue(result.isEmpty());
     }
 
@@ -102,9 +113,10 @@ class OrderToolsTest {
         order3.put("orderId", "ORD003");
         order3.put("orderStatus", "SHIPPED");
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order1, order2, order3)));
 
-        List<Map<String, Object>> result = orderTools.getOrdersByStatus("PAID", 100L);
+        List<Map<String, Object>> result = orderTools.getOrdersByStatus("PAID", SESSION_ID);
         assertEquals(2, result.size());
         assertEquals("PAID", result.get(0).get("orderStatus"));
         assertEquals("PAID", result.get(1).get("orderStatus"));
@@ -117,9 +129,10 @@ class OrderToolsTest {
         order.put("orderId", "ORD001");
         order.put("orderStatus", "PAID");
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
-        List<Map<String, Object>> result = orderTools.getOrdersByStatus("CANCELLED", 100L);
+        List<Map<String, Object>> result = orderTools.getOrdersByStatus("CANCELLED", SESSION_ID);
         assertTrue(result.isEmpty());
     }
 
@@ -130,9 +143,10 @@ class OrderToolsTest {
         order.put("orderId", "ORD001");
         order.put("orderStatus", "PAID");
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
-        List<Map<String, Object>> result = orderTools.getOrdersByStatus("INVALID_STATUS", 100L);
+        List<Map<String, Object>> result = orderTools.getOrdersByStatus("INVALID_STATUS", SESSION_ID);
         assertTrue(result.isEmpty());
     }
 
@@ -143,9 +157,10 @@ class OrderToolsTest {
         order.put("orderId", "ORD001");
         order.put("orderStatus", "PAID");
 
+        when(chatSessionService.getSessionUserId(SESSION_ID)).thenReturn(100L);
         when(orderFeignClient.getAllOrders(100L)).thenReturn(ApiResponse.success(List.of(order)));
 
-        List<Map<String, Object>> result = orderTools.getOrdersByStatus(null, 100L);
+        List<Map<String, Object>> result = orderTools.getOrdersByStatus(null, SESSION_ID);
         assertTrue(result.isEmpty());
     }
 }

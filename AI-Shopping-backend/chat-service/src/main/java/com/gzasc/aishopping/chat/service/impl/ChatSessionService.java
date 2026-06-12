@@ -63,6 +63,17 @@ public class ChatSessionService {
         mongoTemplate.updateFirst(query, update, ChatSession.class);
     }
 
+    public Long getSessionUserId(String sessionId) {
+        ObjectId id = new ObjectId(sessionId);
+        ChatSession session = mongoTemplate.findOne(
+                new Query(Criteria.where("id").is(id)),
+                ChatSession.class);
+        if (session == null) {
+            throw new IllegalArgumentException("会话不存在: " + sessionId);
+        }
+        return session.getUserId();
+    }
+
     public boolean isSessionOwner(String sessionId, Long userId) {
         ObjectId id = new ObjectId(sessionId);
         ChatSession session = mongoTemplate.findOne(
