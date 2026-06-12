@@ -81,10 +81,10 @@ class ChatMemoryIntegrationTest {
 
     @Test
     void testChatMemoryIsolation() {
-        assistant.chat(1L, "帮我推荐手机");
-        assistant.chat(1L, "有没有便宜点的");
+        assistant.chat("session-1", "帮我推荐手机");
+        assistant.chat("session-1", "有没有便宜点的");
 
-        assistant.chat(2L, "帮我查一下我的订单");
+        assistant.chat("session-2", "帮我查一下我的订单");
 
         List<ChatMessage> lastRequest = spyChatModel.lastRequest();
         List<String> texts = lastRequest.stream()
@@ -106,14 +106,14 @@ class ChatMemoryIntegrationTest {
 
     @Test
     void testSameUserSeesHistory() {
-        assistant.chat(1L, "第一次说你好");
+        assistant.chat("session-1", "第一次说你好");
 
         List<ChatMessage> secondRequest = spyChatModel.lastRequest();
         assertThat(secondRequest)
                 .describedAs("用户1首次调用应包含发送的消息")
                 .anyMatch(m -> m.text().contains("你好"));
 
-        assistant.chat(1L, "第二次再说你好");
+        assistant.chat("session-1", "第二次再说你好");
 
         List<ChatMessage> thirdRequest = spyChatModel.lastRequest();
         assertThat(thirdRequest)

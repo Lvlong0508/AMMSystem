@@ -1,7 +1,7 @@
 <template>
   <div class="app-shell">
     <div class="app-layout" :class="{ 'app-layout--sidebar-collapsed': sidebarCollapsed }" :style="{ '--sidebar-width': sidebarCollapsed ? '72px' : '240px' }">
-      <aside class="sidebar" :class="{ 'sidebar--collapsed': sidebarCollapsed }">
+      <aside class="sidebar" :class="{ 'sidebar--collapsed': sidebarCollapsed, 'sidebar--has-history': activeRoute.startsWith('/chat') }">
         <div class="sidebar-brand">
           <span>{{ sidebarCollapsed ? 'AS' : text.brand }}</span>
           <div class="sidebar-toggle" @click.stop="toggleSidebar">
@@ -48,6 +48,20 @@
             </span>
           </a>
         </nav>
+
+        <div v-if="activeRoute.startsWith('/chat')" class="sidebar-history">
+          <div class="sidebar-history__header">回话记录</div>
+          <div
+            v-for="s in sessionList"
+            :key="s.id"
+            class="sidebar-history__item"
+            :class="{ active: activeSessionId === s.id }"
+            :title="s.title"
+            @click="handleSessionClick(s.id)"
+          >
+            <span>{{ s.title }}</span>
+          </div>
+        </div>
 
         <div class="sidebar-footer">
           <template v-if="isLoggedIn">
@@ -121,7 +135,7 @@ import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
 import { showLogin } from '@/stores/authStore'
-import { triggerNewChat } from '@/stores/chatStore'
+import { sessionList, activeSessionId, clearActiveSession, switchSession } from '@/stores/chatStore'
 import { useRouter } from 'vue-router'
 
 const { isLoggedIn, activeRoute, handleLogout } = useAppLayout()
@@ -169,7 +183,11 @@ const onLoggedIn = () => {
 }
 
 const handleNewChat = () => {
-  triggerNewChat()
+  clearActiveSession()
+}
+
+const handleSessionClick = (id) => {
+  switchSession(id)
 }
 </script>
 

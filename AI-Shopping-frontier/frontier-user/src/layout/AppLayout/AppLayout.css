@@ -81,10 +81,14 @@
 
 .sidebar-nav {
   flex: 1;
-  padding: 6px 0 16px;
+  padding: 6px 0 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.sidebar--has-history .sidebar-nav {
+  flex: 0 0 auto;
 }
 
 .sidebar-nav-divider {
@@ -392,6 +396,100 @@
 
 .sidebar-login-trigger:hover .sidebar-login-text {
   color: #60a5fa;
+}
+
+.sidebar-history {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 8px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  margin-top: 4px;
+}
+
+.sidebar--collapsed .sidebar-history {
+  padding: 8px 8px 12px;
+  align-items: center;
+}
+
+.sidebar-history__header {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 12px 6px;
+  transition: opacity 200ms ease-out;
+}
+
+.sidebar--collapsed .sidebar-history__header {
+  display: none;
+}
+
+.sidebar-history__item {
+  font-size: 18px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: all 200ms ease-out;
+  position: relative;
+}
+
+.sidebar-history__item:hover {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.8);
+}
+
+.sidebar-history__item.active {
+  background: rgba(37,99,235,0.15);
+  color: #60a5fa;
+}
+
+.sidebar--collapsed .sidebar-history__item {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0;
+  border-radius: 50%;
+}
+
+.sidebar--collapsed .sidebar-history__item.active {
+  background: rgba(37,99,235,0.2);
+}
+
+.sidebar--collapsed .sidebar-history__item::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1e293b;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease-out;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  z-index: 100;
+}
+
+.sidebar--collapsed .sidebar-history__item:hover::after {
+  opacity: 1;
 }
 
 .main-content {

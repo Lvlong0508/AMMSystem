@@ -1,6 +1,6 @@
 import { ref, nextTick, watch, onMounted } from 'vue'
-import { newChatCounter } from '@/stores/chatStore'
-import { sendMessage } from '@/api/chat'
+import { sessionList, activeSessionId, loadSessions, switchSession } from '@/stores/chatStore'
+import { createSession, sendMessage, getSessionMessages } from '@/api/chat'
 import { CHAT_VIEW_TEXT } from './Text'
 import { requireLogin } from '@/stores/authStore'
 import { showError, showInfo } from '@/utils/swal'
@@ -17,8 +17,24 @@ export function useChatView() {
   const placedOrderId = ref('')
   const placedOrder = ref(null)
 
-  watch(newChatCounter, () => {
-    messages.value = []
+  watch(activeSessionId, async (newId) => {
+    if (!newId) {
+      messages.value = []
+      return
+    }
+    if (loading.value) return
+    try {
+      const msgs = await getSessionMessages(newId)
+      if (loading.value) return
+      messages.value = msgs
+    } catch {
+      if (!loading.value) {
+        messages.value = []
+      }
+    }
+    if (!loading.value) {
+      await scrollToBottom()
+    }
   })
 
   const scrollToBottom = async () => {
@@ -33,19 +49,34 @@ export function useChatView() {
     if (!text || loading.value) return
     if (!requireLogin()) return
 
+    loading.value = true
+
+    let sid = activeSessionId.value
+    if (!sid) {
+      try {
+        const res = await createSession()
+        sid = res.sessionId
+        activeSessionId.value = sid
+      } catch {
+        loading.value = false
+        showError(CHAT_VIEW_TEXT.ERROR_TEXT)
+        return
+      }
+    }
+
     messages.value.push({ role: 'user', text })
     inputText.value = ''
-    loading.value = true
     await scrollToBottom()
 
     try {
-      const res = await sendMessage(text)
+      const res = await sendMessage(text, sid)
       const reply = {
         role: 'ai',
         text: res.message || '',
         products: res.data?.type === 'product' ? res.data.products : null
       }
       messages.value.push(reply)
+      loadSessions()
     } catch {
       showError(CHAT_VIEW_TEXT.ERROR_TEXT)
     } finally {
@@ -90,8 +121,12 @@ export function useChatView() {
     selectedProduct.value = null
   }
 
-  onMounted(() => {
+  onMounted(async () => {
     if (inputRef.value?.inputEl) inputRef.value.inputEl.focus()
+    await loadSessions()
+    if (sessionList.value.length > 0) {
+      switchSession(sessionList.value[0].id)
+    }
   })
 
   return {

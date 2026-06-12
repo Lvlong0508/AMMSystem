@@ -6,6 +6,8 @@ import com.gzasc.aishopping.chat.dto.OrderData;
 import com.gzasc.aishopping.chat.dto.OrderItem;
 import com.gzasc.aishopping.chat.dto.ProductData;
 import com.gzasc.aishopping.chat.dto.ProductItem;
+import com.gzasc.aishopping.chat.service.impl.ChatSessionService;
+import com.gzasc.aishopping.chat.service.impl.MongoChatMemoryStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import java.math.BigDecimal;
+import java.util.LinkedList;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -28,14 +33,22 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 @ExtendWith(MockitoExtension.class)
 class ChatControllerTest {
 
+    private static final String TEST_SESSION_ID = "507f1f77bcf86cd799439011";
+
     private MockMvc mockMvc;
 
     @Mock
     private Assistant assistant;
 
+    @Mock
+    private ChatSessionService chatSessionService;
+
+    @Mock
+    private MongoChatMemoryStore mongoChatMemoryStore;
+
     @BeforeEach
     void setUp() {
-        var controller = new ChatController(assistant);
+        var controller = new ChatController(assistant, chatSessionService, mongoChatMemoryStore);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
         mockMvc = standaloneSetup(controller)
@@ -47,12 +60,13 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-001 正常聊天 - 纯文本回复（无工具调用）")
     void chat_textReply() throws Exception {
-        when(assistant.chat(1L, "你好")).thenReturn(new AiResponse("你好！我是小物", "greeting", null));
+        when(mongoChatMemoryStore.getMessages(TEST_SESSION_ID)).thenReturn(new LinkedList<>());
+        when(assistant.chat(eq(TEST_SESSION_ID), anyString())).thenReturn(new AiResponse("你好！我是小物", "greeting", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"你好\"}"))
+                        .content("{\"message\":\"你好\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.message").value("你好！我是小物"))
@@ -63,17 +77,18 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-002 正常聊天 - 商品查询（工具调用后返回 ProductData）")
     void chat_productQuery() throws Exception {
+        when(mongoChatMemoryStore.getMessages(TEST_SESSION_ID)).thenReturn(new LinkedList<>());
         var products = List.of(
                 new ProductItem(1L, "手机", 2999.0, "电子产品", "最新款", 100, "url1", "shopA"),
                 new ProductItem(2L, "耳机", 199.0, "配件", "无线", 200, "url2", "shopB")
         );
         var response = new AiResponse("为您找到以下商品", "called getAllProducts", new ProductData(products));
-        when(assistant.chat(1L, "有哪些商品")).thenReturn(response);
+        when(assistant.chat(eq(TEST_SESSION_ID), anyString())).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"有哪些商品\"}"))
+                        .content("{\"message\":\"有哪些商品\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.data.type").value("product"))
@@ -89,17 +104,18 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-003 正常聊天 - 订单查询（工具调用后返回 OrderData）")
     void chat_orderQuery() throws Exception {
+        when(mongoChatMemoryStore.getMessages(TEST_SESSION_ID)).thenReturn(new LinkedList<>());
         var orders = List.of(
                 new OrderItem("ORD001", "P001", 2, BigDecimal.valueOf(5998), "PAID", "2026-05-28", "张三", "138xxx", "地址1"),
                 new OrderItem("ORD002", "P002", 1, BigDecimal.valueOf(199), "SHIPPED", "2026-05-27", "李四", "139xxx", "地址2")
         );
         var response = new AiResponse("您的订单", "called getOrderById", new OrderData(orders));
-        when(assistant.chat(1L, "查一下我的订单")).thenReturn(response);
+        when(assistant.chat(eq(TEST_SESSION_ID), anyString())).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"查一下我的订单\"}"))
+                        .content("{\"message\":\"查一下我的订单\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.data.type").value("order"))
@@ -117,7 +133,7 @@ class ChatControllerTest {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"\"}"))
+                        .content("{\"message\":\"\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("消息内容不能为空"));
@@ -129,7 +145,7 @@ class ChatControllerTest {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"   \"}"))
+                        .content("{\"message\":\"   \",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
@@ -140,7 +156,7 @@ class ChatControllerTest {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{}"))
+                        .content("{\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
     }
@@ -160,13 +176,14 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-008 超长消息（10001字符）")
     void chat_longMessage() throws Exception {
+        when(mongoChatMemoryStore.getMessages(TEST_SESSION_ID)).thenReturn(new LinkedList<>());
         String longMsg = "a".repeat(10001);
-        when(assistant.chat(1L, longMsg)).thenReturn(new AiResponse("收到长消息", "long_input", null));
+        when(assistant.chat(eq(TEST_SESSION_ID), anyString())).thenReturn(new AiResponse("收到长消息", "long_input", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"" + longMsg + "\"}"))
+                        .content("{\"message\":\"" + longMsg + "\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.message").value("收到长消息"));
@@ -175,13 +192,14 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-009 特殊字符消息 - HTML/JS 注入")
     void chat_specialChars() throws Exception {
+        when(mongoChatMemoryStore.getMessages(TEST_SESSION_ID)).thenReturn(new LinkedList<>());
         String msg = "<script>alert(1)</script>";
-        when(assistant.chat(1L, msg)).thenReturn(new AiResponse("收到特殊字符", "special_chars", null));
+        when(assistant.chat(eq(TEST_SESSION_ID), anyString())).thenReturn(new AiResponse("收到特殊字符", "special_chars", null));
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-User-Id", "1")
-                        .content("{\"message\":\"<script>alert(1)</script>\"}"))
+                        .content("{\"message\":\"<script>alert(1)</script>\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.message").value("收到特殊字符"));

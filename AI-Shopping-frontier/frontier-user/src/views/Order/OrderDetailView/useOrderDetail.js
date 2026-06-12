@@ -1,6 +1,5 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
 import { getOrderById, cancelOrder, confirmDelivery, deleteOrder, submitReturnRequest, submitReturnLogistics } from '@/api/order'
 import { getContactList } from '@/api/contact'
 import Swal from 'sweetalert2'

@@ -14,18 +14,18 @@ public class testChat {
 
     @Test
     public void testChatMemory1(){
-        AiResponse response1 = assistant.chat(1L,"我是李华");
+        AiResponse response1 = assistant.chat("session-a","我是李华");
         System.out.println("message:"+response1.getMessage() +
                 "\nreason:"+response1.getReason() +
                 "\ndata:"+response1.getData()
         );
-        AiResponse response2 = assistant.chat(1L,"我是谁");
+        AiResponse response2 = assistant.chat("session-a","我是谁");
         System.out.println("message:"+response2.getMessage() +
                 "\nreason:"+response2.getReason() +
                 "\ndata:"+response2.getData()
         );
 
-        AiResponse response3 = assistant.chat(2L,"我是谁");
+        AiResponse response3 = assistant.chat("session-b","我是谁");
         System.out.println("message:"+response3.getMessage() +
                 "\nreason:"+response3.getReason() +
                 "\ndata:"+response3.getData()

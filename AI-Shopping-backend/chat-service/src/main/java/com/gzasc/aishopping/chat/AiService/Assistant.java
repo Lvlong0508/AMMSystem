@@ -9,5 +9,5 @@ import dev.langchain4j.service.spring.AiService;
 @AiService(chatModel = "dashScopeChatModel", chatMemoryProvider = "chatMemoryProvider")
 public interface Assistant {
     @SystemMessage(fromResource = "prompts/system-prompt.txt")
-    AiResponse chat(@MemoryId Long memoryId, @UserMessage String userMessage);
+    AiResponse chat(@MemoryId String memoryId, @UserMessage String userMessage);
 }

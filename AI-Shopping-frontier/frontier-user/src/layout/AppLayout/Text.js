@@ -15,5 +15,6 @@ export const text = {
     cancel: '取消'
   },
   login: '登录',
-  newChatTitle: '新对话'
+  newChatTitle: '新对话',
+  loadMore: '加载更多'
 }
