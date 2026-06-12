@@ -35,7 +35,7 @@ export function useChatView() {
     if (!loading.value) {
       await scrollToBottom()
     }
-  })
+  }, { immediate: true })
 
   const scrollToBottom = async () => {
     await nextTick()
@@ -128,7 +128,7 @@ export function useChatView() {
   onMounted(async () => {
     if (inputRef.value?.inputEl) inputRef.value.inputEl.focus()
     await loadSessions()
-    if (sessionList.value.length > 0) {
+    if (sessionList.value.length > 0 && !activeSessionId.value) {
       switchSession(sessionList.value[0].id)
     }
   })
