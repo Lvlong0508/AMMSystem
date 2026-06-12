@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.config.llm;
+package com.gzasc.aishopping.chat.config;
 
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.dashscope.QwenChatModel;

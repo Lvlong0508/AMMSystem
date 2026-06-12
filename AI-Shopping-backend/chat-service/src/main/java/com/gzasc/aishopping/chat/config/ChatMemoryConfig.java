@@ -1,4 +1,4 @@
-package com.gzasc.aishopping.chat.config.llm;
+package com.gzasc.aishopping.chat.config;
 
 import com.gzasc.aishopping.chat.service.impl.MongoChatMemoryStore;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
