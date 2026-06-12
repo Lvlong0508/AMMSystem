@@ -59,7 +59,13 @@
             :title="s.title"
             @click="handleSessionClick(s.id)"
           >
-            <span>{{ s.title }}</span>
+            <span class="sidebar-history__item-title">{{ s.title }}</span>
+            <button class="sidebar-history__delete" title="删除会话" @click.stop="handleDeleteSession(s.id)">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -135,7 +141,7 @@ import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
 import { showLogin } from '@/stores/authStore'
-import { sessionList, activeSessionId, clearActiveSession, switchSession } from '@/stores/chatStore'
+import { sessionList, activeSessionId, clearActiveSession, switchSession, removeSession } from '@/stores/chatStore'
 import { useRouter } from 'vue-router'
 
 const { isLoggedIn, activeRoute, handleLogout } = useAppLayout()
@@ -188,6 +194,10 @@ const handleNewChat = () => {
 
 const handleSessionClick = (id) => {
   switchSession(id)
+}
+
+const handleDeleteSession = (sessionId) => {
+  removeSession(sessionId)
 }
 </script>
 
