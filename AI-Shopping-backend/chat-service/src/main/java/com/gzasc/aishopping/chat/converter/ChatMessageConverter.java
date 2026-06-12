@@ -69,20 +69,25 @@ public class ChatMessageConverter {
         return text;
     }
 
+    static String extractJsonBlock(String text) {
+        if (text == null) return null;
+        int start = text.indexOf("```");
+        if (start < 0) return null;
+        start = text.indexOf("\n", start);
+        if (start < 0) return null;
+        int end = text.lastIndexOf("```");
+        if (end <= start) return null;
+        return text.substring(start, end).trim();
+    }
+
     @SuppressWarnings("unchecked")
     static ParsedAiResult parseAiText(String rawText) {
         String text = rawText;
         List<ProductItem> products = null;
         try {
-            String jsonStr = rawText.trim();
-            if (jsonStr.startsWith("```")) {
-                int start = jsonStr.indexOf("\n");
-                if (start > 0) {
-                    int end = jsonStr.lastIndexOf("```");
-                    if (end > start) {
-                        jsonStr = jsonStr.substring(start, end).trim();
-                    }
-                }
+            String jsonStr = extractJsonBlock(rawText);
+            if (jsonStr == null) {
+                jsonStr = rawText.trim();
             }
             Map<String, Object> map = objectMapper.readValue(jsonStr, new TypeReference<Map<String, Object>>() {});
             if (map.containsKey("message")) {

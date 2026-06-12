@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.controller.internal;
 
+import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.service.OrderService;
@@ -20,13 +21,13 @@ public class InternalOrderController {
     private final OrderService orderService;
 
     @GetMapping("/{orderId}")
-    public OrderDetailDTO getOrderById(@PathVariable("orderId") String orderId,
-                                       @RequestHeader("X-User-Id") Long userId) {
-        return orderService.getOrderDetailByUser(userId, orderId);
+    public ApiResponse<OrderDetailDTO> getOrderById(@PathVariable("orderId") String orderId,
+                                                    @RequestHeader("X-User-Id") Long userId) {
+        return ApiResponse.success(orderService.getOrderDetailByUser(userId, orderId));
     }
 
     @GetMapping("/list")
-    public List<UserOrderCardDTO> getAllOrders(@RequestHeader("X-User-Id") Long userId) {
-        return orderService.getOrdersByUserId(userId);
+    public ApiResponse<List<UserOrderCardDTO>> getAllOrders(@RequestHeader("X-User-Id") Long userId) {
+        return ApiResponse.success(orderService.getOrdersByUserId(userId));
     }
 }

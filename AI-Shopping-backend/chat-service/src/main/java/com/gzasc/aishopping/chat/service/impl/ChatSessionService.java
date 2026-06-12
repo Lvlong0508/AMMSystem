@@ -39,13 +39,13 @@ public class ChatSessionService {
     }
 
     public void deleteSession(String sessionId) {
-        ObjectId id = new ObjectId(sessionId);
+        ObjectId id = safeParseObjectId(sessionId);
         mongoTemplate.remove(new Query(Criteria.where("id").is(id)), ChatSession.class);
         mongoTemplate.remove(new Query(Criteria.where("memoryId").is(sessionId)), "chat_message");
     }
 
     public void updateTitle(String sessionId, String title) {
-        ObjectId id = new ObjectId(sessionId);
+        ObjectId id = safeParseObjectId(sessionId);
         Query query = new Query(Criteria.where("id").is(id));
         org.springframework.data.mongodb.core.query.Update update =
                 new org.springframework.data.mongodb.core.query.Update();
@@ -55,7 +55,7 @@ public class ChatSessionService {
     }
 
     public void touchUpdatedAt(String sessionId) {
-        ObjectId id = new ObjectId(sessionId);
+        ObjectId id = safeParseObjectId(sessionId);
         Query query = new Query(Criteria.where("id").is(id));
         org.springframework.data.mongodb.core.query.Update update =
                 new org.springframework.data.mongodb.core.query.Update();
@@ -64,7 +64,7 @@ public class ChatSessionService {
     }
 
     public Long getSessionUserId(String sessionId) {
-        ObjectId id = new ObjectId(sessionId);
+        ObjectId id = safeParseObjectId(sessionId);
         ChatSession session = mongoTemplate.findOne(
                 new Query(Criteria.where("id").is(id)),
                 ChatSession.class);
@@ -75,14 +75,23 @@ public class ChatSessionService {
     }
 
     public boolean isSessionOwner(String sessionId, Long userId) {
-        ObjectId id = new ObjectId(sessionId);
+        ObjectId id = safeParseObjectId(sessionId);
         ChatSession session = mongoTemplate.findOne(
                 new Query(Criteria.where("id").is(id).and("userId").is(userId)),
                 ChatSession.class);
         return session != null;
     }
 
+    private static ObjectId safeParseObjectId(String sessionId) {
+        if (!ObjectId.isValid(sessionId)) {
+            throw new IllegalArgumentException("无效的会话ID，不是合法的ObjectId格式: " + sessionId);
+        }
+        return new ObjectId(sessionId);
+    }
+
     private SessionVO toVO(ChatSession s) {
         return new SessionVO(s.getId().toString(), s.getTitle(), s.getUpdatedAt().toString());
     }
 }
+
+

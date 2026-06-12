@@ -50,8 +50,9 @@ class InternalOrderControllerTest {
         mockMvc.perform(get("/internal/order/{orderId}", "ORDER001")
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.orderId").value("ORDER001"))
-                .andExpect(jsonPath("$.orderStatus").value("PAID"));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.orderId").value("ORDER001"))
+                .andExpect(jsonPath("$.data.orderStatus").value("PAID"));
     }
 
     @Test
@@ -64,7 +65,8 @@ class InternalOrderControllerTest {
         mockMvc.perform(get("/internal/order/list")
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].orderId").value("ORDER001"));
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data[0].orderId").value("ORDER001"));
     }
 
     @Test
@@ -88,6 +90,7 @@ class InternalOrderControllerTest {
         mockMvc.perform(get("/internal/order/list")
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isArray());
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").isArray());
     }
 }
