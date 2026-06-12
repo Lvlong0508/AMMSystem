@@ -141,6 +141,7 @@ import { text } from './Text'
 import { useAppLayout } from './useAppLayout'
 import LoginCard from '@/components/LoginCard/LoginCard.vue'
 import { showLogin } from '@/stores/authStore'
+import { showConfirm } from '@/utils/swal'
 import { sessionList, activeSessionId, clearActiveSession, switchSession, removeSession } from '@/stores/chatStore'
 import { useRouter } from 'vue-router'
 
@@ -196,7 +197,9 @@ const handleSessionClick = (id) => {
   switchSession(id)
 }
 
-const handleDeleteSession = (sessionId) => {
+const handleDeleteSession = async (sessionId) => {
+  const result = await showConfirm('确认删除', '确定要删除该会话吗？', '删除', '取消')
+  if (!result.isConfirmed) return
   removeSession(sessionId)
 }
 </script>
