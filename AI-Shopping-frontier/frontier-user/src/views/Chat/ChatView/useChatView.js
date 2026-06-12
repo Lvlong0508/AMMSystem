@@ -39,8 +39,12 @@ export function useChatView() {
 
   const scrollToBottom = async () => {
     await nextTick()
+    await new Promise(resolve => requestAnimationFrame(resolve))
     if (messagesRef.value) {
-      messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+      messagesRef.value.scrollTo({
+        top: messagesRef.value.scrollHeight,
+        behavior: 'smooth'
+      })
     }
   }
 

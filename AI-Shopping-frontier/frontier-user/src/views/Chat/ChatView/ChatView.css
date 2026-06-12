@@ -32,7 +32,7 @@
   padding-bottom: 24px;
 }
 .chat-view--has-messages .chat-view__messages {
-  padding-bottom: 112px;
+  padding-bottom: 96px;
 }
 .chat-view__welcome {
   display: flex;
@@ -149,7 +149,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 24px 20px;
+  padding: 0 24px 20px;
   background: transparent;
 }
 .chat-view--empty .chat-view__input-bar {
@@ -161,6 +161,7 @@
   left: var(--sidebar-width);
   right: 0;
   z-index: 100;
+  background: var(--color-bg);
   transition: left 250ms ease-out;
   animation: inputBarFix 300ms ease-out;
 }

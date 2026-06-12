@@ -1,79 +1,96 @@
 <template>
-  <el-card
+  <div
     v-if="variant === 'abstract'"
-    shadow="hover"
     class="order-card order-card--abstract"
     @click="$emit('click', order)"
   >
-    <div class="order-card__abstract">
+    <div class="order-card__top">
+      <span class="order-card__id">{{ order.orderId }}</span>
+      <span v-if="order.orderDate" class="order-card__date">{{ formatDate(order.orderDate) }}</span>
+    </div>
+    <div class="order-card__body-row">
+      <div v-if="order.productImageUrl" class="order-card__thumb">
+        <img :src="order.productImageUrl" :alt="order.productName" class="order-card__thumb-img" />
+      </div>
       <div class="order-card__info">
-        <div class="order-card__id">{{ T.LABEL_ORDER_ID }}: {{ order.orderId }}</div>
-        <p class="order-card__product">{{ order.productName || `${T.LABEL_PRODUCT} #${order.productId}` }}</p>
-        <div class="order-card__meta">
-          <span>{{ T.LABEL_QUANTITY }}: {{ order.quantity }}</span>
-          <span class="order-card__price">{{ order.totalPrice ? formatPrice(order.totalPrice) : '-' }}</span>
-        </div>
-      </div>
-      <div class="order-card__status">
-        <el-tag :type="statusType" size="small">{{ statusText }}</el-tag>
+        <p v-if="order.productName" class="order-card__product">{{ order.productName }}</p>
+        <span class="order-card__qty">{{ T.LABEL_QUANTITY }}: {{ order.quantity }}</span>
+        <span v-if="order.contactName" class="order-card__buyer">{{ order.contactName }}</span>
       </div>
     </div>
-  </el-card>
+    <div class="order-card__bottom">
+      <el-tag :type="statusType" size="small" effect="plain">{{ statusText }}</el-tag>
+      <span v-if="order.totalPrice != null" class="order-card__price">{{ formatPrice(order.totalPrice) }}</span>
+    </div>
+  </div>
 
-  <el-card v-else shadow="never" class="order-card order-card--detail">
+  <div v-else class="order-card order-card--detail">
     <div class="order-card__detail-header">
-      <h3>{{ T.LABEL_ORDER_ID }}: {{ order.orderId }}</h3>
-      <el-tag :type="statusType">{{ statusText }}</el-tag>
+      <h3 class="order-card__detail-id">{{ T.LABEL_ORDER_ID }}: {{ order.orderId }}</h3>
+      <el-tag :type="statusType" effect="plain">{{ statusText }}</el-tag>
     </div>
-    <el-divider />
-    <div class="order-card__detail-grid">
-      <div class="order-card__detail-section">
+
+    <div class="order-card__detail-body">
+      <div class="order-card__section">
         <h4 class="order-card__section-title">{{ T.SECTION_ORDER }}</h4>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_PRODUCT }}</span>
-          <span>{{ order.productName || `${T.LABEL_PRODUCT} #${order.productId}` }}</span>
-        </div>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_QUANTITY }}</span>
-          <span>{{ order.quantity }}</span>
-        </div>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_TOTAL }}</span>
-          <span>{{ formatPrice(order.totalPrice) }}</span>
-        </div>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_DATE }}</span>
-          <span>{{ formatDate(order.orderDate) }}</span>
+        <div class="order-card__product-row">
+          <div v-if="order.productImageUrl" class="order-card__thumb">
+            <img :src="order.productImageUrl" :alt="order.productName" class="order-card__thumb-img" />
+          </div>
+          <div class="order-card__grid">
+            <div v-if="order.productName" class="order-card__field">
+              <span class="order-card__label">{{ T.LABEL_PRODUCT }}</span>
+              <span class="order-card__value">{{ order.productName }}</span>
+            </div>
+            <div class="order-card__field">
+              <span class="order-card__label">{{ T.LABEL_QUANTITY }}</span>
+              <span class="order-card__value">{{ order.quantity }}</span>
+            </div>
+            <div v-if="order.totalPrice != null" class="order-card__field">
+              <span class="order-card__label">{{ T.LABEL_TOTAL }}</span>
+              <span class="order-card__value">{{ formatPrice(order.totalPrice) }}</span>
+            </div>
+            <div v-if="order.orderDate" class="order-card__field">
+              <span class="order-card__label">{{ T.LABEL_DATE }}</span>
+              <span class="order-card__value">{{ formatDate(order.orderDate) }}</span>
+            </div>
+          </div>
         </div>
       </div>
-      <div v-if="order.contactName" class="order-card__detail-section">
+
+      <div v-if="order.contactName" class="order-card__section">
         <h4 class="order-card__section-title">{{ T.SECTION_CONTACT }}</h4>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_CONTACT_NAME }}</span>
-          <span>{{ order.contactName }}</span>
-        </div>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_CONTACT_PHONE }}</span>
-          <span>{{ order.contactPhone }}</span>
-        </div>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_CONTACT_ADDRESS }}</span>
-          <span>{{ order.contactAddress }}</span>
+        <div class="order-card__grid">
+          <div class="order-card__field">
+            <span class="order-card__label">{{ T.LABEL_CONTACT_NAME }}</span>
+            <span class="order-card__value">{{ order.contactName }}</span>
+          </div>
+          <div class="order-card__field">
+            <span class="order-card__label">{{ T.LABEL_CONTACT_PHONE }}</span>
+            <span class="order-card__value">{{ order.contactPhone }}</span>
+          </div>
+          <div class="order-card__field order-card__field--full">
+            <span class="order-card__label">{{ T.LABEL_CONTACT_ADDRESS }}</span>
+            <span class="order-card__value">{{ order.contactAddress }}</span>
+          </div>
         </div>
       </div>
-      <div v-if="order.trackingNumber" class="order-card__detail-section">
+
+      <div v-if="order.trackingNumber" class="order-card__section">
         <h4 class="order-card__section-title">{{ T.SECTION_LOGISTICS }}</h4>
-        <div class="order-card__detail-row">
-          <span class="order-card__label">{{ T.LABEL_TRACKING }}</span>
-          <span>{{ order.trackingNumber }}</span>
+        <div class="order-card__grid">
+          <div class="order-card__field">
+            <span class="order-card__label">{{ T.LABEL_TRACKING }}</span>
+            <span class="order-card__value">{{ order.trackingNumber }}</span>
+          </div>
         </div>
       </div>
     </div>
-    <el-divider v-if="actionVisible" />
+
     <div v-if="actionVisible" class="order-card__actions">
-      <el-button type="primary" @click="$emit('ship', order)">{{ T.BTN_SHIP }}</el-button>
+      <el-button type="primary" size="default" @click="$emit('ship', order)">{{ T.BTN_SHIP }}</el-button>
     </div>
-  </el-card>
+  </div>
 </template>
 
 <script setup>

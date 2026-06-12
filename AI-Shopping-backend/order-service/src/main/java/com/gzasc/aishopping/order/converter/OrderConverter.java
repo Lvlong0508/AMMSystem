@@ -121,6 +121,7 @@ public class OrderConverter {
         dto.setQuantity(order.getQuantity());
         dto.setOrderStatus(order.getOrderStatus());
         dto.setTotalPrice(order.getTotalPrice());
+        dto.setOrderDate(order.getOrderDate());
         if (contact != null) {
             dto.setContactName(contact.getName());
             dto.setContactPhone(contact.getPhone());
