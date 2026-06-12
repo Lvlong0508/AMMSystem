@@ -200,4 +200,41 @@ class DtoSerializationTest {
         assertEquals("订单", deserialized.getMessage());
         assertInstanceOf(OrderData.class, deserialized.getData());
     }
+
+    @Test
+    @DisplayName("CH-056 MessageVO 序列化与反序列化 - 无 products")
+    void messageVO_withoutProducts() throws Exception {
+        ObjectMapper om = new ObjectMapper();
+        om.findAndRegisterModules();
+        MessageVO vo = new MessageVO("user", "你好", null);
+
+        String json = om.writeValueAsString(vo);
+        assertTrue(json.contains("\"role\":\"user\""));
+        assertTrue(json.contains("\"text\":\"你好\""));
+        assertTrue(json.contains("\"products\":null"));
+
+        MessageVO deserialized = om.readValue(json, MessageVO.class);
+        assertEquals("user", deserialized.getRole());
+        assertEquals("你好", deserialized.getText());
+        assertNull(deserialized.getProducts());
+    }
+
+    @Test
+    @DisplayName("CH-057 MessageVO 序列化与反序列化 - 带 products")
+    void messageVO_withProducts() throws Exception {
+        ObjectMapper om = new ObjectMapper();
+        om.findAndRegisterModules();
+        var products = List.of(new ProductItem(1L, "手机", 2999.0, "tag", "desc", 100, "url", "shop"));
+        MessageVO vo = new MessageVO("ai", "为您找到商品", products);
+
+        String json = om.writeValueAsString(vo);
+        assertTrue(json.contains("\"role\":\"ai\""));
+        assertTrue(json.contains("\"text\":\"为您找到商品\""));
+        assertTrue(json.contains("\"products\""));
+
+        MessageVO deserialized = om.readValue(json, MessageVO.class);
+        assertEquals("ai", deserialized.getRole());
+        assertEquals(1, deserialized.getProducts().size());
+        assertEquals("手机", deserialized.getProducts().get(0).name());
+    }
 }
