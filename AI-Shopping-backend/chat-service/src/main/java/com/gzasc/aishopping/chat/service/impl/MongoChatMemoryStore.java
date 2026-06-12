@@ -39,13 +39,13 @@ public class MongoChatMemoryStore implements ChatMemoryStore {
         Update update = new Update();
         update.set("content", ChatMessageSerializer.messagesToJson(messages));
 
-        mongoTemplate.upsert(query, update, ChatMessage.class);
+        mongoTemplate.upsert(query, update, ChatMessages.class);
     }
 
     @Override
     public void deleteMessages(Object memoryId) {
         Criteria criteria = Criteria.where("memoryId").is(memoryId);
         Query query = new Query(criteria);
-        mongoTemplate.remove(query, ChatMessage.class);
+        mongoTemplate.remove(query, ChatMessages.class);
     }
 }
