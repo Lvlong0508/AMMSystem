@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.AiService.Assistant;
-import com.gzasc.aishopping.chat.config.web.UserContext;
 import com.gzasc.aishopping.chat.dto.AiResponse;
 import com.gzasc.aishopping.chat.dto.ChatRequest;
 import com.gzasc.aishopping.common.response.ApiResponse;
@@ -19,8 +18,9 @@ public class ChatController {
     private final Assistant assistant;
 
     @PostMapping("/chat")
-    public ApiResponse<AiResponse> chat(@RequestBody @Valid ChatRequest request) {
-        AiResponse response = assistant.chat(UserContext.getUserId(), request.getMessage());
+    public ApiResponse<AiResponse> chat(@RequestHeader("X-User-Id") Long userId,
+                                        @RequestBody @Valid ChatRequest request) {
+        AiResponse response = assistant.chat(userId, request.getMessage());
         return ApiResponse.success(response);
     }
 }

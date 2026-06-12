@@ -1,20 +1,16 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.AiService.Assistant;
-import com.gzasc.aishopping.chat.config.web.UserContext;
 import com.gzasc.aishopping.chat.dto.AiResponse;
 import com.gzasc.aishopping.chat.dto.OrderData;
 import com.gzasc.aishopping.chat.dto.OrderItem;
 import com.gzasc.aishopping.chat.dto.ProductData;
 import com.gzasc.aishopping.chat.dto.ProductItem;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,16 +29,12 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 class ChatControllerTest {
 
     private MockMvc mockMvc;
-    private MockedStatic<UserContext> userContextMock;
 
     @Mock
     private Assistant assistant;
 
     @BeforeEach
     void setUp() {
-        userContextMock = Mockito.mockStatic(UserContext.class);
-        userContextMock.when(UserContext::getUserId).thenReturn(1L);
-
         var controller = new ChatController(assistant);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
@@ -52,11 +44,6 @@ class ChatControllerTest {
                 .build();
     }
 
-    @AfterEach
-    void tearDown() {
-        userContextMock.close();
-    }
-
     @Test
     @DisplayName("CH-001 正常聊天 - 纯文本回复（无工具调用）")
     void chat_textReply() throws Exception {
@@ -64,6 +51,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"你好\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -84,6 +72,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"有哪些商品\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -109,6 +98,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"查一下我的订单\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -126,6 +116,7 @@ class ChatControllerTest {
     void chat_emptyMessage() throws Exception {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
@@ -137,6 +128,7 @@ class ChatControllerTest {
     void chat_blankMessage() throws Exception {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"   \"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
@@ -147,6 +139,7 @@ class ChatControllerTest {
     void chat_missingMessage() throws Exception {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400));
@@ -157,6 +150,7 @@ class ChatControllerTest {
     void chat_nullBody() throws Exception {
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content(""))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
@@ -171,6 +165,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"" + longMsg + "\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
@@ -185,6 +180,7 @@ class ChatControllerTest {
 
         mockMvc.perform(post("/chat/chat")
                         .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
                         .content("{\"message\":\"<script>alert(1)</script>\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
