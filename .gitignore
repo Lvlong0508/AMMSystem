@@ -40,3 +40,6 @@ build/
 ### Frontend ###
 **/node_modules/
 **/dist/
+
+### Compiled ###
+*.class
