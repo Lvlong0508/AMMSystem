@@ -12,6 +12,19 @@ spring:
   application:
     # 注册到 Nacos 的服务名
     name: product-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
+      config:
+          server-addr: 10.200.97.197:8848
+          namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
+          group: DEFAULT_GROUP
+          file-extension: yaml
+  config:
+    import: optional:nacos:product-service-dev
 
   datasource:
     # 商品服务数据库
@@ -25,10 +38,6 @@ spring:
       # Spring Multipart 上传限制，需大于等于业务图片限制 app.image.max-file-size
       max-file-size: 10MB
       max-request-size: 10MB
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 10.200.97.197:8848
 
 # ============================================================
 # 业务参数配置
@@ -74,3 +83,7 @@ app:
       # 运行时动态读取开关的 yml 文件路径
       config-path: src/main/resources/application.yml
 
+logging:
+  level:
+    com.alibaba.nacos: DEBUG
+    com.alibaba.cloud.nacos: DEBUG
