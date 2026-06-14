@@ -107,15 +107,23 @@
 
 - **端口**：`8085`
 - **Gateway 路径前缀**：`/api/user/chat` → `chat-service`（重写为 `/chat`）
+- **Header**：`X-User-Id: <userId>`
 
 | 方法 | 路径 | 作用 | 请求体/参数 |
 |------|------|------|-------------|
+| POST | `/api/user/chat/session` | 创建聊天会话 | - |
+| GET | `/api/user/chat/sessions` | 获取会话列表 | - |
+| DELETE | `/api/user/chat/session/{sessionId}` | 删除会话 | `sessionId` |
 | POST | `/api/user/chat/chat` | AI 对话 | `ChatRequest` |
+| GET | `/api/user/chat/session/{sessionId}/messages` | 获取会话历史消息 | `sessionId` |
 
-### 请求体示例
+### 请求体示例（ChatRequest）
 
 ```json
-{"message":"推荐一些商品"}
+{
+  "sessionId": "xxx",
+  "message": "推荐一些商品"
+}
 ```
 
 ### 响应说明
@@ -174,7 +182,7 @@
 |------|------|------|-------------|
 | GET | `/api/seller/product/{productId}` | 查询商品详情 | `productId` |
 | GET | `/api/seller/product/shop/{shopId}` | 查询店铺商品 | `shopId` |
-| GET | `/api/seller/product/batch` | 批量查询商品 | 查询参数以 Controller 为准 |
+| GET | `/api/seller/product/batch?ids=1,2,3` | 按 ID 批量查询商品 | `ids` |
 | POST | `/api/seller/product/create` | 创建商品 | multipart：`product: CreateProductRequest`，`image: MultipartFile` |
 | PUT | `/api/seller/product/{productId}` | 更新商品 | multipart：`productId`，`product: UpdateProductRequest`，`image?: MultipartFile` |
 | DELETE | `/api/seller/product/{productId}` | 删除商品 | `productId` |
@@ -238,10 +246,15 @@
 
 - **端口**：`8085`
 - **Gateway 路径前缀**：`/api/seller/chat` → `chat-service`（重写为 `/chat`）
+- **Header**：`X-User-Id: <userId>`
 
 | 方法 | 路径 | 作用 | 请求体/参数 |
 |------|------|------|-------------|
+| POST | `/api/seller/chat/session` | 创建聊天会话 | - |
+| GET | `/api/seller/chat/sessions` | 获取会话列表 | - |
+| DELETE | `/api/seller/chat/session/{sessionId}` | 删除会话 | `sessionId` |
 | POST | `/api/seller/chat/chat` | AI 对话 | `ChatRequest` |
+| GET | `/api/seller/chat/session/{sessionId}/messages` | 获取会话历史消息 | `sessionId` |
 
 ---
 
@@ -257,7 +270,7 @@
 | POST | `/api/seller/shop/register` | 注册店铺（JSON） | `CreateShopRequest` |
 | POST | `/api/seller/shop/register` | 注册店铺（multipart，可上传 logo） | `shop: CreateShopRequest`，`logo?: MultipartFile` |
 | GET | `/api/seller/shop/{shopId}` | 查询店铺详情 | `shopId` |
-| PUT | `/api/seller/shop/{shopId}` | 更新店铺 | `shopId`，`UpdateShopRequest` |
+| PUT | `/api/seller/shop/{shopId}` | 更新店铺（可选上传新 logo） | multipart：`shopId`，`shop: UpdateShopRequest`，`logo?: MultipartFile` |
 | PATCH | `/api/seller/shop/{shopId}/close` | 关闭店铺 | `shopId` |
 | PATCH | `/api/seller/shop/{shopId}/open` | 开启店铺 | `shopId` |
 
