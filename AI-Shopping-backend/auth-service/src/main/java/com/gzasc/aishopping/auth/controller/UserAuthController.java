@@ -12,6 +12,8 @@ import com.gzasc.aishopping.auth.service.UserInfoService;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

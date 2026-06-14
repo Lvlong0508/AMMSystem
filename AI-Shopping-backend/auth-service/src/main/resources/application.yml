@@ -4,6 +4,19 @@ server:
 spring:
   application:
     name: auth-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
+      config:
+        server-addr: 10.200.97.197:8848
+        namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
+        group: DEFAULT_GROUP
+        file-extension: yaml
+  config:
+    import: optional:nacos:auth-service-dev
 
   # 数据源配置
   datasource:
@@ -24,10 +37,6 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 10.200.97.197:8848
 
 # ========== Sa-Token 配置 ==========
 sa-token:
