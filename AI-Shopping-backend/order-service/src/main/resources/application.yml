@@ -12,6 +12,33 @@ spring:
   application:
     # 注册到 Nacos 的服务名
     name: order-service
+  profiles:
+    active: dev
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 10.200.97.197:8848
+      config:
+        server-addr: 10.200.97.197:8848
+        namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
+        group: DEFAULT_GROUP
+        file-extension: yaml
+    sentinel:
+      transport:
+        dashboard: localhost:8888
+        port: 10.200.97.197:8721
+      eager: true
+      datasource:
+        ds1:
+          nacos:
+            server-addr: 10.200.97.197:8848
+            namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
+            data-id: ${spring.application.name}-sentinel
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: degrade #熔断降级
+  config:
+    import: optional:nacos:${spring.application.name}-dev
 
   datasource:
     # 订单服务数据库
@@ -32,10 +59,6 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-  cloud:
-    nacos:
-      discovery:
-        server-addr: 10.200.97.197:8848
 
 # ============================================================
 # MyBatis 配置
@@ -77,6 +100,8 @@ feign:
         connectTimeout: 5000
         # 服务间调用读取超时时间，单位毫秒
         readTimeout: 5000
+  sentinel:
+    enabled: true
 
 # ============================================================
 # 日志配置

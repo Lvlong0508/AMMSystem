@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.exception.OrderException;
+import feign.FeignException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -39,6 +40,14 @@ public class GlobalExceptionHandler {
                 .reduce((a, b) -> a + "; " + b)
                 .orElse("参数校验失败");
         return ApiResponse.error(400, message);
+    }
+
+    @ExceptionHandler(FeignException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiResponse<Void> handleFeignException(FeignException e) {
+        // 如果要让 Sentinel 统计，这里必须抛出异常（不能 return），或者直接不处理
+        // 更好的做法：不捕获 FeignException，让 Sentinel 拦截
+        throw e;   // 重新抛出，Sentinel 就会统计
     }
 
     @ExceptionHandler(Exception.class)
