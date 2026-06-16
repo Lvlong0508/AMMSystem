@@ -15,6 +15,20 @@ spring:
         namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
         group: DEFAULT_GROUP
         file-extension: yaml
+    sentinel:
+      transport:
+        dashboard: localhost:8888
+        port: 10.200.97.197:8791
+      eager: true
+      datasource:
+        ds1:
+          nacos:
+            server-addr: 10.200.97.197:8848
+            namespace: 6e7ec15f-5c46-4e55-b1e5-e2673a9c2f70
+            data-id: auth-service-sentinel
+            group-id: DEFAULT_GROUP
+            data-type: json
+            rule-type: flow
   config:
     import: optional:nacos:auth-service-dev
 
