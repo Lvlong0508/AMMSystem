@@ -1,8 +1,10 @@
-package com.gzasc.aishopping.order.controller;
+package com.gzasc.aishopping.order.config;
 
+import com.alibaba.csp.sentinel.Tracer;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.exception.OrderException;
 import feign.FeignException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingRequestHeaderException;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -44,15 +47,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FeignException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiResponse<Void> handleFeignException(FeignException e) {
-        // 如果要让 Sentinel 统计，这里必须抛出异常（不能 return），或者直接不处理
-        // 更好的做法：不捕获 FeignException，让 Sentinel 拦截
-        throw e;   // 重新抛出，Sentinel 就会统计
+    public ApiResponse<Void> handleFeignException(FeignException e) throws FeignException {
+        // 手动将异常丢到sentinel
+        Tracer.trace(e);
+        log.warn("Feign 调用失败: {}", e.getMessage());
+        // 关键：直接抛出，不返回任何东西，让 Sentinel 的 Web 适配器统计到异常
+        return ApiResponse.error(500, "商品服务暂时不可用，请稍后重试");
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleException(Exception e) {
-        return ApiResponse.error(500, "服务器内部错误: " + e.getMessage());
+        log.error("系统内部异常", e);
+        return ApiResponse.error(500, "服务器内部错误");
     }
 }

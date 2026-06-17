@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.order.controller.internal;
 
-import com.gzasc.aishopping.order.controller.GlobalExceptionHandler;
+import com.gzasc.aishopping.order.config.GlobalExceptionHandler;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.exception.OrderException;

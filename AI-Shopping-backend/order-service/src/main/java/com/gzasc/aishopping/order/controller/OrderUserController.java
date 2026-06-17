@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.controller;
 
+import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
