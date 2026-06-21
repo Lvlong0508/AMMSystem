@@ -35,7 +35,7 @@
       />
     </el-dialog>
 
-    <el-dialog v-model="dialogVisible" :title="isEdit ? T.DIALOG_EDIT : T.DIALOG_ADD" width="600px">
+    <el-dialog v-model="dialogVisible" :title="isEdit ? T.DIALOG_EDIT : T.DIALOG_ADD" width="600px" destroy-on-close>
       <el-form label-position="top">
         <el-form-item :label="T.LABEL_NAME">
           <el-input v-model="form.name" :maxlength="100" />

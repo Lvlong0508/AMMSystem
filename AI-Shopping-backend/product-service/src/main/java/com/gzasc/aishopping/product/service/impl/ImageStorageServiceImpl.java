@@ -4,6 +4,7 @@ import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.service.ImageStorageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.unit.DataSize;
@@ -19,6 +20,7 @@ import java.util.HexFormat;
 
 @Slf4j
 @Service
+@RefreshScope
 public class ImageStorageServiceImpl implements ImageStorageService {
 
     private static final SecureRandom RANDOM = new SecureRandom();

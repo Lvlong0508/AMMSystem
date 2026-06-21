@@ -23,7 +23,7 @@ export function useShopProducts() {
   const selectedProduct = ref(null)
 
   const form = ref({
-    name: '', description: '', price: '', stock: '', image: null, tags: ''
+    name: '', description: '', price: 0, stock: 0, image: null, tags: ''
   })
 
   const filteredProducts = computed(() => {
@@ -95,7 +95,7 @@ export function useShopProducts() {
   function showAddDialog() {
     isEdit.value = false
     editingProductId.value = null
-    form.value = { name: '', description: '', price: '', stock: '', image: null, tags: '' }
+    form.value = { name: '', description: '', price: 0, stock: 0, image: null, tags: '' }
     dialogVisible.value = true
   }
 
@@ -182,7 +182,7 @@ export function useShopProducts() {
         ElMessage.error(res?.message || '操作失败')
       }
     } catch (e) {
-      ElMessage.error('操作失败，请稍后重试')
+      ElMessage.error(e?.response?.data?.message || '操作失败，请稍后重试')
     } finally {
       submitting.value = false
     }

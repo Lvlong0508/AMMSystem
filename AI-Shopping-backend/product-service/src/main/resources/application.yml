@@ -67,8 +67,6 @@ app:
   image:
     # 返回给前端的图片访问基础地址
     base-url: http://localhost:8081
-    # 业务层图片大小限制；支持 5MB、512KB、1048576B 等 DataSize 格式
-    max-file-size: 5MB
     # 商品图片物理存储目录
     storage-path: ${project.root:./AI-Shopping-backend}/static/image/goods/main
     # 静态资源映射根目录，对应 /image/** 访问路径
@@ -83,6 +81,9 @@ app:
       # 运行时动态读取开关的 yml 文件路径
       config-path: src/main/resources/application.yml
 
+# ============================================================
+# 日志
+# ============================================================
 logging:
   level:
     com.alibaba.nacos: DEBUG
