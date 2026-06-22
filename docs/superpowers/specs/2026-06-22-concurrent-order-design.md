@@ -62,8 +62,10 @@ return orderId
 
 - 任一 Feign 调用失败时，在 supplier 内部抛出 OrderException
 - CompletableFuture.join() 会把异常包装为 CompletionException
-- 解包：cause 是 OrderException -> 原样抛出；其它 -> 包装为 new OrderException("系统繁忙，请稍后重试")
-- 不引入新异常类型
+- **解包能力下沉到 OrderException 自身**：在 OrderException 类上新增静态方法 `OrderException.unwrap(Throwable)`，作为业务异常的"自我解包"语义
+  - cause 是 OrderException -> 原样返回
+  - 其它 -> 返回 new OrderException("系统繁忙，请稍后重试")
+- 调用方只需 `throw OrderException.unwrap(e)`，无需在每个 Service 内重复写解包逻辑
 
 ### 3.4 业务校验保留
 
@@ -81,7 +83,7 @@ return orderId
 
 ## 4. 代码结构
 
-新增 3 个 private 方法 + 改写 createOrder 前两步。
+新增 2 个 private 方法 + 改写 createOrder 前两步 + OrderException 新增静态方法。
 
 ### 4.1 createOrder 示意
 
@@ -101,14 +103,14 @@ public String createOrder(PlaceOrderRequest request, Long userId) {
         product = productFuture.join();
         contact = contactFuture.join();
     } catch (CompletionException e) {
-        throw unwrapCompletion(e);
+        throw OrderException.unwrap(e);
     }
     // 以下沿用改造前逻辑
     // ...
 }
 ```
 
-### 4.2 辅助方法
+### 4.2 OrderServiceImpl 内辅助方法（fetchXxx 系列）
 
 ```java
 private ProductDTO fetchProduct(Long productId) {
@@ -126,18 +128,23 @@ private ContactDTO fetchContact(Integer contactId) {
     }
     return resp.getData();
 }
+```
 
-private OrderException unwrapCompletion(CompletionException e) {
+### 4.3 OrderException 内新增静态解包方法
+
+```java
+// com.gzasc.aishopping.order.exception.OrderException
+public static OrderException unwrap(Throwable e) {
     Throwable cause = e.getCause();
     if (cause instanceof OrderException oe) return oe;
     return new OrderException("系统繁忙，请稍后重试");
 }
 ```
 
-### 4.3 可复用性
+### 4.4 可复用性
 
 - fetchProduct / fetchContact 是显式命名的语义单元，未来并行聚合查询可直接复用 pattern
-- unwrapCompletion 通用方法，超 1 个 Service 需要时再提取公共工具类（YAGNI）
+- OrderException.unwrap 是全局可复用能力，任何 Service 用 CompletableFuture 并行调用时都可以用，无须重复实现
 
 ## 5. 测试策略
 
@@ -158,9 +165,10 @@ private OrderException unwrapCompletion(CompletionException e) {
 | 文件 | 改动类型 |
 |---|---|
 | order-service/.../service/impl/OrderServiceImpl.java | 修改 |
+| order-service/.../exception/OrderException.java | 修改（新增 static unwrap 方法） |
 | order-service/.../service/impl/OrderServiceImplTest.java | 修改 |
 
-**共 2 个文件，0 新增、2 修改。**
+**共 3 个文件，0 新增、3 修改。**
 
 ## 7. 预期收益
 
@@ -176,7 +184,7 @@ private OrderException unwrapCompletion(CompletionException e) {
 |---|---|---|
 | commonPool 被占满 | 低（本服务无其它 commonPool 重负载使用） | 加 Executor 参数，单行改动 |
 | Feign 线程安全 | OpenFeign 客户端线程安全 | 无需处理 |
-| 异常堆栈包装 | 通过 unwrapCompletion 解包 | 无需处理 |
+| 异常堆栈包装 | 通过 OrderException.unwrap 解包 | 无需处理 |
 | 事务上下文丢失 | @Transactional 在主线程 | 无需处理 |
 | 回滚 | 单文件改动 | git revert |
 
@@ -193,7 +201,7 @@ private OrderException unwrapCompletion(CompletionException e) {
 | 补偿 INCRBY | 不需要 |
 | Feign 超时调整 | 与本次目标无关，另行评估 |
 
-**上版 10 个文件 -> 本版 2 个文件。**
+**上版 10 个文件 -> 本版 3 个文件。**
 
 ## 10. 范围外事项
 
