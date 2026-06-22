@@ -50,22 +50,14 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public String createOrder(PlaceOrderRequest request, Long userId) {
-        ApiResponse<ProductDTO> productResp = productFeignClient.getProductById(request.getProductId());
-        if (productResp == null || productResp.getData() == null) {
-            throw new OrderException("商品不存在（错误代码：O-003）");
-        }
-        ProductDTO product = productResp.getData();
+        ProductDTO product = fetchProduct(request.getProductId());
+        ContactDTO contact = fetchContact(request.getContactId());
 
         BigDecimal price = product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
         int stock = product.getStock() != null ? product.getStock() : 0;
 
         if (stock < request.getQuantity()) {
             throw new OrderException("商品库存不足，当前库存：" + stock + "（错误代码：O-005）");
-        }
-
-        ApiResponse<ContactDTO> contactResp = contactFeignClient.getContactById(request.getContactId());
-        if (contactResp == null || contactResp.getData() == null) {
-            throw new OrderException("联系人不存在，请重新选择联系人（错误代码：O-006）");
         }
 
         Long shopIdObj = product.getShopId();
@@ -87,6 +79,22 @@ public class OrderServiceImpl implements OrderService {
         productFeignClient.reserveStock(new StockReserveRequest(orderId, Long.valueOf(order.getProductId()), request.getQuantity()));
 
         return orderId;
+    }
+
+    private ProductDTO fetchProduct(Long productId) {
+        ApiResponse<ProductDTO> resp = productFeignClient.getProductById(productId);
+        if (resp == null || resp.getData() == null) {
+            throw new OrderException("商品不存在（错误代码：O-003）");
+        }
+        return resp.getData();
+    }
+
+    private ContactDTO fetchContact(Integer contactId) {
+        ApiResponse<ContactDTO> resp = contactFeignClient.getContactById(contactId);
+        if (resp == null || resp.getData() == null) {
+            throw new OrderException("联系人不存在，请重新选择联系人（错误代码：O-006）");
+        }
+        return resp.getData();
     }
 
     @Override

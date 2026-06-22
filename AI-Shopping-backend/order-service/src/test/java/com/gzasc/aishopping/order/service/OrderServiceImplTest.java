@@ -163,6 +163,7 @@ class OrderServiceImplTest {
 
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 3, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
