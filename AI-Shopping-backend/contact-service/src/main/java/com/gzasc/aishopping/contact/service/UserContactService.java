@@ -12,4 +12,6 @@ public interface UserContactService {
     int setDefaultContact(int id, Long userId);
     // 内部微服务专属
     Contact getContactById(int id);
+
+    boolean isContactOwnedBy(int contactId, Long userId);
 }

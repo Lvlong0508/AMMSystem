@@ -235,6 +235,60 @@ class UserContactServiceImplTest {
         assertNull(result);
     }
 
+    // ==================== isContactOwnedBy ====================
+
+    @Test
+    @DisplayName("CT-SRV-042 校验联系人归属 - 属于该用户")
+    void isContactOwnedBy_ownedByUser() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+
+        boolean result = userContactService.isContactOwnedBy(1, 1001L);
+
+        assertTrue(result);
+        verify(userContactMapper).selectUserIdsByContactId(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-043 校验联系人归属 - 不属于该用户")
+    void isContactOwnedBy_notOwned() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(2000L, 3000L));
+
+        boolean result = userContactService.isContactOwnedBy(1, 1001L);
+
+        assertFalse(result);
+        verify(userContactMapper).selectUserIdsByContactId(1);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-044 校验联系人归属 - 联系人不存在（空列表）")
+    void isContactOwnedBy_contactNotExist() {
+        when(userContactMapper.selectUserIdsByContactId(999)).thenReturn(List.of());
+
+        boolean result = userContactService.isContactOwnedBy(999, 1001L);
+
+        assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("CT-SRV-045 校验联系人归属 - userId 为 null 时返回 false")
+    void isContactOwnedBy_nullUserId() {
+        boolean result = userContactService.isContactOwnedBy(1, null);
+
+        assertFalse(result);
+        verify(userContactMapper, never()).selectUserIdsByContactId(anyInt());
+    }
+
+    @Test
+    @DisplayName("CT-SRV-046 校验联系人归属 - selectUserIdsByContactId 返回 null 返回 false")
+    void isContactOwnedBy_userIdsReturnNull() {
+        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+
+        boolean result = userContactService.isContactOwnedBy(1, 1001L);
+
+        assertFalse(result);
+        verify(userContactMapper).selectUserIdsByContactId(1);
+    }
+
     // ==================== selectUserIdsByContactId 返回 null（防御性）====================
 
     @Test

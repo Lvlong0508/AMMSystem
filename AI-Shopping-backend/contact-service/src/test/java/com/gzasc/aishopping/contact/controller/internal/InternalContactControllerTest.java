@@ -86,4 +86,26 @@ class InternalContactControllerTest {
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
     }
+
+    @Test
+    @DisplayName("CT-050 校验联系人归属 - 是 owner")
+    void validateContactOwner_true() throws Exception {
+        when(userContactService.isContactOwnedBy(1, 1001L)).thenReturn(true);
+
+        mockMvc.perform(get("/internal/contact/1/owner/1001"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(true));
+    }
+
+    @Test
+    @DisplayName("CT-051 校验联系人归属 - 不是 owner")
+    void validateContactOwner_false() throws Exception {
+        when(userContactService.isContactOwnedBy(1, 999L)).thenReturn(false);
+
+        mockMvc.perform(get("/internal/contact/1/owner/999"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data").value(false));
+    }
 }

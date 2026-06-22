@@ -79,4 +79,12 @@ public class UserContactServiceImpl implements UserContactService {
         log.info("getContactById, id={}", id);
         return userContactMapper.selectContactById(id);
     }
+
+    @Override
+    public boolean isContactOwnedBy(int contactId, Long userId) {
+        log.info("isContactOwnedBy, contactId={}, userId={}", contactId, userId);
+        if (userId == null) return false;
+        List<Long> userIds = userContactMapper.selectUserIdsByContactId(contactId);
+        return userIds != null && userIds.contains(userId);
+    }
 }

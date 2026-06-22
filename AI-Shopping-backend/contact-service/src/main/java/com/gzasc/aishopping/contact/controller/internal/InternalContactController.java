@@ -30,4 +30,10 @@ public class InternalContactController {
             return ApiResponse.error(400, "联系人不存在");
         }
     }
+
+    @GetMapping("/{contactId}/owner/{userId}")
+    public ApiResponse<Boolean> validateContactOwner(@PathVariable("contactId") int contactId,
+                                                      @PathVariable("userId") Long userId) {
+        return ApiResponse.success(userContactService.isContactOwnedBy(contactId, userId));
+    }
 }
