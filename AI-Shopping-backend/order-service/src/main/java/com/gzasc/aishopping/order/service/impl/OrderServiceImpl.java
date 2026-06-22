@@ -29,6 +29,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -50,8 +52,20 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public String createOrder(PlaceOrderRequest request, Long userId) {
-        ProductDTO product = fetchProduct(request.getProductId());
-        ContactDTO contact = fetchContact(request.getContactId());
+        CompletableFuture<ProductDTO> productFuture =
+                CompletableFuture.supplyAsync(() -> fetchProduct(request.getProductId()));
+        CompletableFuture<ContactDTO> contactFuture =
+                CompletableFuture.supplyAsync(() -> fetchContact(request.getContactId()));
+
+        ProductDTO product;
+        ContactDTO contact;
+        try {
+            CompletableFuture.allOf(productFuture, contactFuture).join();
+            product = productFuture.join();
+            contact = contactFuture.join();
+        } catch (CompletionException e) {
+            throw OrderException.unwrap(e);
+        }
 
         BigDecimal price = product.getPrice() != null ? product.getPrice() : BigDecimal.ZERO;
         int stock = product.getStock() != null ? product.getStock() : 0;
