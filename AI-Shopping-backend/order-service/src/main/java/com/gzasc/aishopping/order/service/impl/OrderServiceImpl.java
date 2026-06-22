@@ -104,7 +104,7 @@ public class OrderServiceImpl implements OrderService {
     private void validateContactOwner(Integer contactId, Long userId) {
         ApiResponse<Boolean> resp = contactFeignClient.validateContactOwner(contactId, userId);
         if (resp == null || resp.getData() == null || !resp.getData()) {
-            throw new OrderException("联系人不存在或无权限使用，请重新选择联系人（错误代码：O-006）");
+            throw new OrderException("联系信息不存在或无权限使用，请重新选择联系信息（错误代码：O-006）");
         }
     }
 
