@@ -35,6 +35,9 @@ import java.sql.Timestamp;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -229,6 +232,84 @@ class OrderServiceImplTest {
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
         assertTrue(ex.getMessage().contains("店铺信息"));
+    }
+
+    // ==================== 并发场景 (OR-080 ~ OR-083) ====================
+
+    @Test
+    @DisplayName("OR-080 并发下单 - 商品/联系人查询都成功")
+    void createOrder_concurrent_bothSuccess() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId(1L);
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        when(orderIdSelector.generate()).thenReturn("ORDER_CONCURRENT_001");
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        mockContact(1);
+        when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
+        when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
+                .thenReturn(ApiResponse.success(null));
+
+        String orderId = orderService.createOrder(request, 100L);
+
+        assertEquals("ORDER_CONCURRENT_001", orderId);
+        verify(productFeignClient).getProductById(1L);
+        verify(contactFeignClient).getContactById(1);
+    }
+
+    @Test
+    @DisplayName("OR-081 并发下单 - 商品查询返回 null 时抛 O-003 或 O-006")
+    void createOrder_concurrent_productFailed() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId(1L);
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(null));
+        when(contactFeignClient.getContactById(1)).thenReturn(ApiResponse.success(null));
+
+        OrderException ex = assertThrows(OrderException.class,
+                () -> orderService.createOrder(request, 100L));
+        assertTrue(ex.getMessage().contains("商品不存在") || ex.getMessage().contains("联系人不存在"),
+                "expected O-003 or O-006 message, got: " + ex.getMessage());
+        verify(orderMapper, never()).insertOrder(any());
+    }
+
+    @Test
+    @DisplayName("OR-082 并发下单 - 联系人查询失败时对外抛 O-006")
+    void createOrder_concurrent_contactFailed() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId(1L);
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
+        when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
+        when(contactFeignClient.getContactById(1)).thenReturn(ApiResponse.success(null));
+
+        OrderException ex = assertThrows(OrderException.class,
+                () -> orderService.createOrder(request, 100L));
+        assertTrue(ex.getMessage().contains("联系人不存在"));
+        verify(orderMapper, never()).insertOrder(any());
+    }
+
+    @Test
+    @DisplayName("OR-083 并发下单 - Feign 抛 RuntimeException 时包装为通用 OrderException")
+    void createOrder_concurrent_feignRuntimeException() {
+        PlaceOrderRequest request = new PlaceOrderRequest();
+        request.setProductId(1L);
+        request.setQuantity(1);
+        request.setContactId(1);
+
+        when(productFeignClient.getProductById(1L)).thenThrow(new RuntimeException("网络抖动"));
+        when(contactFeignClient.getContactById(1)).thenThrow(new RuntimeException("网络抖动"));
+
+        OrderException ex = assertThrows(OrderException.class,
+                () -> orderService.createOrder(request, 100L));
+        assertTrue(ex.getMessage().contains("系统繁忙"));
+        verify(orderMapper, never()).insertOrder(any());
     }
 
     // ==================== 支付 (OR-008 ~ OR-013) ====================
