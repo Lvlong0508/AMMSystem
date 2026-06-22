@@ -54,15 +54,13 @@ public class OrderServiceImpl implements OrderService {
     public String createOrder(PlaceOrderRequest request, Long userId) {
         CompletableFuture<ProductDTO> productFuture =
                 CompletableFuture.supplyAsync(() -> fetchProduct(request.getProductId()));
-        CompletableFuture<ContactDTO> contactFuture =
-                CompletableFuture.supplyAsync(() -> fetchContact(request.getContactId()));
+        CompletableFuture<Void> contactValidateFuture =
+                CompletableFuture.runAsync(() -> validateContactOwner(request.getContactId(), userId));
 
         ProductDTO product;
-        ContactDTO contact;
         try {
-            CompletableFuture.allOf(productFuture, contactFuture).join();
+            CompletableFuture.allOf(productFuture, contactValidateFuture).join();
             product = productFuture.join();
-            contact = contactFuture.join();
         } catch (CompletionException e) {
             throw OrderException.unwrap(e);
         }
@@ -103,12 +101,11 @@ public class OrderServiceImpl implements OrderService {
         return resp.getData();
     }
 
-    private ContactDTO fetchContact(Integer contactId) {
-        ApiResponse<ContactDTO> resp = contactFeignClient.getContactById(contactId);
-        if (resp == null || resp.getData() == null) {
-            throw new OrderException("联系人不存在，请重新选择联系人（错误代码：O-006）");
+    private void validateContactOwner(Integer contactId, Long userId) {
+        ApiResponse<Boolean> resp = contactFeignClient.validateContactOwner(contactId, userId);
+        if (resp == null || resp.getData() == null || !resp.getData()) {
+            throw new OrderException("联系人不存在或无权限使用，请重新选择联系人（错误代码：O-006）");
         }
-        return resp.getData();
     }
 
     @Override

@@ -87,6 +87,10 @@ class OrderServiceImplTest {
         when(contactFeignClient.getContactById(contactId)).thenReturn(ApiResponse.success(dto));
     }
 
+    private void mockValidContact(Integer contactId, Long userId) {
+        when(contactFeignClient.validateContactOwner(contactId, userId)).thenReturn(ApiResponse.success(true));
+    }
+
     private Order createOrder(String orderId, Long userId, String shopId, String status) {
         Order o = new Order();
         o.setOrderId(orderId);
@@ -121,7 +125,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800001ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -166,7 +170,7 @@ class OrderServiceImplTest {
 
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 3, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -185,7 +189,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800002ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(999);
+        mockValidContact(999, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -207,7 +211,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("2026052800003ABCDE");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenThrow(new RuntimeException("Feign调用失败"));
@@ -227,7 +231,7 @@ class OrderServiceImplTest {
 
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, null, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -247,7 +251,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("ORDER_CONCURRENT_001");
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -256,7 +260,7 @@ class OrderServiceImplTest {
 
         assertEquals("ORDER_CONCURRENT_001", orderId);
         verify(productFeignClient).getProductById(1L);
-        verify(contactFeignClient).getContactById(1);
+        verify(contactFeignClient).validateContactOwner(1, 100L);
     }
 
     @Test
@@ -268,7 +272,7 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(null));
-        when(contactFeignClient.getContactById(1)).thenReturn(ApiResponse.success(null));
+        when(contactFeignClient.validateContactOwner(1, 100L)).thenReturn(ApiResponse.success(false));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -287,11 +291,11 @@ class OrderServiceImplTest {
 
         ProductDTO mockProduct = new ProductDTO(1L, "Test", BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        when(contactFeignClient.getContactById(1)).thenReturn(ApiResponse.success(null));
+        when(contactFeignClient.validateContactOwner(1, 100L)).thenReturn(ApiResponse.success(false));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
-        assertTrue(ex.getMessage().contains("联系人不存在"));
+        assertTrue(ex.getMessage().contains("联系人不存在或无权限使用"));
         verify(orderMapper, never()).insertOrder(any());
     }
 
@@ -304,7 +308,7 @@ class OrderServiceImplTest {
         request.setContactId(1);
 
         when(productFeignClient.getProductById(1L)).thenThrow(new RuntimeException("网络抖动"));
-        when(contactFeignClient.getContactById(1)).thenThrow(new RuntimeException("网络抖动"));
+        when(contactFeignClient.validateContactOwner(1, 100L)).thenThrow(new RuntimeException("网络抖动"));
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
@@ -924,7 +928,7 @@ class OrderServiceImplTest {
         ProductDTO mockProduct = new ProductDTO(1L, "Test",
                 BigDecimal.valueOf(50), null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
@@ -946,7 +950,7 @@ class OrderServiceImplTest {
         when(orderIdSelector.generate()).thenReturn("ORDER101");
         ProductDTO mockProduct = new ProductDTO(1L, "Free", null, null, null, 10, 100L, null, null, null);
         when(productFeignClient.getProductById(1L)).thenReturn(ApiResponse.success(mockProduct));
-        mockContact(1);
+        mockValidContact(1, 100L);
         when(orderMapper.insertOrder(any(Order.class))).thenReturn(1);
         when(productFeignClient.reserveStock(any(StockReserveRequest.class)))
                 .thenReturn(ApiResponse.success(null));
