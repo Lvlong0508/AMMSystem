@@ -18,4 +18,11 @@ public interface ContactFeignClient {
      */
     @GetMapping("/internal/contact/{id}")
     ApiResponse<ContactDTO> getContactById(@PathVariable("id") Integer id);
+
+    /**
+     * 校验联系人是否属于该用户（用于 createOrder 等需要确认所有权的场景）
+     */
+    @GetMapping("/internal/contact/{contactId}/owner/{userId}")
+    ApiResponse<Boolean> validateContactOwner(@PathVariable("contactId") Integer contactId,
+                                               @PathVariable("userId") Long userId);
 }
