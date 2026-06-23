@@ -21,9 +21,18 @@ import java.nio.charset.StandardCharsets;
 @Slf4j
 @Order(-1)
 @Component
+/**
+ * 网关层全局异常处理器。
+ *
+ * 当过滤器(SaTokenAuthGlobalFilter 等)抛出异常或路由转发失败时,
+ * 统一将异常转为标准的 JSON 错误响应。
+ *
+ * 处理优先级:
+ *   1. GatewayAuthException     → 401/403 + 自定义 message
+ *   2. ResponseStatusException  → 透传 HTTP 状态码
+ *   3. 其他未预期异常           → 500 + 通用错误信息
+ */
 public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler {
-
-
 
     private final ObjectMapper objectMapper;
 
@@ -36,6 +45,7 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 
+        // 认证/鉴权异常: 用异常自身的 code 作为 HTTP 状态码和业务码
         if (ex instanceof GatewayAuthException e) {
             return writeResponse(response,
                     HttpStatus.resolve(e.getCode()) != null
@@ -44,16 +54,22 @@ public class GlobalErrorWebExceptionHandler implements ErrorWebExceptionHandler 
                     new ApiResponse<>(e.getCode(), e.getMessage(), null));
         }
 
+        // Spring 框架抛出的状态异常(如路由 404)
         if (ex instanceof ResponseStatusException e) {
             return writeResponse(response, HttpStatus.valueOf(e.getStatusCode().value()),
                     new ApiResponse<>(e.getStatusCode().value(), e.getReason(), null));
         }
 
+        // 未预期异常: 记录完整堆栈,返回通用 500
         log.error("Unhandled gateway error", ex);
         return writeResponse(response, HttpStatus.INTERNAL_SERVER_ERROR,
                 new ApiResponse<>(500, "系统错误，请稍后重试", null));
     }
 
+    /**
+     * 将 ApiResponse 序列化为 JSON 写入响应。
+     * ObjectMapper 序列化失败时使用硬编码 fallback,确保兜底可用。
+     */
     private Mono<Void> writeResponse(ServerHttpResponse response, HttpStatus status, ApiResponse<?> body) {
         response.setStatusCode(status);
         try {

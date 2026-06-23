@@ -22,9 +22,14 @@ import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
+/**
+ * IP 级别请求限流全局过滤器。
+ *
+ * 过滤器链中最先执行(Order=-200),对每个请求提取客户端 IP,
+ * 通过 Redis 计数(默认 300 次/60s)判断是否超限。
+ * 超限则直接返回 429 JSON 响应,不再继续后续过滤器和路由转发。
+ */
 public class IpRateLimitFilter implements GlobalFilter, Ordered {
-
-
 
     @Autowired
     private RedisRateLimitService redisRateLimitService;
@@ -37,8 +42,10 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 从请求中提取客户端真实 IP
         String ip = getClientIp(exchange.getRequest());
 
+        // 检查是否超过限流阈值,超限则直接拦截
         if (!redisRateLimitService.isAllowed(ip)) {
             log.warn("IP: {} 请求过于频繁，已拦截", ip);
             return writeErrorResponse(exchange.getResponse(), HttpStatus.TOO_MANY_REQUESTS,
@@ -48,6 +55,12 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
         return chain.filter(exchange);
     }
 
+    /**
+     * 从请求头中提取客户端真实 IP。
+     * 优先取 X-Forwarded-For(经过代理时携带原始 IP),
+     * 其次 X-Real-IP,最后从 RemoteAddress 直取。
+     * X-Forwarded-For 可能包含逗号分隔的多个 IP,只取第一个(原始客户端)。
+     */
     private String getClientIp(ServerHttpRequest request) {
         String ip = request.getHeaders().getFirst("X-Forwarded-For");
         if (ip == null || ip.isEmpty()) {
@@ -58,9 +71,14 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
                     ? request.getRemoteAddress().getAddress().getHostAddress()
                     : "unknown";
         }
+        // X-Forwarded-For 格式: "client, proxy1, proxy2" 取第一个
         return ip.split(",")[0].trim();
     }
 
+    /**
+     * 将限流拒绝的 ApiResponse 序列化为 JSON 写回客户端。
+     * 序列化失败时使用硬编码的 fallback JSON,保证兜底可用。
+     */
     private Mono<Void> writeErrorResponse(ServerHttpResponse response, HttpStatus status, ApiResponse<?> body) {
         response.setStatusCode(status);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
@@ -78,6 +96,7 @@ public class IpRateLimitFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
+        // 数值越小优先级越高,确保限流在认证之前执行
         return -200;
     }
 }
