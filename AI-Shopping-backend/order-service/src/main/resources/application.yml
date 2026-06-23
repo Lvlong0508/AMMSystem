@@ -80,12 +80,6 @@ order:
   timeout:
     # 订单支付超时时间，单位分钟
     payment-minutes: 30
-  concurrency:
-    # 下单接口单机并发限流: 全局同时最多 3 个下单,第 4 个排队等待 5s
-    # 公平模式(true)确保先到先得,避免饥饿
-    max-permits: 3
-    wait-timeout-ms: 5000
-    fair: true
   fallback:
     # 订单失败/补偿数据本地落盘目录
     dir: ${user.dir}/data/failover
