@@ -1,10 +1,8 @@
 package com.gzasc.aishopping.order;
 
-import com.gzasc.aishopping.order.concurrency.OrderConcurrencyProperties;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -13,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = "com.gzasc.aishopping.common.feign")
 @EnableScheduling
-@EnableConfigurationProperties(OrderConcurrencyProperties.class)
 @MapperScan("com.gzasc.aishopping.order.mapper")
 public class OrderServiceApplication {
     public static void main(String[] args) {

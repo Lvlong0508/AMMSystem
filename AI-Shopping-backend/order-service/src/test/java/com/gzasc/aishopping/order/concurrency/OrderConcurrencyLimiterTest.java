@@ -23,20 +23,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
  */
 class OrderConcurrencyLimiterTest {
 
-    /** 构造一个 props,便于按用例改参数 */
-    private OrderConcurrencyProperties props(int maxPermits, long timeoutMs, boolean fair) {
-        OrderConcurrencyProperties p = new OrderConcurrencyProperties();
-        p.setMaxPermits(maxPermits);
-        p.setWaitTimeoutMs(timeoutMs);
-        p.setFair(fair);
-        return p;
-    }
-
     @Test
     @Timeout(10)
     @DisplayName("同时执行中的任务数永远不超过 maxPermits")
     void concurrent_running_never_exceeds_max_permits() throws Exception {
-        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(props(3, 2000, true));
+        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(3, 2000, true);
 
         AtomicInteger running = new AtomicInteger(0);
         AtomicInteger peak = new AtomicInteger(0);
@@ -80,7 +71,7 @@ class OrderConcurrencyLimiterTest {
     @Timeout(10)
     @DisplayName("第 4 个请求等待到有许可释放后才执行")
     void fourth_request_waits_until_release() throws Exception {
-        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(props(3, 5000, true));
+        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(3, 5000, true);
 
         ExecutorService pool = Executors.newFixedThreadPool(4);
         CountDownLatch firstThreeStarted = new CountDownLatch(3);
@@ -118,7 +109,7 @@ class OrderConcurrencyLimiterTest {
     @Timeout(10)
     @DisplayName("等待许可超时抛 OrderException")
     void timeout_throws_OrderException() throws Exception {
-        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(props(3, 300, true));
+        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(3, 300, true);
 
         ExecutorService pool = Executors.newFixedThreadPool(3);
         CountDownLatch occupied = new CountDownLatch(3);
@@ -150,7 +141,7 @@ class OrderConcurrencyLimiterTest {
     @Timeout(5)
     @DisplayName("task 抛异常时也能释放许可")
     void release_on_task_exception() {
-        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(props(2, 500, true));
+        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(2, 500, true);
 
         assertThatThrownBy(() -> limiter.execute(() -> {
             throw new RuntimeException("boom");
@@ -167,7 +158,7 @@ class OrderConcurrencyLimiterTest {
     @Timeout(5)
     @DisplayName("等待期间被中断抛 OrderException,中断标志保留")
     void interrupt_during_wait() throws Exception {
-        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(props(1, 5000, true));
+        OrderConcurrencyLimiter limiter = new OrderConcurrencyLimiter(1, 5000, true);
 
         CountDownLatch occupied = new CountDownLatch(1);
         CountDownLatch releaseGate = new CountDownLatch(1);

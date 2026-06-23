@@ -6,7 +6,6 @@ import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.concurrency.OrderConcurrencyLimiter;
-import com.gzasc.aishopping.order.concurrency.OrderConcurrencyProperties;
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.service.OrderService;
 import com.gzasc.aishopping.order.service.ReturnRequestService;
@@ -56,7 +55,7 @@ class OrderUserControllerTest {
     void setUp() {
         // 测试中使用默认参数构造真实 limiter (maxPermits=3, timeoutMs=5000, fair=true);
         // 这些用例本身不验证限流,只验证下单接口的业务行为;limiter.execute 会同步运行 task。
-        var limiter = new OrderConcurrencyLimiter(new OrderConcurrencyProperties());
+        var limiter = new OrderConcurrencyLimiter(3, 5000, true);
         var controller = new OrderUserController(orderService, returnRequestService, limiter);
         var validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();

@@ -1,7 +1,10 @@
 package com.gzasc.aishopping.order.concurrency;
 
 import com.gzasc.aishopping.order.exception.OrderException;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.Semaphore;
@@ -21,27 +24,46 @@ import java.util.function.Supplier;
  * 3. InterruptedException 需还原中断标志
  * 4. release() 必须放在 finally,确保任务异常时也不丢许可
  * 5. waitingCount 用 AtomicLong,避免多线程竞态
+ *
+ * 配置通过 Nacos 配置中心(或 application.yml 降级)动态注入,
+ * {@link RefreshScope} 确保 Nacos 推送时重建 bean,无需重启。
  */
 @Slf4j
 @Component
+@RefreshScope
 public class OrderConcurrencyLimiter {
 
-    /** JUC 提供的"许可证"同步器,内部基于 AQS */
-    private final Semaphore semaphore;
+    @Value("${order.concurrency.max-permits:3}")
+    private int maxPermits;
 
-    /** 排队等待许可的最大时间(毫秒) */
-    private final long timeoutMs;
+    @Value("${order.concurrency.wait-timeout-ms:5000}")
+    private long timeoutMs;
+
+    @Value("${order.concurrency.fair:true}")
+    private boolean fair;
+
+    /** JUC 提供的"许可证"同步器,内部基于 AQS,在 init() 中创建 */
+    private Semaphore semaphore;
 
     /** 当前正在排队等待许可的线程数(仅用于监控/日志,非业务用) */
     private final AtomicLong waitingCount = new AtomicLong(0);
 
-    public OrderConcurrencyLimiter(OrderConcurrencyProperties props) {
-        // 第二参数 fair=true: 公平模式,等待最久的线程优先拿到许可,避免饥饿;
-        // 代价是吞吐略低(每次拿/放许可都要操作等待队列)
-        this.semaphore = new Semaphore(props.getMaxPermits(), props.isFair());
-        this.timeoutMs = props.getWaitTimeoutMs();
-        log.info("[Limiter] 初始化: maxPermits={}, fair={}, timeoutMs={}",
-                props.getMaxPermits(), props.isFair(), props.getWaitTimeoutMs());
+    /** Spring 专用: @Value + @PostConstruct 组装 */
+    public OrderConcurrencyLimiter() {
+    }
+
+    /** 测试专用: 直接传参,不依赖 Spring */
+    public OrderConcurrencyLimiter(int maxPermits, long timeoutMs, boolean fair) {
+        this.maxPermits = maxPermits;
+        this.timeoutMs = timeoutMs;
+        this.fair = fair;
+        init();
+    }
+
+    @PostConstruct
+    void init() {
+        this.semaphore = new Semaphore(maxPermits, fair);
+        log.info("[Limiter] 初始化: maxPermits={}, fair={}, timeoutMs={}", maxPermits, fair, timeoutMs);
     }
 
     /**
