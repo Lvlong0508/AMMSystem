@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.order.controller;
 
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.order.concurrency.OrderConcurrencyLimiter;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
@@ -22,6 +22,8 @@ public class OrderUserController {
 
     private final OrderService orderService;
     private final ReturnRequestService returnRequestService;
+    // 通过 @RequiredArgsConstructor 自动注入下单并发限流器
+    private final OrderConcurrencyLimiter limiter;
 
     @GetMapping("/list")
     public ApiResponse<List<UserOrderCardDTO>> listOrders(
@@ -45,7 +47,9 @@ public class OrderUserController {
     public ApiResponse<String> placeOrder(
             @RequestBody @Valid PlaceOrderRequest request,
             @RequestHeader("X-User-Id") Long userId) {
-        String orderId = orderService.createOrder(request, userId);
+        // 通过 limiter 包装: 全局同时最多 maxPermits 个 createOrder 在执行,
+        // 超出排队等待 waitTimeoutMs;超时抛 OrderException 由 GlobalExceptionHandler 处理
+        String orderId = limiter.execute(() -> orderService.createOrder(request, userId));
         return ApiResponse.success("创建订单成功", orderId);
     }
 
