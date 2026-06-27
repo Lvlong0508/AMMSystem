@@ -10,7 +10,8 @@
         <el-option label="全部" value="" />
         <el-option v-for="[k, v] in Object.entries(STATUS_TEXT)" :key="k" :label="v" :value="k" />
       </el-select>
-      <el-input v-model="searchKeyword" size="small" :placeholder="T.LABEL_SEARCH" style="width: 200px" clearable />
+      <el-input v-model="searchKeyword" size="small" :placeholder="T.LABEL_SEARCH" style="width: 200px" clearable @keyup.enter="handleSearch" />
+      <el-button size="small" @click="handleSearch">搜索</el-button>
     </div>
 
     <div v-loading="loading" class="order-list">
@@ -62,7 +63,7 @@
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import { useShopOrders } from './ShopOrders.js'
 const props = useShopOrders()
-const { T, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule } = props
+const { T, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule } = props
 </script>
 
 <style scoped src="./ShopOrders.css"></style>

@@ -15,6 +15,7 @@ export function useShopOrders() {
   const loading = ref(false)
   const filterStatus = ref('')
   const searchKeyword = ref('')
+  const searchQuery = ref('')
 
   const detailVisible = ref(false)
   const selectedOrder = ref(null)
@@ -33,12 +34,16 @@ export function useShopOrders() {
   const filteredOrders = computed(() => {
     let r = orders.value
     if (filterStatus.value) r = r.filter(o => o.orderStatus === filterStatus.value)
-    if (searchKeyword.value.trim()) {
-      const kw = searchKeyword.value.trim().toLowerCase()
+    if (searchQuery.value.trim()) {
+      const kw = searchQuery.value.trim().toLowerCase()
       r = r.filter(o => o.orderId?.toLowerCase().includes(kw) || o.productName?.toLowerCase().includes(kw))
     }
     return r
   })
+
+  function handleSearch() {
+    searchQuery.value = searchKeyword.value
+  }
 
   async function loadShopInfo() {
     try { const res = await getShopDetail(shopId.value); if (res?.data) shopInfo.value = res.data } catch (e) { console.error(e) }
@@ -136,5 +141,5 @@ export function useShopOrders() {
 
   onMounted(() => { loadShopInfo(); loadOrders() })
 
-  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule }
+  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule }
 }
