@@ -50,7 +50,7 @@
   cursor: pointer;
 }
 .return-card .el-card__body {
-  padding: 14px 18px;
+  padding: 10px 14px 2px;
 }
 
 .return-card__body {
@@ -86,7 +86,7 @@
 }
 
 .return-card__actions {
-  padding: 6px 18px 14px;
+  padding: 6px 0 8px;
   display: flex;
   justify-content: flex-end;
 }
