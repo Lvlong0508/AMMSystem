@@ -52,6 +52,20 @@ services:
       timeout: 5s
       retries: 5
 
+  sentinel:
+    image: bladex/sentinel-dashboard:1.8.8
+    container_name: ai-sentinel
+    networks: [ai-shopping-net]
+    ports:
+      - "8888:8858"
+    environment:
+      JAVA_OPTS: "-Dserver.port=8858"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8858"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   nacos:
     image: nacos/nacos-server:v2.3.2
     container_name: ai-nacos
@@ -118,6 +132,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel:8858
     depends_on:
       nacos-init:
         condition: service_completed_successfully
@@ -161,6 +176,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel:8858
     depends_on:
       nacos-init:
         condition: service_completed_successfully

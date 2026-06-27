@@ -170,7 +170,7 @@ cd deploy
 docker compose up
 ```
 
-首次启动需拉取基础镜像（`mysql:8.0`、`redis:7-alpine`、`mongo:7`、`nacos/nacos-server:v2.3.2`、`nginx:alpine`），耗时约 3-5 分钟。
+首次启动需拉取基础镜像（`mysql:8.0`、`redis:7-alpine`、`mongo:7`、`nacos/nacos-server:v2.3.2`、`bladex/sentinel-dashboard:1.8.8`、`nginx:alpine`），耗时约 3-5 分钟。
 
 访问地址：
 | 地址 | 说明 |
@@ -179,6 +179,7 @@ docker compose up
 | `http://localhost/user/` | 用户端首页 |
 | `http://localhost/seller/` | 商家端 |
 | `http://localhost:8848/nacos` | Nacos 控制台（nacos/nacos） |
+| `http://localhost:8888` | Sentinel 控制台（sentinel/sentinel） |
 
 > 系统启动后，`deploy/nacos/init-config.sh` 会自动向 Nacos 写入 `app.*` 配置项。如需修改（如图片存储路径、定时任务间隔等），登录 Nacos 控制台 `http://localhost:8848/nacos` 进入「配置管理」修改，修改后重启对应服务生效。
 
@@ -284,5 +285,3 @@ npm run preview
 ## 适用场景
 
 该项目适合作为 Java 微服务、电商业务系统、Vue 前后端分离项目、AI 应用集成实践的综合展示项目，也适合用于课程设计、毕业设计、项目答辩和个人作品集展示。
-
-### 本README文档由DeepSeek生成
