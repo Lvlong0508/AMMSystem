@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.chat.tools;
 
 import com.gzasc.aishopping.chat.exception.AiToolException;
-import com.gzasc.aishopping.chat.service.impl.ChatSessionService;
+import com.gzasc.aishopping.chat.service.ChatSessionService;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import com.gzasc.aishopping.common.feign.order.OrderFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
