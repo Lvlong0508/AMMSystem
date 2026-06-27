@@ -49,6 +49,9 @@
 .return-card {
   cursor: pointer;
 }
+.return-card .el-card__body {
+  padding: 14px 18px;
+}
 
 .return-card__body {
   display: flex;
@@ -59,20 +62,22 @@
 
 .return-card__order-id {
   font-weight: 600;
-  margin-bottom: var(--space-2);
+  margin-bottom: 4px;
+  font-size: var(--text-sm);
 }
 
 .return-card__reason {
   color: var(--color-text-secondary);
-  margin: 0 0 var(--space-2);
+  margin: 0 0 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 400px;
+  max-width: 420px;
+  font-size: var(--text-sm);
 }
 
 .return-card__meta {
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   color: var(--color-text-tertiary);
 }
 
@@ -81,7 +86,7 @@
 }
 
 .return-card__actions {
-  padding: var(--space-2) var(--space-4) var(--space-4);
+  padding: 6px 18px 14px;
   display: flex;
   justify-content: flex-end;
 }
