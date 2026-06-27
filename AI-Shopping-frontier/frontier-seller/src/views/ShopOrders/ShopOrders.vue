@@ -30,8 +30,30 @@
         v-if="selectedOrder"
         :order="selectedOrder"
         variant="detail"
-        @ship="handleShip"
+        @ship="handleShipFromDetail"
       />
+    </el-dialog>
+
+    <el-dialog v-model="shipVisible" title="订单发货" width="520px" :close-on-click-modal="false">
+      <div v-if="selectedOrder" style="margin-bottom: 16px">
+        <p><strong>订单编号：</strong>{{ selectedOrder.orderId }}</p>
+        <p><strong>收货人：</strong>{{ selectedOrder.contactName }} {{ selectedOrder.contactPhone }}</p>
+        <p><strong>收货地址：</strong>{{ selectedOrder.contactAddress }}</p>
+      </div>
+      <el-form ref="shipFormRef" :model="shipForm" :rules="{ trackingNumber: trackingRule }" label-position="top">
+        <el-form-item label="选择发货地址">
+          <el-select v-model="shipForm.selectedContactId" style="width: 100%" :loading="contactsLoading" placeholder="选择发货地址">
+            <el-option v-for="c in contacts" :key="c.id" :label="`${c.name} - ${c.phone} - ${c.address}`" :value="c.id" />
+          </el-select>
+        </el-form-item>
+        <el-form-item prop="trackingNumber" label="物流单号">
+          <el-input v-model="shipForm.trackingNumber" placeholder="请输入物流单号" />
+          <div style="color: #c0c4cc; font-size: 12px; margin-top: 4px">6-20位字母、数字或连字符</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button type="primary" :loading="shipping" :disabled="!shipForm.trackingNumber || !shipForm.selectedContactId" @click="confirmShip">{{ shipping ? '发货中...' : '确认发货' }}</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
@@ -40,7 +62,7 @@
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import { useShopOrders } from './ShopOrders.js'
 const props = useShopOrders()
-const { T, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, ORDER_STATUS, STATUS_TEXT } = props
+const { T, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule } = props
 </script>
 
 <style scoped src="./ShopOrders.css"></style>

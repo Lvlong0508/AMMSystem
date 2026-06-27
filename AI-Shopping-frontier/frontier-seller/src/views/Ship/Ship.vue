@@ -91,8 +91,7 @@
         </div>
       </template>
       <template #footer>
-        <el-button @click="closeDetail">{{ T.BTN_CANCEL }}</el-button>
-        <el-button v-if="selectedOrder && selectedOrder.orderStatus === ORDER_STATUS.PAID" type="primary" @click="closeDetail(); showShipDialog(selectedOrder)">{{ T.BTN_SHIP }}</el-button>
+        <el-button v-if="selectedOrder && selectedOrder.orderStatus === ORDER_STATUS.PAID" type="primary" @click="shipFromDetail(selectedOrder)">{{ T.BTN_SHIP }}</el-button>
       </template>
     </el-dialog>
 
@@ -116,7 +115,6 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="closeShipDialog">{{ T.BTN_CANCEL }}</el-button>
         <el-button type="primary" :loading="shipping" :disabled="!shipForm.trackingNumber || !shipForm.selectedContactId" @click="handleShip">{{ shipping ? T.BTN_SHIPPING : T.BTN_CONFIRM_SHIP }}</el-button>
       </template>
     </el-dialog>
@@ -125,7 +123,7 @@
 
 <script setup>
 import { useShip } from "./Ship.js"
-const { T, orders, loading, searchKeyword, pendingShipCount, contacts, contactsLoading, detailVisible, detailLoading, selectedOrder, shipVisible, shipFormRef, shipForm, shipping, trackingRule, ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText, formatPrice, formatDate, showOrderDetail, closeDetail, showShipDialog, closeShipDialog, handleShip } = useShip()
+const { T, orders, loading, searchKeyword, pendingShipCount, contacts, contactsLoading, detailVisible, detailLoading, selectedOrder, shipVisible, shipFormRef, shipForm, shipping, trackingRule, ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText, formatPrice, formatDate, showOrderDetail, closeDetail, showShipDialog, closeShipDialog, shipFromDetail, handleShip } = useShip()
 </script>
 
 <style scoped src="./Ship.css"></style>

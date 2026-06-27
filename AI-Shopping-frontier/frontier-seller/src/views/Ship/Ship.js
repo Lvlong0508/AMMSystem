@@ -122,6 +122,11 @@ export function useShip() {
 
   function closeDetail() { detailVisible.value = false; selectedOrder.value = null }
 
+  function shipFromDetail(order) {
+    closeDetail()
+    showShipDialog(order)
+  }
+
   async function showShipDialog(order) {
     shipForm.value = { orderId: order.orderId, trackingNumber: "", shippingDate: new Date().toISOString().slice(0, 16), selectedContactId: null }
     selectedOrder.value = order
@@ -172,6 +177,6 @@ export function useShip() {
     shipVisible, shipFormRef, shipForm, shipping, trackingRule,
     ORDER_STATUS, loadOrders, handleSearch, getStatusType, getStatusText,
     formatPrice, formatDate, showOrderDetail, closeDetail,
-    showShipDialog, closeShipDialog, handleShip,
+    showShipDialog, closeShipDialog, shipFromDetail, handleShip,
   }
 }
