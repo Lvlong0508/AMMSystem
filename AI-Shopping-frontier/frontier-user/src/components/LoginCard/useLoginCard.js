@@ -1,10 +1,11 @@
-import { ref, reactive, computed } from 'vue'
+﻿import { ref, reactive, computed } from 'vue'
 import { userLogin, userRegister } from '@/api/auth'
 import { showSuccess, showError } from '@/utils/swal'
 import { T } from './Text'
 
 const USERNAME_PATTERN = /^[a-zA-Z0-9_]{3,20}$/
 const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,20}$/
+const PHONE_PATTERN = /^1[3-9]\d{9}$/
 
 export function useLoginCard(emit) {
   const isRegister = ref(false)
@@ -14,13 +15,15 @@ export function useLoginCard(emit) {
     username: '',
     password: '',
     confirmPassword: '',
-    phone: ''
+    phone: '',
+    email: ''
   })
 
   const errors = reactive({
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    phone: ''
   })
 
   const isFormValid = computed(() => {
@@ -28,6 +31,7 @@ export function useLoginCard(emit) {
     if (!USERNAME_PATTERN.test(form.username)) return false
     if (!PASSWORD_PATTERN.test(form.password)) return false
     if (isRegister.value && form.password !== form.confirmPassword) return false
+    if (isRegister.value && !PHONE_PATTERN.test(form.phone)) return false
     return true
   })
 
@@ -48,16 +52,25 @@ export function useLoginCard(emit) {
     errors.confirmPassword = ''
   }
 
+  const validatePhone = () => {
+    if (!form.phone) { errors.phone = T.PHONE_INVALID; return }
+    if (!PHONE_PATTERN.test(form.phone)) { errors.phone = T.PHONE_INVALID; return }
+    errors.phone = ''
+  }
+
   const handleSubmit = async () => {
     validateUsername()
     validatePassword()
-    if (isRegister.value) validateConfirmPassword()
+    if (isRegister.value) {
+      validateConfirmPassword()
+      validatePhone()
+    }
     if (!isFormValid.value) return
 
     loading.value = true
     try {
       const data = isRegister.value
-        ? { username: form.username, password: form.password, phone: form.phone }
+        ? { username: form.username, password: form.password, phone: form.phone, email: form.email || undefined }
         : { username: form.username, password: form.password }
 
       const res = isRegister.value ? await userRegister(data) : await userLogin(data)
@@ -84,9 +97,11 @@ export function useLoginCard(emit) {
     form.password = ''
     form.confirmPassword = ''
     form.phone = ''
+    form.email = ''
     errors.username = ''
     errors.password = ''
     errors.confirmPassword = ''
+    errors.phone = ''
   }
 
   return {
@@ -98,6 +113,7 @@ export function useLoginCard(emit) {
     validateUsername,
     validatePassword,
     validateConfirmPassword,
+    validatePhone,
     handleSubmit,
     toggleMode
   }

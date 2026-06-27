@@ -30,7 +30,13 @@
 
         <div v-if="isRegister" class="login-card__field">
           <label class="login-card__label">{{ T.PHONE }}</label>
-          <input v-model="form.phone" class="login-card__input" type="tel" :placeholder="T.PHONE_PLACEHOLDER" @keydown.enter="handleSubmit" />
+          <input v-model="form.phone" class="login-card__input" :class="{ 'login-card__input--error': errors.phone }" type="tel" :placeholder="T.PHONE_PLACEHOLDER" @blur="validatePhone" @keydown.enter="handleSubmit" />
+          <span v-if="errors.phone" class="login-card__error">{{ errors.phone }}</span>
+        </div>
+
+        <div v-if="isRegister" class="login-card__field">
+          <label class="login-card__label">{{ T.EMAIL }}</label>
+          <input v-model="form.email" class="login-card__input" type="email" :placeholder="T.EMAIL_PLACEHOLDER" @keydown.enter="handleSubmit" />
         </div>
 
         <button class="login-card__submit" :disabled="loading || !isFormValid" @click="handleSubmit">
@@ -51,7 +57,7 @@ import { T } from './Text'
 import { useLoginCard } from './useLoginCard'
 
 const emit = defineEmits(['logged-in'])
-const { form, errors, isRegister, loading, isFormValid, validateUsername, validatePassword, validateConfirmPassword, handleSubmit, toggleMode } = useLoginCard(emit)
+const { form, errors, isRegister, loading, isFormValid, validateUsername, validatePassword, validateConfirmPassword, validatePhone, handleSubmit, toggleMode } = useLoginCard(emit)
 </script>
 
 <style scoped>

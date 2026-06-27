@@ -27,7 +27,7 @@ export function useRegister() {
   const submittingShop = ref(false)
   const logoFile = ref(null)
 
-  const accountForm = reactive({ username: "", phone: "", password: "", confirmPassword: "" })
+  const accountForm = reactive({ username: "", phone: "", email: "", password: "", confirmPassword: "" })
 
   const validateConfirm = (_rule, value, callback) => {
     if (value !== accountForm.password) {
@@ -79,6 +79,7 @@ export function useRegister() {
       const res = await merchantRegister({
         username: accountForm.username,
         phone: accountForm.phone,
+        email: accountForm.email || undefined,
         password: accountForm.password
       })
       if (res.data?.token) {

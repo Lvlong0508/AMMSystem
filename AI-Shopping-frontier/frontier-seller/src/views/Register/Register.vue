@@ -33,6 +33,9 @@
         <el-form-item :label="T.LABEL_PHONE" prop="phone">
           <el-input v-model="accountForm.phone" autocomplete="tel" />
         </el-form-item>
+        <el-form-item :label="T.LABEL_EMAIL" prop="email">
+          <el-input v-model="accountForm.email" autocomplete="email" />
+        </el-form-item>
         <el-form-item :label="T.LABEL_PASSWORD" prop="password">
           <el-input v-model="accountForm.password" type="password" show-password autocomplete="new-password" />
         </el-form-item>
