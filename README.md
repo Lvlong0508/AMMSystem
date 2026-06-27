@@ -129,6 +129,7 @@ AI-Shopping
 │   └── frontier-seller
 ├── deploy                   Docker 部署文件（docker-compose、Dockerfile、nginx 配置等）
 ├── frontend-dist            前端构建产物，供 Docker volume 挂载
+├── 微服务jar包              后端各模块打包后的 JAR（供 Docker 镜像构建使用）
 ├── 前端代码规格说明.md
 ├── 后端代码规格说明.md
 └── pom.xml
