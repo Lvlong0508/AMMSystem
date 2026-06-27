@@ -253,11 +253,7 @@ cd AI-Shopping-backend
 mvn clean install
 ```
 
-可以按模块分别启动各 Spring Boot 服务，也可以使用项目脚本启动后端：
-
-```bash
-脚本/start-end.bat
-```
+可以按模块分别启动各 Spring Boot 服务
 
 #### 4. 启动用户端
 
