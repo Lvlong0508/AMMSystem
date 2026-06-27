@@ -6,7 +6,9 @@
   >
     <div class="order-card__top">
       <span class="order-card__id">{{ order.orderId }}</span>
-      <span v-if="order.orderDate" class="order-card__date">{{ formatDate(order.orderDate) }}</span>
+    </div>
+    <div v-if="order.orderDate" class="order-card__date-row">
+      <span class="order-card__date">{{ formatDate(order.orderDate) }}</span>
     </div>
     <div class="order-card__body-row">
       <div v-if="order.productImageUrl" class="order-card__thumb">
