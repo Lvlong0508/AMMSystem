@@ -1,7 +1,7 @@
 <template>
   <div class="shop-orders">
     <div class="shop-orders__toolbar">
-      <h2 class="shop-orders__title">{{ T.PAGE_TITLE }} <span v-if="shopInfo">- {{ shopInfo.name }}</span></h2>
+      <h2 class="shop-orders__title">{{ T.PAGE_TITLE }}</h2>
       <el-button size="small" @click="loadOrders">{{ T.BTN_REFRESH }}</el-button>
     </div>
 
@@ -40,7 +40,7 @@
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import { useShopOrders } from './ShopOrders.js'
 const props = useShopOrders()
-const { T, shopInfo, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, ORDER_STATUS, STATUS_TEXT } = props
+const { T, orders, loading, filterStatus, searchKeyword, filteredOrders, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, ORDER_STATUS, STATUS_TEXT } = props
 </script>
 
 <style scoped src="./ShopOrders.css"></style>

@@ -82,6 +82,7 @@ public class ProductConverter {
             product.getId(),
             product.getName(),
             product.getPrice(),
+            product.getStock(),
             product.getTags(),
             product.getImageId(),
             imageUrl,

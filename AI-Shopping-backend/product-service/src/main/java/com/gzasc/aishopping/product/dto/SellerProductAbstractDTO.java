@@ -15,6 +15,7 @@ public class SellerProductAbstractDTO {
     private Long id;
     private String name;
     private BigDecimal price;
+    private Integer stock;
     private String tags;
     private Integer imageId;
     private String imageUrl;

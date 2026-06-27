@@ -1,7 +1,7 @@
 <template>
   <div class="shop-products">
     <div class="shop-products__toolbar">
-      <h2 class="shop-products__title">{{ T.PAGE_TITLE }} <span v-if="shopInfo">- {{ shopInfo.name }}</span></h2>
+      <h2 class="shop-products__title">{{ T.PAGE_TITLE }}</h2>
       <div>
         <el-button @click="loadProducts">{{ T.BTN_REFRESH }}</el-button>
         <el-button type="primary" @click="showAddDialog">{{ T.BTN_ADD }}</el-button>
@@ -82,7 +82,7 @@
 <script setup>
 import ProductCard from '@/components/ProductCard/ProductCard.vue'
 import { useShopProducts } from './ShopProducts.js'
-const { TAG_LIBRARY, T, shopInfo, products, loading, searchKeyword, filteredProducts, detailVisible, selectedProduct, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts, showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail } = useShopProducts()
+const { TAG_LIBRARY, T, products, loading, searchKeyword, filteredProducts, detailVisible, selectedProduct, dialogVisible, isEdit, submitting, form, showAddDialog, showEditDialog, closeDialog, handleFileChange, handleSubmit, handleToggleSale, handleDelete, loadProducts, showDetail, closeDetail, handleEditFromDetail, handleToggleSaleFromDetail, handleDeleteFromDetail } = useShopProducts()
 </script>
 
 <style scoped src="./ShopProducts.css"></style>

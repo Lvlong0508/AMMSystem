@@ -53,17 +53,17 @@ public interface ProductMapper {
 
     // 提供给商家端的分页抽象查询接口
     @Select("<script>" +
-            "SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
+            "SELECT id,name,price,stock,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE id IN " +
             "<foreach collection='ids' item='id' open='(' separator=',' close=')'>" +
             "#{id}" +
             "</foreach>" +
             "</script>")
     List<Product> selectAbstractProductsByIdsJustMerchant(@Param("ids") List<Long> ids);
 
-    @Select("SELECT id,name,price,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId}")
+    @Select("SELECT id,name,price,stock,tags,is_sale AS isSale,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId}")
     List<Product> selectByShopId(@Param("shopId") Long shopId);
 
-    @Select("SELECT id,name,price,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId} AND is_sale = 1")
+    @Select("SELECT id,name,price,stock,tags,image_id AS imageId,shop_id AS shopId FROM products WHERE shop_id = #{shopId} AND is_sale = 1")
     List<Product> selectSalableByShopId(@Param("shopId") Long shopId);
 
     @Select("SELECT id,name,price,stock,image_id AS imageId FROM products WHERE is_sale = 1 LIMIT #{limit} OFFSET #{offset}")
