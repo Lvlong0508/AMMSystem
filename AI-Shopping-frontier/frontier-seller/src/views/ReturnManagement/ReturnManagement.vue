@@ -44,6 +44,9 @@
           </div>
         </div>
         <div v-if="item.status === 'applying'" class="return-card__actions">
+          <el-button @click="handleReject(item)">
+            {{ T.BTN_REJECT }}
+          </el-button>
           <el-button type="warning" @click="handleApprove(item)">
             {{ T.BTN_APPROVE }}
           </el-button>
@@ -109,7 +112,7 @@
 
 <script setup>
 import { useReturnManagement } from './ReturnManagement.js'
-const { T, list, loading, activeTab, pendingList, processedList, detailVisible, selectedOrder, loadOrders, handleApprove, handleConfirm, showDetail, closeDetail, getStatusText, getStatusType, formatDate } = useReturnManagement()
+const { T, list, loading, activeTab, pendingList, processedList, detailVisible, selectedOrder, loadOrders, handleApprove, handleReject, handleConfirm, showDetail, closeDetail, getStatusText, getStatusType, formatDate } = useReturnManagement()
 </script>
 
 <style scoped src="./ReturnManagement.css"></style>

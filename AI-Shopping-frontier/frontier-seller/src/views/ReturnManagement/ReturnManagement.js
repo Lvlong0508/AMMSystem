@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getReturnRequestsPending, getReturnRequestsProcessed, getOrderDetail, approveReturn, confirmReturn } from '@/api/order'
+import { getReturnRequestsPending, getReturnRequestsProcessed, getOrderDetail, approveReturn, reviewReturnRequest, confirmReturn } from '@/api/order'
 import * as T from './Text.js'
 
 const RETURN_STATUS_TEXT = {
@@ -73,6 +73,17 @@ export function useReturnManagement() {
     }
   }
 
+  async function handleReject(item) {
+    try {
+      const res = await reviewReturnRequest(item.orderId, shopId, 'rejected')
+      ElMessage.success(res?.message || '已拒绝')
+      closeDetail()
+      await loadOrders()
+    } catch (e) {
+      ElMessage.error('操作失败')
+    }
+  }
+
   async function handleConfirm(item) {
     try {
       const res = await confirmReturn(item.orderId, shopId)
@@ -93,7 +104,7 @@ export function useReturnManagement() {
   return {
     T, list, loading, activeTab, pendingList, processedList,
     detailVisible, selectedOrder,
-    loadOrders, handleApprove, handleConfirm, showDetail, closeDetail,
+    loadOrders, handleApprove, handleReject, handleConfirm, showDetail, closeDetail,
     getStatusText, getStatusType, formatDate
   }
 }
