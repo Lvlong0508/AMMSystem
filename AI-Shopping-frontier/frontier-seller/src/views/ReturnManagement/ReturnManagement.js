@@ -23,12 +23,21 @@ export function useReturnManagement() {
   const activeTab = ref('pending')
   const pendingList = ref([])
   const processedList = ref([])
+  const searchKeyword = ref('')
+  const searchQuery = ref('')
   const detailVisible = ref(false)
   const selectedOrder = ref(null)
 
-  const list = computed(() =>
-    activeTab.value === 'pending' ? pendingList.value : processedList.value
-  )
+  const list = computed(() => {
+    const base = activeTab.value === 'pending' ? pendingList.value : processedList.value
+    if (!searchQuery.value.trim()) return base
+    const kw = searchQuery.value.trim().toLowerCase()
+    return base.filter(o => o.orderId?.toLowerCase().includes(kw))
+  })
+
+  function handleSearch() {
+    searchQuery.value = searchKeyword.value
+  }
 
   async function loadOrders() {
     loading.value = true
@@ -102,9 +111,9 @@ export function useReturnManagement() {
   onMounted(loadOrders)
 
   return {
-    T, list, loading, activeTab, pendingList, processedList,
+    T, list, loading, activeTab, pendingList, processedList, searchKeyword,
     detailVisible, selectedOrder,
-    loadOrders, handleApprove, handleReject, handleConfirm, showDetail, closeDetail,
+    loadOrders, handleSearch, handleApprove, handleReject, handleConfirm, showDetail, closeDetail,
     getStatusText, getStatusType, formatDate
   }
 }

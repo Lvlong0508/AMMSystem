@@ -22,6 +22,11 @@
       </button>
     </div>
 
+    <div class="return-management__filters">
+      <el-input v-model="searchKeyword" size="small" :placeholder="T.LABEL_SEARCH" style="width: 200px" clearable @keyup.enter="handleSearch" />
+      <el-button size="small" @click="handleSearch">{{ T.BTN_SEARCH }}</el-button>
+    </div>
+
     <div v-loading="loading" class="return-list">
       <el-card
         v-for="item in list"
@@ -112,7 +117,7 @@
 
 <script setup>
 import { useReturnManagement } from './ReturnManagement.js'
-const { T, list, loading, activeTab, pendingList, processedList, detailVisible, selectedOrder, loadOrders, handleApprove, handleReject, handleConfirm, showDetail, closeDetail, getStatusText, getStatusType, formatDate } = useReturnManagement()
+const { T, list, loading, activeTab, pendingList, processedList, searchKeyword, detailVisible, selectedOrder, loadOrders, handleSearch, handleApprove, handleReject, handleConfirm, showDetail, closeDetail, getStatusText, getStatusType, formatDate } = useReturnManagement()
 </script>
 
 <style scoped src="./ReturnManagement.css"></style>
