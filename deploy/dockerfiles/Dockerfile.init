@@ -1,0 +1,5 @@
+FROM alpine:3.19
+RUN apk add --no-cache curl jq
+COPY nacos/init-config.sh /init-config.sh
+RUN chmod +x /init-config.sh
+ENTRYPOINT ["/init-config.sh"]

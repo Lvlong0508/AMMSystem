@@ -35,6 +35,7 @@ build/
 ### Superpowers ###
 .superpowers/
 .worktrees/
+docs/superpowers/
 
 ### Frontend ###
 **/node_modules/

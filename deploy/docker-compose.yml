@@ -1,0 +1,255 @@
+version: "3.8"
+
+networks:
+  ai-shopping-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  mongodb-data:
+  image-data:
+
+services:
+
+  # ========== 基础设施 ==========
+  mysql:
+    image: mysql:8.0
+    container_name: ai-mysql
+    networks: [ai-shopping-net]
+    ports: ["3306:3306"]
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: ai-redis
+    networks: [ai-shopping-net]
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mongodb:
+    image: mongo:7
+    container_name: ai-mongodb
+    networks: [ai-shopping-net]
+    ports: ["27017:27017"]
+    volumes:
+      - mongodb-data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  nacos:
+    image: nacos/nacos-server:v2.3.2
+    container_name: ai-nacos
+    networks: [ai-shopping-net]
+    ports: ["8848:8848"]
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "true"
+      NACOS_AUTH_TOKEN: ${NACOS_AUTH_TOKEN:-SecretKey}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  nacos-init:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.init
+    container_name: ai-nacos-init
+    networks: [ai-shopping-net]
+    environment:
+      NACOS_SERVER_ADDR: nacos:8848
+      NACOS_USERNAME: ${NACOS_USERNAME:-nacos}
+      NACOS_PASSWORD: ${NACOS_PASSWORD:-nacos}
+    depends_on:
+      nacos:
+        condition: service_healthy
+    restart: "no"
+
+  # ========== 后端微服务 ==========
+  gateway-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: gateway-service
+    container_name: ai-gateway
+    networks: [ai-shopping-net]
+    ports: ["8088:8088"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: auth-service
+    container_name: ai-auth
+    networks: [ai-shopping-net]
+    ports: ["8086:8086"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_auth?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf-8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  product-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: product-service
+    container_name: ai-product
+    networks: [ai-shopping-net]
+    ports: ["8081:8081"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_product?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      PROJECT_ROOT: .
+    volumes:
+      - image-data:/app/static/image
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  order-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: order-service
+    container_name: ai-order
+    networks: [ai-shopping-net]
+    ports: ["8082:8082"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_CLOUD_NACOS_CONFIG_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_order?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  contact-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: contact-service
+    container_name: ai-contact
+    networks: [ai-shopping-net]
+    ports: ["8083:8083"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_contact?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  logistics-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: logistics-service
+    container_name: ai-logistics
+    networks: [ai-shopping-net]
+    ports: ["8084:8084"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_logistics?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: chat-service
+    container_name: ai-chat
+    networks: [ai-shopping-net]
+    ports: ["8085:8085"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: "6379"
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/chat_memory_db
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  shop-service:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.java
+      args:
+        SERVICE: shop-service
+    container_name: ai-shop
+    networks: [ai-shopping-net]
+    ports: ["8087:8087"]
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/eureka_shop?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      PROJECT_ROOT: .
+    volumes:
+      - image-data:/app/static/image
+    depends_on:
+      nacos-init:
+        condition: service_completed_successfully
+
+  # ========== 前端入口 ==========
+  nginx:
+    image: nginx:alpine
+    container_name: ai-nginx
+    networks: [ai-shopping-net]
+    ports: ["80:80"]
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../frontend-dist/frontier-user:/usr/share/nginx/html/user:ro
+      - ../frontend-dist/frontier-seller:/usr/share/nginx/html/seller:ro
+    depends_on:
+      gateway-service:
+        condition: service_started

@@ -127,12 +127,21 @@ AI-Shopping
 ├── AI-Shopping-frontier
 │   ├── frontier-user
 │   └── frontier-seller
+├── deploy                   Docker 部署文件（docker-compose、Dockerfile、nginx 配置等）
+├── frontend-dist            前端构建产物，供 Docker volume 挂载
 ├── 前端代码规格说明.md
 ├── 后端代码规格说明.md
 └── pom.xml
 ```
 
 ## 环境要求
+
+### Docker 部署（推荐）
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) 4.0+
+- 至少 8GB 可用内存
+
+### 本地开发
 
 - JDK 17+
 - Maven 3.8+
@@ -145,7 +154,51 @@ AI-Shopping
 
 ## 快速启动
 
-### 1. 初始化数据库
+### Docker 一键启动（推荐）
+
+无需安装 JDK、Node.js、MySQL、Redis、Nacos 等依赖，只需 Docker Desktop：
+
+```bash
+# 1. 进入部署目录
+cd deploy
+
+# 2. 构建 Docker 镜像
+.\build-images.ps1
+
+# 3. 启动所有服务
+docker compose up
+```
+
+首次启动需拉取基础镜像（`mysql:8.0`、`redis:7-alpine`、`mongo:7`、`nacos/nacos-server:v2.3.2`、`nginx:alpine`），耗时约 3-5 分钟。
+
+访问地址：
+| 地址 | 说明 |
+|------|------|
+| `http://localhost/` | 用户端（自动跳转） |
+| `http://localhost/user/` | 用户端首页 |
+| `http://localhost/seller/` | 商家端 |
+| `http://localhost:8848/nacos` | Nacos 控制台（nacos/nacos） |
+
+> 系统启动后，`deploy/nacos/init-config.sh` 会自动向 Nacos 写入 `app.*` 配置项。如需修改（如图片存储路径、定时任务间隔等），登录 Nacos 控制台 `http://localhost:8848/nacos` 进入「配置管理」修改，修改后重启对应服务生效。
+
+`app.*` 配置项清单：
+
+| Key | 所在 Data ID | 默认值 | 说明 |
+|-----|-------------|--------|------|
+| `app.image.base-url` | product-service.yml | `http://product-service:8081` | 商品图片访问地址 |
+| `app.image.storage-path` | product-service.yml | `/app/static/image/goods/main` | 商品图片存储路径 |
+| `app.image.resource-location` | product-service.yml | `file:/app/static/image/` | 商品图片静态资源映射 |
+| `app.image.max-file-size` | product-service.yml | `5MB` | 图片上传大小限制 |
+| `app.scheduler.reservation.*` | product-service.yml | `true` / `120000` | 库存预占清理任务 |
+| `app.image.base-url` | shop-service.yml | `http://shop-service:8087` | 店铺图片访问地址 |
+| `app.image.storage-path` | shop-service.yml | `/app/static/image/shop/logo` | 店铺图片存储路径 |
+| `app.image.resource-location` | shop-service.yml | `file:/app/static/image/` | 店铺图片静态资源映射 |
+
+### 本地开发启动
+
+以下步骤适用于本地开发调试：
+
+#### 1. 初始化数据库
 
 按需执行后端 SQL 初始化脚本：
 
@@ -155,13 +208,13 @@ AI-Shopping-backend/sql/init
 
 建议根据服务拆分顺序初始化认证、商品、订单、联系地址、物流、聊天、店铺等业务表。
 
-### 2. 启动基础设施
+#### 2. 启动基础设施
 
-Nacos、Sentinel以及Redis 需要在本地单独启动，并确保后端配置中的连接信息与本地环境一致。
+Nacos、Sentinel 以及 Redis 需要在本地单独启动，并确保后端配置中的连接信息与本地环境一致。
 
-推荐在Docker上部署Nacos、Sentinel、Redis。
+推荐在 Docker 上部署 Nacos、Sentinel、Redis。
 
-### 3. 启动后端服务
+#### 3. 启动后端服务
 
 进入后端根目录构建：
 
@@ -176,7 +229,7 @@ mvn clean install
 脚本/start-end.bat
 ```
 
-### 4. 启动用户端
+#### 4. 启动用户端
 
 ```bash
 cd AI-Shopping-frontier/frontier-user
@@ -184,7 +237,7 @@ npm install
 npm run dev
 ```
 
-### 5. 启动商家端
+#### 5. 启动商家端
 
 ```bash
 cd AI-Shopping-frontier/frontier-seller
