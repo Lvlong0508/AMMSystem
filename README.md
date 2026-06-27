@@ -127,13 +127,6 @@ AI-Shopping
 ├── AI-Shopping-frontier
 │   ├── frontier-user
 │   └── frontier-seller
-├── 脚本
-│   ├── start-end.bat
-│   ├── stop-end.bat
-│   ├── start-frontier.bat
-│   ├── stop-frontier.bat
-│   ├── start-nacos.bat
-│   └── start-sentinel.bat
 ├── 前端代码规格说明.md
 ├── 后端代码规格说明.md
 └── pom.xml
