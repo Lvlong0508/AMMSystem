@@ -35,8 +35,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Transactional
     public int deleteContact(int id, Long userId) {
         log.info("deleteContact, id={}, userId={}", id, userId);
-        List<Long> userIds = userContactMapper.selectUserIdsByContactId(id);
-        if (userIds.isEmpty() || !userIds.contains(userId)) {
+        if (!isContactOwnedBy(id, userId)) {
             return 0;
         }
         userContactMapper.deleteRelByContactId(id);
@@ -50,8 +49,7 @@ public class UserContactServiceImpl implements UserContactService {
         if (contact.getIsDefault() == null) {
             contact.setIsDefault(0);
         }
-        List<Long> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
-        if (userIds.isEmpty() || !userIds.contains(userId)) {
+        if (!isContactOwnedBy(contact.getId(), userId)) {
             return 0;
         }
         return userContactMapper.updateContact(contact);
@@ -66,8 +64,7 @@ public class UserContactServiceImpl implements UserContactService {
     @Override
     public int setDefaultContact(int id, Long userId) {
         log.info("setDefaultContact, id={}, userId={}", id, userId);
-        List<Long> userIds = userContactMapper.selectUserIdsByContactId(id);
-        if (userIds.isEmpty() || !userIds.contains(userId)) {
+        if (!isContactOwnedBy(id, userId)) {
             return 0;
         }
         userContactMapper.clearDefaultByUserId(userId, id);
@@ -84,7 +81,6 @@ public class UserContactServiceImpl implements UserContactService {
     public boolean isContactOwnedBy(int contactId, Long userId) {
         log.info("isContactOwnedBy, contactId={}, userId={}", contactId, userId);
         if (userId == null) return false;
-        List<Long> userIds = userContactMapper.selectUserIdsByContactId(contactId);
-        return userIds != null && userIds.contains(userId);
+        return userContactMapper.countByContactIdAndUserId(contactId, userId) > 0;
     }
 }

@@ -89,16 +89,17 @@ class UserContactMapperTest {
         }
 
         @Test
-        @DisplayName("查询联系人关联的用户ID列表")
-        void selectUserIdsByContactId_shouldReturnUserIds() {
+        @DisplayName("统计联系人关联的用户数")
+        void countByContactIdAndUserId_shouldReturnCount() {
             Contact contact = insertAndReturn(buildContact("王五", "13700137000", "广州市天河区"));
             userContactMapper.insertUserRelContact(1001L, contact.getId());
             userContactMapper.insertUserRelContact(1002L, contact.getId());
 
-            List<Long> userIds = userContactMapper.selectUserIdsByContactId(contact.getId());
+            int count1 = userContactMapper.countByContactIdAndUserId(contact.getId(), 1001L);
+            int count2 = userContactMapper.countByContactIdAndUserId(contact.getId(), 9999L);
 
-            assertThat(userIds).hasSize(2);
-            assertThat(userIds).containsExactlyInAnyOrder(1001L, 1002L);
+            assertThat(count1).isEqualTo(1);
+            assertThat(count2).isEqualTo(0);
         }
     }
 
@@ -166,7 +167,7 @@ class UserContactMapperTest {
             int affected = userContactMapper.deleteRelByContactId(contact.getId());
 
             assertThat(affected).isEqualTo(1);
-            assertThat(userContactMapper.selectUserIdsByContactId(contact.getId())).isEmpty();
+            assertThat(userContactMapper.countByContactIdAndUserId(contact.getId(), 1001L)).isEqualTo(0);
         }
     }
 

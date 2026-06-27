@@ -257,7 +257,9 @@ class OrderMapperTest {
         @DisplayName("删除订单成功")
         void deleteOrderById_shouldDelete() {
             String orderId = nextOrderId();
-            orderMapper.insertOrder(createTestOrder(orderId));
+            Order order = createTestOrder(orderId);
+            order.setOrderStatus(Order.CANCELLED);
+            orderMapper.insertOrder(order);
 
             int affected = orderMapper.deleteOrderById(orderId);
 

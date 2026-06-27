@@ -295,7 +295,7 @@ class OrderServiceImplTest {
 
         OrderException ex = assertThrows(OrderException.class,
                 () -> orderService.createOrder(request, 100L));
-        assertTrue(ex.getMessage().contains("联系人不存在或无权限使用"));
+        assertTrue(ex.getMessage().contains("联系信息不存在或无权限使用"));
         verify(orderMapper, never()).insertOrder(any());
     }
 

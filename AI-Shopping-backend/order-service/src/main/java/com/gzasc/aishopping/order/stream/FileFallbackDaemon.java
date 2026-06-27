@@ -25,7 +25,7 @@ public class FileFallbackDaemon {
 
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisStreamConfig redisStreamConfig;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${order.fallback.dir:data/failover}")
     private String fallbackDirPath;

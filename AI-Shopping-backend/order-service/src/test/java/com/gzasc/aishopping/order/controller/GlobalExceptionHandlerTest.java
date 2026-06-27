@@ -74,6 +74,6 @@ class GlobalExceptionHandlerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("服务器内部错误: 未知错误"));
+                .andExpect(jsonPath("$.message").value("服务器内部错误"));
     }
 }

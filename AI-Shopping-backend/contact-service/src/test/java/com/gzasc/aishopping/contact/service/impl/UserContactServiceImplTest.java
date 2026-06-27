@@ -70,7 +70,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-003 正常删除联系人（有权限）")
     void deleteContact_Success() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.deleteRelByContactId(1)).thenReturn(1);
         when(userContactMapper.deleteContactById(1)).thenReturn(1);
 
@@ -84,7 +84,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-004 删除联系人-关联用户列表为空，返回0")
     void deleteContact_NotFound_EmptyUserIds() {
-        when(userContactMapper.selectUserIdsByContactId(99999)).thenReturn(List.of());
+        when(userContactMapper.countByContactIdAndUserId(99999, 1001L)).thenReturn(0);
 
         int result = userContactService.deleteContact(99999, 1001L);
 
@@ -96,7 +96,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-005 删除联系人-当前用户不在关联列表中，返回0")
     void deleteContact_NotFound_NotOwner() {
-        when(userContactMapper.selectUserIdsByContactId(2)).thenReturn(List.of(2000L, 3000L));
+        when(userContactMapper.countByContactIdAndUserId(2, 1001L)).thenReturn(0);
 
         int result = userContactService.deleteContact(2, 1001L);
 
@@ -111,7 +111,7 @@ class UserContactServiceImplTest {
     @DisplayName("CT-SRV-006 正常更新联系人（有权限）")
     void updateContact_Success() {
         Contact contact = new Contact(1, "张三_更新", "13800138001", "北京市海淀区", 0, null, null);
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.updateContact(contact)).thenReturn(1);
 
         int result = userContactService.updateContact(contact, 1001L);
@@ -124,7 +124,7 @@ class UserContactServiceImplTest {
     @DisplayName("CT-SRV-007 更新联系人-关联用户列表为空")
     void updateContact_NotFound_EmptyUserIds() {
         Contact contact = new Contact(99999, "测试", "13800000000", "地址", 0, null, null);
-        when(userContactMapper.selectUserIdsByContactId(99999)).thenReturn(List.of());
+        when(userContactMapper.countByContactIdAndUserId(99999, 1001L)).thenReturn(0);
 
         int result = userContactService.updateContact(contact, 1001L);
 
@@ -136,7 +136,7 @@ class UserContactServiceImplTest {
     @DisplayName("CT-SRV-008 更新联系人-无权限")
     void updateContact_NoPermission() {
         Contact contact = new Contact(2, "测试", "13800000000", "地址", 0, null, null);
-        when(userContactMapper.selectUserIdsByContactId(2)).thenReturn(List.of(2000L));
+        when(userContactMapper.countByContactIdAndUserId(2, 1001L)).thenReturn(0);
 
         int result = userContactService.updateContact(contact, 1001L);
 
@@ -175,7 +175,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-011 正常设置默认联系人")
     void setDefaultContact_Success() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.clearDefaultByUserId(1001L, 1)).thenReturn(1);
         when(userContactMapper.setDefaultById(1)).thenReturn(1);
 
@@ -189,7 +189,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-012 设置默认联系人-关联用户列表为空")
     void setDefaultContact_NotFound_EmptyUserIds() {
-        when(userContactMapper.selectUserIdsByContactId(99999)).thenReturn(List.of());
+        when(userContactMapper.countByContactIdAndUserId(99999, 1001L)).thenReturn(0);
 
         int result = userContactService.setDefaultContact(99999, 1001L);
 
@@ -201,7 +201,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-013 设置默认联系人-无权限")
     void setDefaultContact_NoPermission() {
-        when(userContactMapper.selectUserIdsByContactId(2)).thenReturn(List.of(2000L));
+        when(userContactMapper.countByContactIdAndUserId(2, 1001L)).thenReturn(0);
 
         int result = userContactService.setDefaultContact(2, 1001L);
 
@@ -240,29 +240,29 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-042 校验联系人归属 - 属于该用户")
     void isContactOwnedBy_ownedByUser() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
 
         boolean result = userContactService.isContactOwnedBy(1, 1001L);
 
         assertTrue(result);
-        verify(userContactMapper).selectUserIdsByContactId(1);
+        verify(userContactMapper).countByContactIdAndUserId(1, 1001L);
     }
 
     @Test
     @DisplayName("CT-SRV-043 校验联系人归属 - 不属于该用户")
     void isContactOwnedBy_notOwned() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(2000L, 3000L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(0);
 
         boolean result = userContactService.isContactOwnedBy(1, 1001L);
 
         assertFalse(result);
-        verify(userContactMapper).selectUserIdsByContactId(1);
+        verify(userContactMapper).countByContactIdAndUserId(1, 1001L);
     }
 
     @Test
-    @DisplayName("CT-SRV-044 校验联系人归属 - 联系人不存在（空列表）")
+    @DisplayName("CT-SRV-044 校验联系人归属 - 联系人不存在（count=0）")
     void isContactOwnedBy_contactNotExist() {
-        when(userContactMapper.selectUserIdsByContactId(999)).thenReturn(List.of());
+        when(userContactMapper.countByContactIdAndUserId(999, 1001L)).thenReturn(0);
 
         boolean result = userContactService.isContactOwnedBy(999, 1001L);
 
@@ -275,45 +275,56 @@ class UserContactServiceImplTest {
         boolean result = userContactService.isContactOwnedBy(1, null);
 
         assertFalse(result);
-        verify(userContactMapper, never()).selectUserIdsByContactId(anyInt());
+        verify(userContactMapper, never()).countByContactIdAndUserId(anyInt(), anyLong());
     }
 
     @Test
-    @DisplayName("CT-SRV-046 校验联系人归属 - selectUserIdsByContactId 返回 null 返回 false")
-    void isContactOwnedBy_userIdsReturnNull() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+    @DisplayName("CT-SRV-046 校验联系人归属 - count 返回 0 返回 false")
+    void isContactOwnedBy_returnZero() {
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(0);
 
         boolean result = userContactService.isContactOwnedBy(1, 1001L);
 
         assertFalse(result);
-        verify(userContactMapper).selectUserIdsByContactId(1);
+        verify(userContactMapper).countByContactIdAndUserId(1, 1001L);
     }
 
-    // ==================== selectUserIdsByContactId 返回 null（防御性）====================
+    // ==================== countByContactIdAndUserId 返回 0 ====================
 
     @Test
-    @DisplayName("CT-SRV-031 删除联系人-关联用户列表返回null，触发NPE")
-    void deleteContact_UserIdsReturnNull() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+    @DisplayName("CT-SRV-031 删除联系人-无权限（count=0）")
+    void deleteContact_NotOwned() {
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(0);
 
-        assertThrows(NullPointerException.class, () -> userContactService.deleteContact(1, 1001L));
+        int result = userContactService.deleteContact(1, 1001L);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).deleteRelByContactId(anyInt());
+        verify(userContactMapper, never()).deleteContactById(anyInt());
     }
 
     @Test
-    @DisplayName("CT-SRV-032 更新联系人-关联用户列表返回null，触发NPE")
-    void updateContact_UserIdsReturnNull() {
+    @DisplayName("CT-SRV-032 更新联系人-无权限（count=0）")
+    void updateContact_NotOwned() {
         Contact contact = new Contact(1, "测试", "13800000000", "地址", 0, null, null);
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(0);
 
-        assertThrows(NullPointerException.class, () -> userContactService.updateContact(contact, 1001L));
+        int result = userContactService.updateContact(contact, 1001L);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).updateContact(any());
     }
 
     @Test
-    @DisplayName("CT-SRV-033 设置默认联系人-关联用户列表返回null，触发NPE")
-    void setDefaultContact_UserIdsReturnNull() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(null);
+    @DisplayName("CT-SRV-033 设置默认联系人-无权限（count=0）")
+    void setDefaultContact_NotOwned() {
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(0);
 
-        assertThrows(NullPointerException.class, () -> userContactService.setDefaultContact(1, 1001L));
+        int result = userContactService.setDefaultContact(1, 1001L);
+
+        assertEquals(0, result);
+        verify(userContactMapper, never()).clearDefaultByUserId(anyLong(), anyInt());
+        verify(userContactMapper, never()).setDefaultById(anyInt());
     }
 
     // ==================== userId 为 null ====================
@@ -338,11 +349,10 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-035 删除联系人时userId为null")
     void deleteContact_NullUserId() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
-
         int result = userContactService.deleteContact(1, null);
 
         assertEquals(0, result);
+        verify(userContactMapper, never()).countByContactIdAndUserId(anyInt(), anyLong());
         verify(userContactMapper, never()).deleteRelByContactId(anyInt());
         verify(userContactMapper, never()).deleteContactById(anyInt());
     }
@@ -351,22 +361,21 @@ class UserContactServiceImplTest {
     @DisplayName("CT-SRV-036 更新联系人时userId为null")
     void updateContact_NullUserId() {
         Contact contact = new Contact(1, "测试", "13800000000", "地址", 0, null, null);
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
 
         int result = userContactService.updateContact(contact, null);
 
         assertEquals(0, result);
+        verify(userContactMapper, never()).countByContactIdAndUserId(anyInt(), anyLong());
         verify(userContactMapper, never()).updateContact(any());
     }
 
     @Test
     @DisplayName("CT-SRV-037 设置默认联系人时userId为null")
     void setDefaultContact_NullUserId() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(java.util.Arrays.asList(1001L));
-
         int result = userContactService.setDefaultContact(1, null);
 
         assertEquals(0, result);
+        verify(userContactMapper, never()).countByContactIdAndUserId(anyInt(), anyLong());
         verify(userContactMapper, never()).clearDefaultByUserId(anyLong(), anyInt());
         verify(userContactMapper, never()).setDefaultById(anyInt());
     }
@@ -387,7 +396,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-039 删除联系人-有权限但deleteRel返回0，deleteContactById仍然执行")
     void deleteContact_RelAlreadyDeleted() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.deleteRelByContactId(1)).thenReturn(0);
         when(userContactMapper.deleteContactById(1)).thenReturn(1);
 
@@ -401,7 +410,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-040 设置默认联系人-无其他默认需清除，clearDefault返回0")
     void setDefaultContact_NoOtherDefault() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.clearDefaultByUserId(1001L, 1)).thenReturn(0);
         when(userContactMapper.setDefaultById(1)).thenReturn(1);
 
@@ -415,7 +424,7 @@ class UserContactServiceImplTest {
     @Test
     @DisplayName("CT-SRV-041 设置默认联系人-setDefaultById返回0（地址已被删除）")
     void setDefaultContact_SetDefaultFails() {
-        when(userContactMapper.selectUserIdsByContactId(1)).thenReturn(List.of(1001L));
+        when(userContactMapper.countByContactIdAndUserId(1, 1001L)).thenReturn(1);
         when(userContactMapper.clearDefaultByUserId(1001L, 1)).thenReturn(1);
         when(userContactMapper.setDefaultById(1)).thenReturn(0);
 

@@ -25,6 +25,9 @@ public class ChatController {
     @PostMapping("/chat")
     public ApiResponse<AiResponse> chat(@RequestHeader("X-User-Id") Long userId,
                                         @RequestBody @Valid ChatRequest request) {
+        if (!chatSessionService.isSessionOwner(request.getSessionId(), userId)) {
+            return ApiResponse.error(403, "无权访问该会话");
+        }
         AiResponse response = chatService.chat(request);
         return ApiResponse.success(response);
     }

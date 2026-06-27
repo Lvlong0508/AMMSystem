@@ -151,6 +151,8 @@ public class UserAuthServiceImpl implements UserAuthService {
             user.setEmail(request.getEmail());
         }
 
-        userMapper.update(user);
+        if (userMapper.update(user) <= 0) {
+            throw new AuthException("更新用户信息失败");
+        }
     }
 }

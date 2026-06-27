@@ -21,6 +21,8 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -54,6 +56,7 @@ class ChatControllerTest {
     @Test
     @DisplayName("CH-001 正常聊天 - 纯文本回复（无工具调用）")
     void chat_textReply() throws Exception {
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(true);
         when(chatService.chat(any())).thenReturn(new AiResponse("你好！我是小物", "greeting", null));
 
         mockMvc.perform(post("/chat/chat")
@@ -75,6 +78,7 @@ class ChatControllerTest {
                 new ProductItem(2L, "耳机", 199.0, "配件", "无线", 200, "url2", "shopB")
         );
         var response = new AiResponse("为您找到以下商品", "called getAllProducts", new ProductData(products));
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(true);
         when(chatService.chat(any())).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
@@ -101,6 +105,7 @@ class ChatControllerTest {
                 new OrderItem("ORD002", "P002", 1, BigDecimal.valueOf(199), "SHIPPED", "2026-05-27", "李四", "139xxx", "地址2")
         );
         var response = new AiResponse("您的订单", "called getOrderById", new OrderData(orders));
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(true);
         when(chatService.chat(any())).thenReturn(response);
 
         mockMvc.perform(post("/chat/chat")
@@ -168,6 +173,7 @@ class ChatControllerTest {
     @DisplayName("CH-008 超长消息（10001字符）")
     void chat_longMessage() throws Exception {
         String longMsg = "a".repeat(10001);
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(true);
         when(chatService.chat(any())).thenReturn(new AiResponse("收到长消息", "long_input", null));
 
         mockMvc.perform(post("/chat/chat")
@@ -183,6 +189,7 @@ class ChatControllerTest {
     @DisplayName("CH-009 特殊字符消息 - HTML/JS 注入")
     void chat_specialChars() throws Exception {
         String msg = "<script>alert(1)</script>";
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(true);
         when(chatService.chat(any())).thenReturn(new AiResponse("收到特殊字符", "special_chars", null));
 
         mockMvc.perform(post("/chat/chat")
@@ -192,5 +199,21 @@ class ChatControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.message").value("收到特殊字符"));
+    }
+
+    @Test
+    @DisplayName("CH-010 非会话所有者禁止聊天")
+    void chat_notSessionOwner() throws Exception {
+        when(chatSessionService.isSessionOwner(TEST_SESSION_ID, 1L)).thenReturn(false);
+
+        mockMvc.perform(post("/chat/chat")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .header("X-User-Id", "1")
+                        .content("{\"message\":\"你好\",\"sessionId\":\"" + TEST_SESSION_ID + "\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(403))
+                .andExpect(jsonPath("$.message").value("无权访问该会话"));
+
+        verify(chatService, never()).chat(any());
     }
 }

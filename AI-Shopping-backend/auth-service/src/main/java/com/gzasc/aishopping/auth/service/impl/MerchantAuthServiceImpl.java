@@ -68,8 +68,8 @@ public class MerchantAuthServiceImpl implements MerchantAuthService {
 
             try {
                 ApiResponse<Map<String, Object>> shopResponse = shopFeignClient.createShopForMerchant("auth-service", shopReq);
-                if (shopResponse.getCode() != 200) {
-                    throw new AuthException("创建店铺失败: " + shopResponse.getMessage());
+                if (shopResponse == null || shopResponse.getCode() != 200) {
+                    throw new AuthException("创建店铺失败: " + (shopResponse == null ? "无响应" : shopResponse.getMessage()));
                 }
                 log.info("商家注册同时创建店铺成功, merchantId={}", merchant.getId());
             } catch (Exception e) {

@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.stream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +42,7 @@ class FileFallbackDaemonTest {
     void setUp() throws IOException {
         lenient().when(redisTemplate.opsForStream()).thenReturn(streamOps);
         lenient().when(redisStreamConfig.getStreamKey()).thenReturn("order:events");
-        daemon = new FileFallbackDaemon(redisTemplate, redisStreamConfig);
+        daemon = new FileFallbackDaemon(redisTemplate, redisStreamConfig, new ObjectMapper());
         ReflectionTestUtils.setField(daemon, "fallbackDirPath", TEST_FALLBACK_DIR.toString());
         daemon.init();
         cleanup();

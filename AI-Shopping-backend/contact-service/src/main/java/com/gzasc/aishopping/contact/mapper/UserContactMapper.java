@@ -76,10 +76,10 @@ public interface UserContactMapper {
     int setDefaultById(int id);
 
     /**
-     * 查询联系人关联的用户ID列表(用以检验userId是否关联了该ContactId)
+     * 校验联系人是否属于指定用户
      */
-    @Select("SELECT user_id FROM user_contact WHERE contact_id = #{contactId}")
-    List<Long> selectUserIdsByContactId(int contactId);
+    @Select("SELECT COUNT(*) FROM user_contact WHERE contact_id = #{contactId} AND user_id = #{userId}")
+    int countByContactIdAndUserId(@Param("contactId") int contactId, @Param("userId") Long userId);
 
     /**
      * 清除该用户除指定contactId外所有联系人的默认标记

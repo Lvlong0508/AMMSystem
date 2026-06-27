@@ -51,8 +51,7 @@ public class GlobalExceptionHandler {
         // 手动将异常丢到sentinel
         Tracer.trace(e);
         log.warn("Feign 调用失败: {}", e.getMessage());
-        // 关键：直接抛出，不返回任何东西，让 Sentinel 的 Web 适配器统计到异常
-        return ApiResponse.error(500, "商品服务暂时不可用，请稍后重试");
+        return ApiResponse.error(500, "服务暂时不可用，请稍后重试");
     }
 
     @ExceptionHandler(Exception.class)

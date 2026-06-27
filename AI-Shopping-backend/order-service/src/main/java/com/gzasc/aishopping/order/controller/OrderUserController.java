@@ -37,9 +37,6 @@ public class OrderUserController {
             @RequestHeader("X-User-Id") Long userId,
             @PathVariable("orderId") String orderId) {
         OrderDetailDTO detail = orderService.getOrderDetailByUser(userId, orderId);
-        if (detail == null) {
-            return ApiResponse.error(404, "订单不存在");
-        }
         return ApiResponse.success(detail);
     }
 

@@ -12,7 +12,7 @@ public interface OrderMapper {
             "VALUES (#{orderId}, #{userId}, #{shopId}, #{productId}, #{quantity}, #{totalPrice}, #{orderStatus}, #{orderDate}, #{contactId})")
     int insertOrder(Order order);
 
-    @Delete("DELETE FROM t_order WHERE order_id = #{orderId}")
+    @Delete("DELETE FROM t_order WHERE order_id = #{orderId} AND order_status IN ('CANCELLED', 'DELIVERED')")
     int deleteOrderById(@Param("orderId") String orderId);
 
     @Update("UPDATE t_order SET order_status = #{status} WHERE order_id = #{orderId}")

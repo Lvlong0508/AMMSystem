@@ -126,7 +126,10 @@ public class OrderServiceImpl implements OrderService {
             throw new OrderException("备份订单失败");
         }
 
-        orderMapper.deleteOrderById(orderId);
+        int deleted = orderMapper.deleteOrderById(orderId);
+        if (deleted <= 0) {
+            throw new OrderException("删除订单失败，状态可能已变更");
+        }
     }
 
     @Override

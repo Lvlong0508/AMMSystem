@@ -370,6 +370,7 @@ class UserAuthServiceImplTest {
         when(userMapper.selectById(100L)).thenReturn(user);
         when(userMapper.selectByPhone("13800138002")).thenReturn(null);
         when(userInfoService.getUserInfoById(1)).thenReturn(existingInfo);
+        when(userMapper.update(any())).thenReturn(1);
 
         userAuthService.updateProfile(100L, request);
 
@@ -432,6 +433,7 @@ class UserAuthServiceImplTest {
 
         when(userMapper.selectById(100L)).thenReturn(user);
         when(userMapper.selectByPhone("13800138000")).thenReturn(samePhoneUser);
+        when(userMapper.update(any())).thenReturn(1);
 
         userAuthService.updateProfile(100L, request);
 
@@ -456,6 +458,7 @@ class UserAuthServiceImplTest {
 
         when(userMapper.selectById(100L)).thenReturn(user);
         when(userInfoService.createUserInfo(any())).thenReturn(1);
+        when(userMapper.update(any())).thenReturn(1);
 
         userAuthService.updateProfile(100L, request);
 

@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.controller.internal;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gzasc.aishopping.order.config.GlobalExceptionHandler;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
@@ -33,7 +34,7 @@ class InternalOrderControllerTest {
 
     @BeforeEach
     void setUp() {
-        var controller = new InternalOrderController(orderService);
+        var controller = new InternalOrderController(orderService, new ObjectMapper());
         mockMvc = standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
