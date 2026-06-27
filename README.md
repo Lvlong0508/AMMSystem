@@ -157,14 +157,9 @@ AI-Shopping-backend/sql/init
 
 ### 2. 启动基础设施
 
-项目提供了部分 Windows 启动脚本：
+Nacos、Sentinel以及Redis 需要在本地单独启动，并确保后端配置中的连接信息与本地环境一致。
 
-```bash
-脚本/start-nacos.bat
-脚本/start-sentinel.bat
-```
-
-Redis 需要在本地单独启动，并确保后端配置中的连接信息与本地环境一致。
+推荐在Docker上部署Nacos、Sentinel、Redis。
 
 ### 3. 启动后端服务
 
