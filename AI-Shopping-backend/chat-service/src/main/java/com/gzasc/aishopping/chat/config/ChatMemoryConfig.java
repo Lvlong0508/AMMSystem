@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.chat.config;
 
-import com.gzasc.aishopping.chat.service.impl.MongoChatMemoryStore;
+import com.gzasc.aishopping.chat.service.ChatMessageService;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +15,14 @@ public class ChatMemoryConfig {
     private int maxMessages;
 
     @Autowired
-    private MongoChatMemoryStore mongoChatMemoryStore;
+    private ChatMessageService chatMessageService;
 
     @Bean
     ChatMemoryProvider chatMemoryProvider() {
         return memoryId -> MessageWindowChatMemory.builder()
                 .id(memoryId)
                 .maxMessages(maxMessages)
-                .chatMemoryStore(mongoChatMemoryStore)
+                .chatMemoryStore(chatMessageService)
                 .build();
     }
 }
