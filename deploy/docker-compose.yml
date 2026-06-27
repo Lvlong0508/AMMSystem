@@ -133,6 +133,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel:8858
+      SPRING_CLOUD_SENTINEL_TRANSPORT_PORT: "8720"
+      SPRING_CLOUD_SENTINEL_DATASOURCE_DS1_NACOS_SERVER_ADDR: nacos:8848
     depends_on:
       nacos-init:
         condition: service_completed_successfully
@@ -177,6 +179,8 @@ services:
       SPRING_DATA_REDIS_HOST: redis
       SPRING_DATA_REDIS_PORT: "6379"
       SPRING_CLOUD_SENTINEL_TRANSPORT_DASHBOARD: sentinel:8858
+      SPRING_CLOUD_SENTINEL_TRANSPORT_PORT: "8721"
+      SPRING_CLOUD_SENTINEL_DATASOURCE_DS1_NACOS_SERVER_ADDR: nacos:8848
     depends_on:
       nacos-init:
         condition: service_completed_successfully

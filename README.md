@@ -173,6 +173,7 @@ docker compose up
 首次启动需拉取基础镜像（`mysql:8.0`、`redis:7-alpine`、`mongo:7`、`nacos/nacos-server:v2.3.2`、`bladex/sentinel-dashboard:1.8.8`、`nginx:alpine`），耗时约 3-5 分钟。
 
 访问地址：
+
 | 地址 | 说明 |
 |------|------|
 | `http://localhost/` | 用户端（自动跳转） |

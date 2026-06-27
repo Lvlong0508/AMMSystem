@@ -20,7 +20,11 @@ publish_config() {
   local data_id=$1
   local content=$2
   curl -s -X POST "http://${NACOS_HOST}/nacos/v1/cs/configs" \
-    -d "accessToken=${TOKEN}&dataId=${data_id}&group=DEFAULT_GROUP&type=yaml&content=${content}"
+    --data-urlencode "accessToken=${TOKEN}" \
+    --data-urlencode "dataId=${data_id}" \
+    --data-urlencode "group=DEFAULT_GROUP" \
+    --data-urlencode "type=yaml" \
+    --data-urlencode "content=${content}"
   echo "  -> Published: ${data_id}"
 }
 
