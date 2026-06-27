@@ -42,7 +42,6 @@ build/
 
 ### Scripts ###
 脚本/
-*.bat
 
 ### Agent Config ###
 AGENTS.md
