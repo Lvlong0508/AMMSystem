@@ -41,5 +41,8 @@ build/
 **/node_modules/
 **/dist/
 
+### Scripts ###
+脚本/
+
 ### Compiled ###
 *.class
