@@ -1,7 +1,7 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.dto.SessionVO;
-import com.gzasc.aishopping.chat.service.impl.ChatSessionService;
+import com.gzasc.aishopping.chat.service.ChatSessionService;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
