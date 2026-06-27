@@ -73,6 +73,39 @@
       </button>
     </div>
 
+    <div v-if="showDetailModal" class="detail-overlay" @click.self="showDetailModal = false">
+      <div v-if="detailLoading" class="detail-modal" style="text-align:center;padding:48px 32px">
+        <div class="chat-view__typing">
+          <span class="chat-view__dot"></span>
+          <span class="chat-view__dot"></span>
+          <span class="chat-view__dot"></span>
+        </div>
+      </div>
+      <div v-else-if="detailProduct" class="detail-modal">
+        <div class="detail-modal__img-wrap">
+          <img class="detail-modal__img" :src="detailProduct.imageUrl" :alt="detailProduct.name" />
+        </div>
+        <div class="detail-modal__body">
+          <h3 class="detail-modal__name">{{ detailProduct.name }}</h3>
+          <div class="detail-modal__price">¥{{ detailProduct.price?.toFixed(2) }}</div>
+          <div v-if="detailProduct.tags" class="detail-modal__tags">
+            <span v-for="tag in (typeof detailProduct.tags === 'string' ? detailProduct.tags.split(',') : detailProduct.tags)" :key="tag" class="detail-modal__tag">{{ tag }}</span>
+          </div>
+          <div class="detail-modal__stock">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            <span>{{ T.DETAIL_STOCK }}：<strong>{{ detailProduct.stock ?? '-' }}</strong></span>
+          </div>
+          <div v-if="detailProduct.description" class="detail-modal__desc">
+            <p>{{ detailProduct.description }}</p>
+          </div>
+        </div>
+        <div class="detail-modal__actions">
+          <button class="detail-modal__btn detail-modal__btn--primary" @click="showDetailModal = false; handleBuyNow(detailProduct)">{{ T.DETAIL_BUY }}</button>
+          <button class="detail-modal__btn detail-modal__btn--secondary" @click="showDetailModal = false">{{ T.DETAIL_CLOSE }}</button>
+        </div>
+      </div>
+    </div>
+
     <OrderModal :visible="showOrderModal" :product="selectedProduct" @close="showOrderModal = false" @order-placed="onOrderPlaced" />
     <PaymentModal :visible="showPaymentModal" :orderId="placedOrderId" :order="placedOrder" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
   </div>
@@ -86,7 +119,7 @@ import IInput from '@/components/IInput/IInput.vue'
 import OrderModal from '@/components/OrderModal/OrderModal.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleQuickReply, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, placedOrder, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleQuickReply, handleViewDetail, handleBuyNow, showDetailModal, detailProduct, detailLoading, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, placedOrder, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
 </script>
 
 <style scoped>

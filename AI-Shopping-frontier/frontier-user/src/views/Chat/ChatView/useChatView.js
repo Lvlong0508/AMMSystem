@@ -1,9 +1,10 @@
 import { ref, nextTick, watch, onMounted } from 'vue'
 import { sessionList, activeSessionId, loadSessions, switchSession } from '@/stores/chatStore'
 import { createSession, sendMessage, getSessionMessages } from '@/api/chat'
+import { getProductById } from '@/api/product'
 import { CHAT_VIEW_TEXT } from './Text'
 import { requireLogin } from '@/stores/authStore'
-import { showError, showInfo } from '@/utils/swal'
+import { showError } from '@/utils/swal'
 
 export function useChatView() {
   const messages = ref([])
@@ -14,6 +15,9 @@ export function useChatView() {
   const selectedProduct = ref(null)
   const showOrderModal = ref(false)
   const showPaymentModal = ref(false)
+  const showDetailModal = ref(false)
+  const detailProduct = ref(null)
+  const detailLoading = ref(false)
   const placedOrderId = ref('')
   const placedOrder = ref(null)
 
@@ -89,14 +93,17 @@ export function useChatView() {
     }
   }
 
-  const handleViewDetail = (product) => {
-    const info = [
-      `名称: ${product.name}`,
-      `价格: ¥${product.price?.toFixed(2)}`,
-      `库存: ${product.stock ?? '-'}`,
-      `描述: ${product.description || '暂无描述'}`
-    ].join('\n')
-    showInfo(info, '知道了')
+  const handleViewDetail = async (product) => {
+    detailLoading.value = true
+    showDetailModal.value = true
+    try {
+      const res = await getProductById(product.id)
+      detailProduct.value = res
+    } catch {
+      detailProduct.value = product
+    } finally {
+      detailLoading.value = false
+    }
   }
 
   const handleBuyNow = (product) => {
@@ -148,6 +155,9 @@ export function useChatView() {
     handleQuickReply,
     handleViewDetail,
     handleBuyNow,
+    showDetailModal,
+    detailProduct,
+    detailLoading,
     showOrderModal,
     showPaymentModal,
     selectedProduct,
