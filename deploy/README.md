@@ -25,7 +25,8 @@ docker compose up
 | `http://localhost/` | 用户端首页（自动跳转 /user/） |
 | `http://localhost/user/` | 用户端（商品浏览、下单） |
 | `http://localhost/seller/` | 商家端（商品管理、订单管理） |
-| `http://localhost:8848/nacos` | Nacos 控制台（账号: nacos / nacos） |
+| `http://localhost:8848/nacos` | Nacos 控制台（nacos/nacos） |
+| `http://localhost:8888` | Sentinel 控制台（sentinel/sentinel） |
 
 ## 组件端口映射
 
@@ -89,7 +90,17 @@ docker compose down -v
 ## 常见问题
 
 **Q: 启动时端口被占用？**
-修改 `.env` 中的端口映射，或停止占用端口的进程。
+```bash
+# 查看端口占用
+netstat -ano | findstr :80
+
+# 方法一：停止占用进程
+taskkill /PID <进程ID> /F
+
+# 方法二：修改 docker-compose.yml 左侧端口映射（右:左侧为容器:宿主机）
+# 例如 nginx 80 → 8080，Nacos 8848 → 18848
+# 改完重新 docker compose up 即可
+```
 
 **Q: 图片上传失败？**
 检查 `image-data` volume 是否正确挂载，容器内路径是否为 `/app/static/image/`。

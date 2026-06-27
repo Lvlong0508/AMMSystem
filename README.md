@@ -183,6 +183,33 @@ docker compose up
 
 > 系统启动后，`deploy/nacos/init-config.sh` 会自动向 Nacos 写入 `app.*` 配置项。如需修改（如图片存储路径、定时任务间隔等），登录 Nacos 控制台 `http://localhost:8848/nacos` 进入「配置管理」修改，修改后重启对应服务生效。
 
+### 端口冲突怎么办？
+
+如果本机已有服务占用了 80、3306、6379、8848、8888 等端口，启动时会报 `port is already allocated`。
+
+**方法一：停止占用端口的进程**
+```bash
+# 查看 80 端口被谁占用
+netstat -ano | findstr :80
+# 在任务管理器中结束对应进程，或：
+taskkill /PID <进程ID> /F
+```
+
+**方法二：修改 docker-compose 端口映射**
+编辑 `deploy/docker-compose.yml`，将左侧宿主机端口改为空闲端口：
+
+```yaml
+# 例如将 nginx 80 改为 8080：
+nginx:
+  ports: ["8080:80"]
+
+# 将 Nacos 8848 改为 18848：
+nacos:
+  ports: ["18848:8848"]
+```
+
+> 修改后访问地址对应变为 `http://localhost:8080/`、`http://localhost:18848/nacos`。
+
 `app.*` 配置项清单：
 
 | Key | 所在 Data ID | 默认值 | 说明 |
