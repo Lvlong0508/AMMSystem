@@ -44,5 +44,8 @@ build/
 ### Scripts ###
 脚本/
 
+### Agent Config ###
+AGENTS.md
+
 ### Compiled ###
 *.class
