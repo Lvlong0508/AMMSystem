@@ -37,8 +37,8 @@ export function useReturnManagement() {
         getReturnRequestsPending(shopId),
         getReturnRequestsProcessed(shopId)
       ])
-      pendingList.value = pendingRes?.data || pendingRes?.list || []
-      processedList.value = processedRes?.data || processedRes?.list || []
+      pendingList.value = (pendingRes?.data || pendingRes?.list || []).sort((a, b) => new Date(a.createdDate) - new Date(b.createdDate))
+      processedList.value = (processedRes?.data || processedRes?.list || []).sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
     } catch (e) {
       console.error('加载退货请求失败:', e)
       ElMessage.error('加载失败')
