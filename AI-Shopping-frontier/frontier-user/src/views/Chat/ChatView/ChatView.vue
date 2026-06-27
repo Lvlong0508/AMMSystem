@@ -7,6 +7,14 @@
         </div>
         <h2 class="chat-view__welcome-title">{{ T.WELCOME_TITLE }}</h2>
         <p class="chat-view__welcome-sub">{{ T.WELCOME_SUB }}</p>
+        <div class="chat-view__quick-replies">
+          <button
+            v-for="(text, i) in T.QUICK_REPLIES"
+            :key="i"
+            class="chat-view__quick-btn"
+            @click="handleQuickReply(text)"
+          >{{ text }}</button>
+        </div>
       </div>
 
       <div
@@ -78,7 +86,7 @@ import IInput from '@/components/IInput/IInput.vue'
 import OrderModal from '@/components/OrderModal/OrderModal.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 
-const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, placedOrder, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
+const { messages, loading, inputText, inputRef, messagesRef, handleSend, handleQuickReply, handleViewDetail, handleBuyNow, showOrderModal, showPaymentModal, selectedProduct, placedOrderId, placedOrder, onOrderPlaced, onPaymentSuccess, onPayLater } = useChatView()
 </script>
 
 <style scoped>

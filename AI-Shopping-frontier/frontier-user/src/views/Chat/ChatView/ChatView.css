@@ -62,7 +62,29 @@
 .chat-view__welcome-sub {
   font-size: 18px;
   color: #64748B;
-  margin: 0;
+  margin: 0 0 24px;
+}
+.chat-view__quick-replies {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.chat-view__quick-btn {
+  padding: 10px 24px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 24px;
+  background: #fff;
+  color: #334155;
+  font-size: 15px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: all 200ms ease-out;
+}
+.chat-view__quick-btn:hover {
+  border-color: #2563EB;
+  color: #2563EB;
+  background: #EFF6FF;
 }
 .chat-view__bubble-wrap {
   animation: fadeSlideUp 300ms ease-out both;

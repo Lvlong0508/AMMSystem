@@ -133,6 +133,11 @@ export function useChatView() {
     }
   })
 
+  const handleQuickReply = async (text) => {
+    inputText.value = text
+    await handleSend()
+  }
+
   return {
     messages,
     loading,
@@ -140,6 +145,7 @@ export function useChatView() {
     inputRef,
     messagesRef,
     handleSend,
+    handleQuickReply,
     handleViewDetail,
     handleBuyNow,
     showOrderModal,
