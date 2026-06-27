@@ -89,8 +89,9 @@
       </div>
     </div>
 
-    <div v-if="actionVisible" class="order-card__actions">
-      <el-button type="primary" size="default" @click="$emit('ship', order)">{{ T.BTN_SHIP }}</el-button>
+    <div v-if="actionVisible || returnActionVisible" class="order-card__actions">
+      <el-button v-if="actionVisible" type="primary" size="default" @click="$emit('ship', order)">{{ T.BTN_SHIP }}</el-button>
+      <el-button v-if="returnActionVisible" type="success" size="default" @click="$emit('confirmReturn', order)">{{ T.BTN_CONFIRM_RETURN }}</el-button>
     </div>
   </div>
 </template>
@@ -103,9 +104,9 @@ const props = defineProps({
   variant: { type: String, default: 'abstract', validator: v => ['abstract', 'detail'].includes(v) }
 })
 
-defineEmits(['click', 'ship'])
+defineEmits(['click', 'ship', 'confirmReturn'])
 
-const { T, statusText, statusType, actionVisible, formatPrice, formatDate } = useOrderCard(props)
+const { T, statusText, statusType, actionVisible, returnActionVisible, formatPrice, formatDate } = useOrderCard(props)
 </script>
 
 <style scoped src="./OrderCard.css"></style>

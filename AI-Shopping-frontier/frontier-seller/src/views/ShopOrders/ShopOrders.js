@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { getOrderListByShop, getOrderDetail, shipOrder } from '@/api/order'
+import { getOrderListByShop, getOrderDetail, shipOrder, confirmReturn } from '@/api/order'
 import { getAddressList } from '@/api/contact'
 import { getShopDetail } from '@/api/shop'
 import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
@@ -75,6 +75,21 @@ export function useShopOrders() {
     selectedOrder.value = null
   }
 
+  async function handleConfirmReturn(order) {
+    try {
+      const res = await confirmReturn(order.orderId, shopId.value)
+      if (res?.message?.includes('成功') || res?.code === 200) {
+        ElMessage.success('确认退货成功')
+        closeDetail()
+        await loadOrders()
+      } else {
+        ElMessage.error(res?.message || '操作失败')
+      }
+    } catch {
+      ElMessage.error('操作失败')
+    }
+  }
+
   function handleShipFromDetail(order) {
     shipForm.value = { trackingNumber: '', selectedContactId: null }
     selectedOrder.value = order
@@ -131,7 +146,7 @@ export function useShopOrders() {
   }
 
   function getStatusType(status) {
-    const m = { PENDING: 'info', PAID: 'warning', SHIPPED: 'primary', DELIVERED: 'success', CANCELLED: 'danger', RETURNED: 'danger' }
+    const m = { PENDING: 'info', PAID: 'warning', SHIPPED: 'primary', DELIVERED: 'success', CANCELLED: 'danger', RETURN_PENDING: 'warning', RETURNING: 'warning', RETURNED: 'danger' }
     return m[status] || 'info'
   }
 
@@ -141,5 +156,5 @@ export function useShopOrders() {
 
   onMounted(() => { loadShopInfo(); loadOrders() })
 
-  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule }
+  return { T, shopInfo, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, handleConfirmReturn, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule }
 }

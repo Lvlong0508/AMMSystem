@@ -14,6 +14,10 @@ export function useOrderCard(props) {
     return props.order.orderStatus === ORDER_STATUS.PAID
   })
 
+  const returnActionVisible = computed(() => {
+    return props.order.orderStatus === ORDER_STATUS.RETURNING
+  })
+
   function formatPrice(price) {
     return price != null ? `¥${Number(price).toFixed(2)}` : '-'
   }
@@ -22,5 +26,5 @@ export function useOrderCard(props) {
     return dateStr ? new Date(dateStr).toLocaleString('zh-CN') : '-'
   }
 
-  return { T, statusText, statusType, actionVisible, formatPrice, formatDate }
+  return { T, statusText, statusType, actionVisible, returnActionVisible, formatPrice, formatDate }
 }

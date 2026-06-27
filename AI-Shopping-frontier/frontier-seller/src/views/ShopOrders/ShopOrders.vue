@@ -32,6 +32,7 @@
         :order="selectedOrder"
         variant="detail"
         @ship="handleShipFromDetail"
+        @confirm-return="handleConfirmReturn"
       />
     </el-dialog>
 
@@ -63,7 +64,7 @@
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import { useShopOrders } from './ShopOrders.js'
 const props = useShopOrders()
-const { T, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule } = props
+const { T, orders, loading, filterStatus, searchKeyword, searchQuery, filteredOrders, handleSearch, handleConfirmReturn, detailVisible, selectedOrder, loadOrders, getStatusType, getStatusText, formatDate, formatPrice, showDetail, closeDetail, handleShip, confirmShip, ORDER_STATUS, STATUS_TEXT, shipVisible, shipFormRef, shipForm, shipping, contacts, contactsLoading, trackingRule } = props
 </script>
 
 <style scoped src="./ShopOrders.css"></style>
