@@ -1,4 +1,4 @@
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getReturnRequestsPending, getReturnRequestsProcessed, getOrderDetail, approveReturn, reviewReturnRequest, confirmReturn } from '@/api/order'
@@ -36,7 +36,12 @@ export function useReturnManagement() {
   })
 
   function handleSearch() {
-    searchQuery.value = searchKeyword.value
+    searchQuery.value = searchKeyword.value.trim()
+    nextTick(() => {
+      if (list.value.length === 0) {
+        ElMessage.info('未找到匹配的订单')
+      }
+    })
   }
 
   async function loadOrders() {
@@ -111,7 +116,7 @@ export function useReturnManagement() {
   onMounted(loadOrders)
 
   return {
-    T, list, loading, activeTab, pendingList, processedList, searchKeyword,
+    T, list, loading, activeTab, pendingList, processedList, searchKeyword, searchQuery,
     detailVisible, selectedOrder,
     loadOrders, handleSearch, handleApprove, handleReject, handleConfirm, showDetail, closeDetail,
     getStatusText, getStatusType, formatDate
