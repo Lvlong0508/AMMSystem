@@ -1,0 +1,1 @@
+import{r as e}from"./index-3fZlA4AC.js";const s=t=>e.post("/api/user/contact/create",t),c=t=>e.delete(`/api/user/contact/delete/${t}`),o=()=>e.get("/api/user/contact/list"),n=t=>e.put(`/api/user/contact/set-default/${t}`);export{s as c,c as d,o as g,n as s};

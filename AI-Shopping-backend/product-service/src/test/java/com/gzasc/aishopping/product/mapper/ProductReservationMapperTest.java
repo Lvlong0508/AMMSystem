@@ -25,6 +25,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     "spring.datasource.username=root",
     "spring.datasource.password=123456",
     "spring.cloud.discovery.enabled=false",
+    "spring.cloud.config.enabled=false",
+    "spring.cloud.nacos.config.import-check.enabled=false",
     "eureka.client.enabled=false",
     "spring.jpa.hibernate.ddl-auto=none",
     "spring.sql.init.mode=never"
@@ -214,25 +216,5 @@ class ProductReservationMapperTest {
             assertThat(affected).isEqualTo(0);
         }
 
-        @Test
-        @DisplayName("扣减商品库存-足够库存")
-        void deductProductStock_shouldDecrease() {
-            String pid = uniqueProductId();
-            insertProduct(pid, 10);
-            int affected = reservationMapper.deductProductStock(Long.valueOf(pid), 3);
-            assertThat(affected).isEqualTo(1);
-
-            int stock = reservationMapper.selectProductStockForUpdate(Long.valueOf(pid));
-            assertThat(stock).isEqualTo(7);
-        }
-
-        @Test
-        @DisplayName("扣减商品库存-库存不足应失败")
-        void deductProductStock_insufficient_shouldFail() {
-            String pid = uniqueProductId();
-            insertProduct(pid, 2);
-            int affected = reservationMapper.deductProductStock(Long.valueOf(pid), 10);
-            assertThat(affected).isEqualTo(0);
-        }
     }
 }

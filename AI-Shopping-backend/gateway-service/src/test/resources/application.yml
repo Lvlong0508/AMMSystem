@@ -10,15 +10,13 @@ spring:
       discovery:
         locator:
           enabled: false
+    nacos:
+      discovery:
+        enabled: false
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
-spring:
-  cloud:
-    nacos:
-      discovery:
-        enabled: false
 ip-rate-limit:
   max-requests: 300
   time-window-seconds: 60

@@ -58,8 +58,12 @@ class UserContactMapperTest {
 
             List<Contact> contacts = userContactMapper.selectByUserId(1001L);
 
-            assertThat(contacts).hasSize(1);
-            assertThat(contacts.get(0).getName()).isEqualTo("张三");
+            assertThat(contacts)
+                    .filteredOn(c -> c.getId().equals(contact.getId()))
+                    .hasSize(1);
+            assertThat(contacts)
+                    .filteredOn(c -> c.getId().equals(contact.getId()))
+                    .first().extracting(Contact::getName).isEqualTo("张三");
         }
 
         @Test

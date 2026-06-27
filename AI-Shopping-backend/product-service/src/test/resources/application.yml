@@ -12,10 +12,13 @@ spring:
       mode: always
   autoconfigure:
     exclude: com.alibaba.cloud.nacos.NacosDiscoveryAutoConfiguration
-
-spring:
   cloud:
+    config:
+      enabled: false
     nacos:
+      config:
+        import-check:
+          enabled: false
       discovery:
         enabled: false
 

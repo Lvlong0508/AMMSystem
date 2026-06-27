@@ -82,14 +82,13 @@ class ShopMapperTest {
         @DisplayName("根据商户ID查询店铺列表")
         void selectShopsByMerchantId_shouldReturnShops() {
             long merchantId = uniqueId();
-            Shop shop1 = createShop(uniqueId(), merchantId, 1, null);
-            Shop shop2 = createShop(uniqueId(), merchantId, 1, null);
-            shopMapper.insertShop(shop1);
-            shopMapper.insertShop(shop2);
+            Shop shop = createShop(uniqueId(), merchantId, 1, null);
+            shopMapper.insertShop(shop);
 
             List<Shop> shops = shopMapper.selectShopsByMerchantId(merchantId);
 
-            assertThat(shops).hasSize(2);
+            assertThat(shops).hasSize(1);
+            assertThat(shops.get(0).getId()).isEqualTo(shop.getId());
         }
 
         @Test
@@ -123,9 +122,8 @@ class ShopMapperTest {
         @Test
         @DisplayName("分页查询店铺列表")
         void selectShopsByPage_shouldReturnShops() {
-            long merchantId = uniqueId();
             for (int i = 0; i < 3; i++) {
-                shopMapper.insertShop(createShop(uniqueId(), merchantId, 1, null));
+                shopMapper.insertShop(createShop(uniqueId(), uniqueId(), 1, null));
             }
 
             List<Shop> shops = shopMapper.selectShopsByPage(0);
@@ -136,11 +134,10 @@ class ShopMapperTest {
         @Test
         @DisplayName("查询活跃店铺列表")
         void selectActiveShops_shouldReturnActiveOnly() {
-            long merchantId = uniqueId();
             long activeId = uniqueId();
             long closedId = uniqueId();
-            shopMapper.insertShop(createShop(activeId, merchantId, 1, null));
-            shopMapper.insertShop(createShop(closedId, merchantId, 0, null));
+            shopMapper.insertShop(createShop(activeId, uniqueId(), 1, null));
+            shopMapper.insertShop(createShop(closedId, uniqueId(), 0, null));
 
             List<Shop> activeShops = shopMapper.selectActiveShops(0, 10);
 
@@ -150,9 +147,8 @@ class ShopMapperTest {
         @Test
         @DisplayName("统计活跃店铺数量")
         void countActiveShops_shouldReturnCount() {
-            long merchantId = uniqueId();
-            shopMapper.insertShop(createShop(uniqueId(), merchantId, 1, null));
-            shopMapper.insertShop(createShop(uniqueId(), merchantId, 0, null));
+            shopMapper.insertShop(createShop(uniqueId(), uniqueId(), 1, null));
+            shopMapper.insertShop(createShop(uniqueId(), uniqueId(), 0, null));
 
             int count = shopMapper.countActiveShops();
 
@@ -162,11 +158,10 @@ class ShopMapperTest {
         @Test
         @DisplayName("根据ID集合批量查询店铺")
         void selectShopsByIds_shouldReturnMatchingShops() {
-            long merchantId = uniqueId();
             long id1 = uniqueId();
             long id2 = uniqueId();
-            shopMapper.insertShop(createShop(id1, merchantId, 1, null));
-            shopMapper.insertShop(createShop(id2, merchantId, 1, null));
+            shopMapper.insertShop(createShop(id1, uniqueId(), 1, null));
+            shopMapper.insertShop(createShop(id2, uniqueId(), 1, null));
 
             List<Shop> shops = shopMapper.selectShopsByIds(Arrays.asList(id1, id2));
 

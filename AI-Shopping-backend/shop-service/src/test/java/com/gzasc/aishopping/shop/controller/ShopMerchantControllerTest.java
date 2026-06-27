@@ -124,7 +124,7 @@ class ShopMerchantControllerTest {
     void updateShop_success() throws Exception {
         MockMultipartFile shopPart = new MockMultipartFile(
                 "shop", "", "application/json",
-                """{"name":"新店铺","description":"新描述","logoId":"new-logo"}""".getBytes()
+                "{\"name\":\"新店铺\",\"description\":\"新描述\",\"logoId\":\"new-logo\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8)
         );
 
         mockMvc.perform(multipart("/api/seller/shop/1")

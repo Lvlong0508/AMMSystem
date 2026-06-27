@@ -8,7 +8,9 @@ import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.product.dto.UpdateProductRequest;
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.model.Product;
-import com.gzasc.aishopping.product.service.ProductService;
+import com.gzasc.aishopping.product.service.ImageStorageService;
+import com.gzasc.aishopping.product.service.ProductCommandService;
+import com.gzasc.aishopping.product.service.SellerProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,11 +42,17 @@ class ProductSellerControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
-    private ProductService productService;
+    private SellerProductService sellerProductService;
+
+    @Mock
+    private ProductCommandService productCommandService;
+
+    @Mock
+    private ImageStorageService imageStorageService;
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new ProductSellerController(productService))
+        mockMvc = standaloneSetup(new ProductSellerController(sellerProductService, productCommandService, imageStorageService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -51,7 +60,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("创建商品成功 - multipart/form-data")
     void testCreateProductSuccess() throws Exception {
-        when(productService.createProductWithImage(any(Product.class), any(MultipartFile.class))).thenAnswer(invocation -> {
+        when(productCommandService.createProductWithImage(any(Product.class), any(MultipartFile.class))).thenAnswer(invocation -> {
             Product productArg = invocation.getArgument(0);
             productArg.setId(10001L);
             return 1;
@@ -152,7 +161,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-020 - PUT /api/seller/product/{productId} - 更新商品（含图片）")
     void testUpdateProductSuccess() throws Exception {
-        when(productService.updateProductWithImage(any(Product.class), any(MultipartFile.class))).thenReturn(1);
+        when(productCommandService.updateProductWithImage(any(Product.class), any(MultipartFile.class))).thenReturn(1);
 
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName("新名称");
@@ -175,7 +184,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-023 - PUT /api/seller/product/{productId} - 商品不存在")
     void testUpdateProductNotFound() throws Exception {
-        when(productService.updateProductWithImage(any(Product.class), isNull())).thenReturn(0);
+        when(productCommandService.updateProductWithImage(any(Product.class), isNull())).thenReturn(0);
 
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName("新名称");
@@ -195,7 +204,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("updateProduct - 更新商品不传图片（纯文本）")
     void testUpdateProductWithoutImage() throws Exception {
-        when(productService.updateProductWithImage(any(Product.class), isNull())).thenReturn(1);
+        when(productCommandService.updateProductWithImage(any(Product.class), isNull())).thenReturn(1);
 
         UpdateProductRequest request = new UpdateProductRequest();
         request.setName("纯文本更新");
@@ -221,6 +230,8 @@ class ProductSellerControllerTest {
 
         MockMultipartFile imageFile = new MockMultipartFile("image", "test.gif", "image/gif", "fake-gif-content".getBytes(StandardCharsets.UTF_8));
         MockMultipartFile productPart = new MockMultipartFile("product", "", "application/json", objectMapper.writeValueAsString(request).getBytes(StandardCharsets.UTF_8));
+        doThrow(new com.gzasc.aishopping.product.exception.ProductException(400, "不支持的图片格式"))
+                .when(imageStorageService).validateImage(any(MultipartFile.class));
 
         mockMvc.perform(multipart("/api/seller/product/2001")
                         .file(productPart)
@@ -236,7 +247,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-025 - DELETE /api/seller/product/{productId} - 删除已下架商品")
     void testDeleteProductWhenUnlisted() throws Exception {
-        when(productService.deleteProduct(3001L)).thenReturn(1);
+        when(sellerProductService.deleteProduct(3001L)).thenReturn(1);
 
         mockMvc.perform(delete("/api/seller/product/3001"))
                 .andExpect(status().isOk())
@@ -246,7 +257,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-026 - DELETE /api/seller/product/{productId} - 删除未下架商品")
     void testDeleteProductWhenListed() throws Exception {
-        when(productService.deleteProduct(3002L))
+        when(sellerProductService.deleteProduct(3002L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(400, "商品在上架中，请先下架: 3002"));
 
         mockMvc.perform(delete("/api/seller/product/3002"))
@@ -258,7 +269,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-027 - DELETE /api/seller/product/{productId} - 商品不存在")
     void testDeleteProductNotFound() throws Exception {
-        when(productService.deleteProduct(99999L))
+        when(sellerProductService.deleteProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(delete("/api/seller/product/99999"))
@@ -272,7 +283,7 @@ class ProductSellerControllerTest {
         ProductWithImageDetailDTO dto = new ProductWithImageDetailDTO();
         dto.setId(4001L);
         dto.setName("商家查看商品");
-        when(productService.getProductById(4001L)).thenReturn(dto);
+        when(sellerProductService.getSellerProductDetail(4001L)).thenReturn(dto);
 
         mockMvc.perform(get("/api/seller/product/4001"))
                 .andExpect(status().isOk())
@@ -283,7 +294,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-029 - GET /api/seller/product/{productId} - 商家查询不存在的商品")
     void testGetProductDetailNotFound() throws Exception {
-        when(productService.getProductById(99999L)).thenReturn(null);
+        when(sellerProductService.getSellerProductDetail(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/api/seller/product/99999"))
                 .andExpect(status().isNotFound())
@@ -294,7 +305,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-030 - GET /api/seller/product/batch - 批量查询")
     void testBatchQuery() throws Exception {
-        when(productService.getSellerProductsAbstract(List.of(1001L, 1002L, 1003L)))
+        when(sellerProductService.getSellerProductsAbstract(List.of(1001L, 1002L, 1003L)))
                 .thenReturn(List.of(new SellerProductAbstractDTO(), new SellerProductAbstractDTO(), new SellerProductAbstractDTO()));
 
         mockMvc.perform(get("/api/seller/product/batch").param("ids", "1001,1002,1003"))
@@ -306,7 +317,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-060 - POST /api/seller/product/{productId}/list - 上架")
     void testListProduct() throws Exception {
-        when(productService.listProduct(7001L)).thenReturn(true);
+        when(sellerProductService.listProduct(7001L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7001/list"))
                 .andExpect(status().isOk())
@@ -316,7 +327,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-063 - POST /api/seller/product/{productId}/unlist - 下架")
     void testUnlistProduct() throws Exception {
-        when(productService.unlistProduct(7002L)).thenReturn(true);
+        when(sellerProductService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk())
@@ -326,7 +337,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-062 - POST /api/seller/product/{productId}/list - 上架不存在的商品")
     void testListProductNotFound() throws Exception {
-        when(productService.listProduct(99999L))
+        when(sellerProductService.listProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(post("/api/seller/product/99999/list"))
@@ -337,7 +348,7 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-065 - POST /api/seller/product/{productId}/unlist - 下架不存在的商品")
     void testUnlistProductNotFound() throws Exception {
-        when(productService.unlistProduct(99999L))
+        when(sellerProductService.unlistProduct(99999L))
                 .thenThrow(new com.gzasc.aishopping.product.exception.ProductException(404, "商品不存在: 99999"));
 
         mockMvc.perform(post("/api/seller/product/99999/unlist"))
@@ -348,12 +359,12 @@ class ProductSellerControllerTest {
     @Test
     @DisplayName("PR-064 - POST /api/seller/product/{productId}/unlist - 重复下架（静默成功）")
     void testUnlistProductTwice() throws Exception {
-        when(productService.unlistProduct(7002L)).thenReturn(true);
+        when(sellerProductService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk());
 
-        when(productService.unlistProduct(7002L)).thenReturn(true);
+        when(sellerProductService.unlistProduct(7002L)).thenReturn(true);
 
         mockMvc.perform(post("/api/seller/product/7002/unlist"))
                 .andExpect(status().isOk())

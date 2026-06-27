@@ -2,6 +2,7 @@ package com.gzasc.aishopping.product.service.impl;
 
 import com.gzasc.aishopping.product.exception.ProductException;
 import com.gzasc.aishopping.product.mapper.ProductReservationMapper;
+import com.gzasc.aishopping.product.mapper.ProductStockMapper;
 import com.gzasc.aishopping.product.model.ProductReservation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -26,6 +27,9 @@ class ProductReservationServiceImplTest {
 
     @Mock
     private ProductReservationMapper mapper;
+
+    @Mock
+    private ProductStockMapper productStockMapper;
 
     @InjectMocks
     private ProductReservationServiceImpl reservationService;
@@ -113,12 +117,12 @@ class ProductReservationServiceImplTest {
         reservation.setOrderId("ORDER006");
         when(mapper.selectByOrderId("ORDER006")).thenReturn(reservation);
         when(mapper.confirmReservation("ORDER006")).thenReturn(1);
-        when(mapper.deductProductStock(6001L, 3)).thenReturn(1);
+        when(productStockMapper.deductStock(6001L, 3)).thenReturn(1);
 
         reservationService.confirm("ORDER006");
 
         verify(mapper).confirmReservation("ORDER006");
-        verify(mapper).deductProductStock(6001L, 3);
+        verify(productStockMapper).deductStock(6001L, 3);
     }
 
     @Test

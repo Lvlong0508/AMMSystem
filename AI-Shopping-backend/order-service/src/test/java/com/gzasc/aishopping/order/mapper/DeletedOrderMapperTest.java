@@ -83,15 +83,19 @@ class DeletedOrderMapperTest {
             assertThat(found).isNull();
         }
 
-        @Test
-        @DisplayName("查询所有已删除订单")
-        void selectAllDeletedOrders_shouldReturnAll() {
-            deletedOrderMapper.insertDeletedOrder(createTestDeletedOrder(nextOrderId()));
-            deletedOrderMapper.insertDeletedOrder(createTestDeletedOrder(nextOrderId()));
+    @Test
+    @DisplayName("查询所有已删除订单")
+    void selectAllDeletedOrders_shouldReturnAll() {
+        String orderId1 = nextOrderId();
+        String orderId2 = nextOrderId();
+        deletedOrderMapper.insertDeletedOrder(createTestDeletedOrder(orderId1));
+        deletedOrderMapper.insertDeletedOrder(createTestDeletedOrder(orderId2));
 
-            List<DeletedOrder> list = deletedOrderMapper.selectAllDeletedOrders();
+        List<DeletedOrder> list = deletedOrderMapper.selectAllDeletedOrders();
 
-            assertThat(list).hasSize(2);
+        assertThat(list)
+                .filteredOn(d -> d.getOrderId().equals(orderId1) || d.getOrderId().equals(orderId2))
+                .hasSize(2);
         }
 
         @Test

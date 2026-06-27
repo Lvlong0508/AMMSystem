@@ -9,9 +9,6 @@ spring:
       enabled: false
     config:
       enabled: false
-
-spring:
-  cloud:
     nacos:
       discovery:
         enabled: false

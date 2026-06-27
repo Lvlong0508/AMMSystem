@@ -8,8 +8,9 @@ import com.gzasc.aishopping.product.controller.GlobalExceptionHandler;
 import com.gzasc.aishopping.product.dto.ProductWithImageAbstractDTO;
 import com.gzasc.aishopping.product.dto.ProductWithImageDetailDTO;
 import com.gzasc.aishopping.common.dto.product.ProductDTO;
+import com.gzasc.aishopping.product.service.BuyerProductService;
+import com.gzasc.aishopping.product.service.InternalProductService;
 import com.gzasc.aishopping.product.service.ProductReservationService;
-import com.gzasc.aishopping.product.service.ProductService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,14 +39,17 @@ class InternalProductControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
-    private ProductService productService;
+    private InternalProductService internalProductService;
+
+    @Mock
+    private BuyerProductService buyerProductService;
 
     @Mock
     private ProductReservationService reservationService;
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new InternalProductController(productService, reservationService))
+        mockMvc = standaloneSetup(new InternalProductController(internalProductService, buyerProductService, reservationService))
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -60,7 +64,7 @@ class InternalProductControllerTest {
         dto.setStock(10);
         dto.setShopId(100L);
         dto.setImageUrl("http://img.test/a.jpg");
-        when(productService.getBasicProductById(1L)).thenReturn(dto);
+        when(internalProductService.getBasicProductById(1L)).thenReturn(dto);
 
         mockMvc.perform(get("/internal/product/1"))
                 .andExpect(status().isOk())
@@ -73,7 +77,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/{productId} - 商品不存在")
     void testGetProductByIdNotFound() throws Exception {
-        when(productService.getBasicProductById(99999L)).thenReturn(null);
+        when(internalProductService.getBasicProductById(99999L)).thenReturn(null);
 
         mockMvc.perform(get("/internal/product/99999"))
                 .andExpect(status().isOk())
@@ -87,7 +91,7 @@ class InternalProductControllerTest {
         ProductDTO dto = new ProductDTO();
         dto.setId(2L);
         dto.setName("无图商品");
-        when(productService.getBasicProductById(2L)).thenReturn(dto);
+        when(internalProductService.getBasicProductById(2L)).thenReturn(dto);
 
         mockMvc.perform(get("/internal/product/2"))
                 .andExpect(status().isOk())
@@ -103,7 +107,7 @@ class InternalProductControllerTest {
         product.setName("测试商品");
         product.setPrice(BigDecimal.valueOf(99.99));
         product.setStock(10);
-        when(productService.getSalableProductCards(0)).thenReturn(List.of(product));
+        when(buyerProductService.getSalableProductCards(0)).thenReturn(List.of(product));
 
         mockMvc.perform(get("/internal/product/page").param("page", "0"))
                 .andExpect(status().isOk())
@@ -122,7 +126,7 @@ class InternalProductControllerTest {
         product.setId(1L);
         product.setName("测试商品");
         product.setPrice(BigDecimal.valueOf(99.99));
-        when(productService.getProductById(1L)).thenReturn(product);
+        when(internalProductService.getInternalProductDetail(1L)).thenReturn(product);
 
         mockMvc.perform(get("/internal/product/detail/1"))
                 .andExpect(status().isOk())
@@ -134,7 +138,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/detail/{productId} - 商品不存在")
     void testGetProductDetailNotFound() throws Exception {
-        when(productService.getProductById(999L)).thenReturn(null);
+        when(internalProductService.getInternalProductDetail(999L)).thenReturn(null);
 
         mockMvc.perform(get("/internal/product/detail/999"))
                 .andExpect(status().isOk())
@@ -145,7 +149,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("GET /internal/product/batch - 批量查询成功")
     void testGetProductsByIds() throws Exception {
-        when(productService.getAbstractProductsForBuyer(List.of(1L, 2L, 3L)))
+        when(internalProductService.getAbstractProductsForBuyer(List.of(1L, 2L, 3L)))
                 .thenReturn(List.of(new ProductWithImageAbstractDTO(), new ProductWithImageAbstractDTO()));
 
         mockMvc.perform(get("/internal/product/batch").param("ids", "1,2,3"))
@@ -157,7 +161,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("POST /internal/product/restore-stock - 恢复库存成功")
     void testRestoreStockSuccess() throws Exception {
-        when(productService.restoreStock(1L, 5)).thenReturn(true);
+        when(internalProductService.restoreStock(1L, 5)).thenReturn(true);
         StockDeductRequest request = new StockDeductRequest(1L, 5);
 
         mockMvc.perform(post("/internal/product/restore-stock")
@@ -170,7 +174,7 @@ class InternalProductControllerTest {
     @Test
     @DisplayName("POST /internal/product/restore-stock - 恢复库存失败")
     void testRestoreStockFailed() throws Exception {
-        when(productService.restoreStock(1L, 5)).thenReturn(false);
+        when(internalProductService.restoreStock(1L, 5)).thenReturn(false);
         StockDeductRequest request = new StockDeductRequest(1L, 5);
 
         mockMvc.perform(post("/internal/product/restore-stock")
@@ -201,9 +205,9 @@ class InternalProductControllerTest {
         mockMvc.perform(post("/internal/product/reserve-stock")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("库存不足"));
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
     }
 
     @Test
@@ -220,9 +224,9 @@ class InternalProductControllerTest {
         doThrow(new RuntimeException("预占不存在")).when(reservationService).confirm("order-002");
 
         mockMvc.perform(post("/internal/product/confirm-reservation").param("orderId", "order-002"))
-                .andExpect(status().isOk())
+                .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.code").value(500))
-                .andExpect(jsonPath("$.message").value("预占不存在"));
+                .andExpect(jsonPath("$.message").value("系统错误，请稍后重试"));
     }
 
     @Test

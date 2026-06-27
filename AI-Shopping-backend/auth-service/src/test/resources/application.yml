@@ -19,10 +19,13 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
-
-spring:
   cloud:
+    config:
+      enabled: false
     nacos:
+      config:
+        import-check:
+          enabled: false
       discovery:
         enabled: false
 

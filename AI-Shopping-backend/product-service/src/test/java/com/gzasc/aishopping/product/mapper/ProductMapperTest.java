@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThat;
     "spring.datasource.username=root",
     "spring.datasource.password=123456",
     "spring.cloud.discovery.enabled=false",
+    "spring.cloud.config.enabled=false",
+    "spring.cloud.nacos.config.import-check.enabled=false",
     "eureka.client.enabled=false",
     "spring.jpa.hibernate.ddl-auto=none",
     "spring.sql.init.mode=never"
