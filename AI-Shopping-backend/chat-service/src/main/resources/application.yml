@@ -25,4 +25,9 @@ feign:
 
 chat:
   memory:
-    maxMessages: 10
+    maxMessages: 20
+
+app:
+  file:
+    storage: ${project.root:./AI-Shopping-backend}/static/file/upload
+    finish: ${project.root:./AI-Shopping-backend}/static/file/finish

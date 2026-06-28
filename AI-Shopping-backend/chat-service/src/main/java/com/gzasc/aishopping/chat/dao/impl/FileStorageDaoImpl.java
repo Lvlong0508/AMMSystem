@@ -34,7 +34,7 @@ public class FileStorageDaoImpl implements FileStorageDao {
     }
 
     @Override
-    public void storeFile(MultipartFile file) {
+    public String storeFile(MultipartFile file) {
         try {
             String originalName = file.getOriginalFilename();
             String storageName = resolveConflict(originalName);
@@ -47,6 +47,8 @@ public class FileStorageDaoImpl implements FileStorageDao {
                     storageName, originalName, LocalDateTime.now().toString());
             Files.writeString(targetDir.resolve("index.txt"), line,
                     StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+
+            return storageName;
         } catch (IOException e) {
             throw new FileException("文件存储失败: " + e.getMessage());
         }

@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.exception.ChatException;
+import com.gzasc.aishopping.chat.exception.FileException;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ApiResponse<Void> handleChatException(ChatException e) {
         log.error("聊天服务异常: {}", e.getMessage());
+        return ApiResponse.error(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(FileException.class)
+    @ResponseStatus(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+    public ApiResponse<Void> handleFileException(FileException e) {
         return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
