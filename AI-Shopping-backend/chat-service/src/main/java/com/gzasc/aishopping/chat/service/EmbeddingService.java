@@ -3,7 +3,7 @@ package com.gzasc.aishopping.chat.service;
 import java.util.List;
 import java.util.Map;
 
-public interface RAGService {
+public interface EmbeddingService {
 
     /**
      * 导入文件到向量库

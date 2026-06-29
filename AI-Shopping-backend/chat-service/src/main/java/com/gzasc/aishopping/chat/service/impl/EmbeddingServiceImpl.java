@@ -1,8 +1,8 @@
 package com.gzasc.aishopping.chat.service.impl;
 
 import com.gzasc.aishopping.chat.exception.RAGException;
+import com.gzasc.aishopping.chat.service.EmbeddingService;
 import com.gzasc.aishopping.chat.service.FileService;
-import com.gzasc.aishopping.chat.service.RAGService;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
 import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
@@ -28,7 +28,7 @@ import java.util.Map;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RAGServiceImpl implements RAGService {
+public class EmbeddingServiceImpl implements EmbeddingService {
 
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
