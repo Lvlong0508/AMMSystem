@@ -37,8 +37,10 @@ public class RAGServiceImpl implements RAGService {
     @Value("${app.file.storage}")
     private String uploadDir;
 
+    // EmbeddingStoreIngestor 负责切分文档 + 生成 embedding + 写入向量库
     private EmbeddingStoreIngestor ingestor;
 
+    /** 初始化 Ingestor：embedding 模型、向量存储、递归切分器（每段 300 字符，重叠 30） */
     @PostConstruct
     public void init() {
         this.ingestor = EmbeddingStoreIngestor.builder()
@@ -48,6 +50,15 @@ public class RAGServiceImpl implements RAGService {
                 .build();
     }
 
+    /**
+     * 遍历文件名列表，逐个执行 RAG 导入：
+     *   1) 检查文件是否存在
+     *   2) 解析文档 → 注入 source/file_path 元数据 → ingest 到向量库
+     *   3) 成功后异步将文件移至 finish 目录
+     *   4) 失败时记录错误继续下一个
+     *
+     * @return 失败列表[{fileName, error}]，空列表表示全部成功
+     */
     @Override
     public List<Map<String, String>> input(List<String> fileNames) {
         if (fileNames == null) {
@@ -75,6 +86,8 @@ public class RAGServiceImpl implements RAGService {
         return failed;
     }
 
+    /** 根据扩展名选择解析器（.txt → TextDocumentParser，其余 → ApachePoiDocumentParser），
+     *  注入 source/file_path 元数据，调用 ingest 写入向量库 */
     private void processDocument(Path path) {
         String fileName = path.getFileName().toString();
 

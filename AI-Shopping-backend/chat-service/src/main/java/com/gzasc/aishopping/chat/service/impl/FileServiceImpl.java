@@ -22,8 +22,12 @@ public class FileServiceImpl implements FileService {
 
     private final FileStorageDao fileStorageDao;
 
+    // 单线程执行器，保证文件移动按顺序逐个执行，避免并发操作 index.txt
     ExecutorService moveExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * 异步将文件从 upload 移至 finish，内部异常由 CompletableFuture 消化，不抛给调用方
+     */
     @Override
     public void move(String fileName) {
         CompletableFuture.runAsync(() -> {
@@ -36,6 +40,7 @@ public class FileServiceImpl implements FileService {
         }, moveExecutor);
     }
 
+    /** 优雅关闭异步移动线程池 */
     @PreDestroy
     public void shutdown() {
         moveExecutor.shutdown();
@@ -49,6 +54,10 @@ public class FileServiceImpl implements FileService {
         }
     }
 
+    /**
+     * 保存文件到 upload 目录，遍历过程中任意文件失败不中断整体流程
+     * @return 失败的文件原始名列表，空表示全部成功
+     */
     @Override
     public List<String> save(List<MultipartFile> files) {
         List<String> failedFiles = new ArrayList<>();
@@ -63,6 +72,7 @@ public class FileServiceImpl implements FileService {
         return failedFiles;
     }
 
+    /** 批量删除 upload 目录中的文件，null/空列表时直接返回 */
     @Override
     public void deleteFilesFromUpload(List<String> fileNames) {
         if (fileNames == null || fileNames.isEmpty()) {
