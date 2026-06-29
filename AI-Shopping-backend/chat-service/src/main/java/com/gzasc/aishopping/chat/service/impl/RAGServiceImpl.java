@@ -1,6 +1,7 @@
 package com.gzasc.aishopping.chat.service.impl;
 
 import com.gzasc.aishopping.chat.exception.RAGException;
+import com.gzasc.aishopping.chat.service.FileService;
 import com.gzasc.aishopping.chat.service.RAGService;
 import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.Metadata;
@@ -15,10 +16,12 @@ import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,8 +29,13 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class RAGServiceImpl implements RAGService {
+
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
+    private final FileService fileService;
+
+    @Value("${app.file.storage}")
+    private String uploadDir;
 
     private EmbeddingStoreIngestor ingestor;
 
@@ -41,24 +49,33 @@ public class RAGServiceImpl implements RAGService {
     }
 
     @Override
-    public Map<String, String> input(List<String> filePaths) {
-        Map<String, String> failed = new LinkedHashMap<>();
-
-        for (String filePath : filePaths) {
-            try {
-                processDocument(filePath);
-                log.info("RAG 导入成功：{}", filePath);
-            } catch (Exception e) {
-                log.error("RAG 导入失败：{}", filePath, e);
-                failed.put(Path.of(filePath).getFileName().toString(), e.getMessage());
-            }
+    public List<Map<String, String>> input(List<String> fileNames) {
+        if (fileNames == null) {
+            throw new NullPointerException("fileNames must not be null");
         }
 
+        List<Map<String, String>> failed = new ArrayList<>();
+
+        for (String fileName : fileNames) {
+            Path filePath = Path.of(uploadDir, fileName);
+            if (!Files.exists(filePath)) {
+                log.warn("文件不存在，跳过 RAG：{}", fileName);
+                failed.add(Map.of("fileName", fileName, "error", "文件不存在"));
+                continue;
+            }
+            try {
+                processDocument(filePath);
+                fileService.move(fileName);
+                log.info("RAG 导入成功：{}", fileName);
+            } catch (Exception e) {
+                log.error("RAG 导入失败：{}", fileName, e);
+                failed.add(Map.of("fileName", fileName, "error", e.getMessage()));
+            }
+        }
         return failed;
     }
 
-    private void processDocument(String filePath) {
-        Path path = Path.of(filePath);
+    private void processDocument(Path path) {
         String fileName = path.getFileName().toString();
 
         try {

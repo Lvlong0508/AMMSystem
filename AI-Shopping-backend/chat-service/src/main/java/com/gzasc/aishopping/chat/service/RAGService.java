@@ -6,10 +6,10 @@ import java.util.Map;
 public interface RAGService {
 
     /**
-     * 批量导入文件到向量库
+     * 导入文件到向量库
      *
-     * @param filePaths 文件路径列表
-     * @return 失败映射，key=文件名，value=失败原因；空 map 表示全部成功
+     * @param fileNames 文件名列表（upload 目录下的文件名）
+     * @return 失败列表，每项含 fileName 和 error；空列表表示全部成功
      */
-    Map<String, String> input(List<String> filePaths);
+    List<Map<String, String>> input(List<String> fileNames);
 }

@@ -13,6 +13,8 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -24,7 +26,7 @@ class FileServiceImplTest {
     @Mock
     private FileStorageDao fileStorageDao;
 
-    private FileService fileService;
+    private FileServiceImpl fileService;
 
     @BeforeEach
     void setUp() {
@@ -103,5 +105,34 @@ class FileServiceImplTest {
         fileService.deleteFilesFromUpload(null);
 
         verify(fileStorageDao, never()).deleteFileFromUpload(any());
+    }
+
+    @Test
+    @DisplayName("move 委托给 DAO 的 moveFile")
+    void move_delegatesToDao() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            return null;
+        }).when(fileStorageDao).moveFile("test.txt");
+
+        fileService.move("test.txt");
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        verify(fileStorageDao).moveFile("test.txt");
+    }
+
+    @Test
+    @DisplayName("move 异常不向外抛")
+    void move_exception_doesNotThrow() throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        doAnswer(invocation -> {
+            latch.countDown();
+            throw new FileException("move failed");
+        }).when(fileStorageDao).moveFile("bad.txt");
+
+        fileService.move("bad.txt");
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
     }
 }

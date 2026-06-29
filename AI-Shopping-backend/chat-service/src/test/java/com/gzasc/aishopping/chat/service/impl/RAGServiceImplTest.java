@@ -1,6 +1,6 @@
 package com.gzasc.aishopping.chat.service.impl;
 
-import com.gzasc.aishopping.chat.service.RAGService;
+import com.gzasc.aishopping.chat.service.FileService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -27,6 +28,7 @@ import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,25 +40,39 @@ class RAGServiceImplTest {
     @Mock
     private EmbeddingStore<TextSegment> embeddingStore;
 
+    @Mock
+    private FileService fileService;
+
     @Captor
     private ArgumentCaptor<List<TextSegment>> segmentsCaptor;
 
-    private RAGService ragService;
+    private RAGServiceImpl ragService;
 
     @TempDir
     Path tempDir;
 
     @BeforeEach
     void setUp() {
-        var impl = new RAGServiceImpl(embeddingModel, embeddingStore);
-        impl.init();
-        ragService = impl;
+        ragService = new RAGServiceImpl(embeddingModel, embeddingStore, fileService);
+        ReflectionTestUtils.setField(ragService, "uploadDir", tempDir.toString());
+        ragService.init();
     }
 
-    private Path createTxtFile(String name, String content) throws IOException {
+    private void createTxtFile(String name, String content) throws IOException {
+        Files.writeString(tempDir.resolve(name), content);
+    }
+
+    private void createDocxFile(String name) throws IOException {
         Path file = tempDir.resolve(name);
-        Files.writeString(file, content);
-        return file;
+        try (OutputStream os = Files.newOutputStream(file);
+             ZipOutputStream zos = new ZipOutputStream(os)) {
+            zos.putNextEntry(new ZipEntry("[Content_Types].xml"));
+            zos.write("<?xml version=\"1.0\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"xml\" ContentType=\"application/xml\"/></Types>".getBytes());
+            zos.closeEntry();
+            zos.putNextEntry(new ZipEntry("word/document.xml"));
+            zos.write("<?xml version=\"1.0\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:t>Hello</w:t></w:r></w:p></w:body></w:document>".getBytes());
+            zos.closeEntry();
+        }
     }
 
     private void mockEmbedding() {
@@ -70,46 +86,29 @@ class RAGServiceImplTest {
         when(embeddingStore.addAll(anyList(), anyList())).thenReturn(List.of("id1"));
     }
 
-    private Path createDocxFile(String name) throws IOException {
-        Path file = tempDir.resolve(name);
-        try (OutputStream os = Files.newOutputStream(file);
-             ZipOutputStream zos = new ZipOutputStream(os)) {
-            zos.putNextEntry(new ZipEntry("[Content_Types].xml"));
-            zos.write("<?xml version=\"1.0\"?><Types xmlns=\"http://schemas.openxmlformats.org/package/2006/content-types\"><Default Extension=\"xml\" ContentType=\"application/xml\"/></Types>".getBytes());
-            zos.closeEntry();
-            zos.putNextEntry(new ZipEntry("word/document.xml"));
-            zos.write("<?xml version=\"1.0\"?><w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\"><w:body><w:p><w:r><w:t>Hello</w:t></w:r></w:p></w:body></w:document>".getBytes());
-            zos.closeEntry();
-        }
-        return file;
-    }
-
     @Test
-    @DisplayName("单文件导入成功 - 返回空Map")
-    void input_singleFile_success_returnsEmptyMap() throws IOException {
-        Path file = createTxtFile("test.txt", "Hello. This is a test document for RAG ingestion.");
+    @DisplayName("单文件导入成功 - 调用 fileService.move()")
+    void input_singleFile_success() throws IOException {
+        createTxtFile("test.txt", "Hello. This is a test document for RAG ingestion.");
         mockEmbedding();
 
-        Map<String, String> result = ragService.input(List.of(file.toString()));
+        List<Map<String, String>> result = ragService.input(List.of("test.txt"));
 
         assertTrue(result.isEmpty());
+        verify(fileService).move("test.txt");
         verify(embeddingModel).embedAll(anyList());
         verify(embeddingStore).addAll(anyList(), anyList());
     }
 
     @Test
-    @DisplayName("多文件全部成功 - 返回空Map")
-    void input_multipleFilesAllSuccess_returnsEmptyMap() throws IOException {
+    @DisplayName("多文件全部成功 - 返回空列表")
+    void input_multipleFiles_success() throws IOException {
         createTxtFile("a.txt", "Content A");
         createTxtFile("b.txt", "Content B");
         createTxtFile("c.txt", "Content C");
         mockEmbedding();
 
-        Map<String, String> result = ragService.input(List.of(
-                tempDir.resolve("a.txt").toString(),
-                tempDir.resolve("b.txt").toString(),
-                tempDir.resolve("c.txt").toString()
-        ));
+        List<Map<String, String>> result = ragService.input(List.of("a.txt", "b.txt", "c.txt"));
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, times(3)).embedAll(anyList());
@@ -117,36 +116,34 @@ class RAGServiceImplTest {
     }
 
     @Test
-    @DisplayName("文件不存在 - 返回失败Map")
-    void input_fileNotFound_returnsFailedMap() {
-        String nonExistent = tempDir.resolve("not-exist.txt").toString();
-
-        Map<String, String> result = ragService.input(List.of(nonExistent));
+    @DisplayName("文件不存在 - 不调用 fileService.move()")
+    void input_fileNotFound() {
+        List<Map<String, String>> result = ragService.input(List.of("not-exist.txt"));
 
         assertEquals(1, result.size());
-        assertTrue(result.containsKey("not-exist.txt"));
-        assertNotNull(result.get("not-exist.txt"));
+        assertEquals("not-exist.txt", result.get(0).get("fileName"));
+        assertEquals("文件不存在", result.get(0).get("error"));
+        verify(fileService, never()).move(anyString());
     }
 
     @Test
-    @DisplayName("部分成功部分失败 - 返回失败Map")
-    void input_partialSuccess_returnsFailedMap() throws IOException {
-        Path goodFile = createTxtFile("good.txt", "Good content.");
-        String badFile = tempDir.resolve("bad.txt").toString();
+    @DisplayName("部分成功部分失败 - 返回失败列表")
+    void input_partialSuccess() throws IOException {
+        createTxtFile("good.txt", "Good content.");
         mockEmbedding();
 
-        Map<String, String> result = ragService.input(List.of(goodFile.toString(), badFile));
+        List<Map<String, String>> result = ragService.input(List.of("good.txt", "bad.txt"));
 
         assertEquals(1, result.size());
-        assertTrue(result.containsKey("bad.txt"));
-        assertFalse(result.containsKey("good.txt"));
+        assertEquals("bad.txt", result.get(0).get("fileName"));
+        assertEquals("文件不存在", result.get(0).get("error"));
         verify(embeddingModel, times(1)).embedAll(anyList());
     }
 
     @Test
-    @DisplayName("空文件列表 - 返回空Map")
-    void input_emptyList_returnsEmptyMap() {
-        Map<String, String> result = ragService.input(List.of());
+    @DisplayName("空列表 - 返回空列表")
+    void input_emptyList() {
+        List<Map<String, String>> result = ragService.input(List.of());
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, never()).embedAll(anyList());
@@ -154,49 +151,48 @@ class RAGServiceImplTest {
     }
 
     @Test
-    @DisplayName("null 文件列表 - 抛 NullPointerException")
-    void input_null_throwsNullPointer() {
+    @DisplayName("null 列表 - 抛 NullPointerException")
+    void input_null() {
         assertThrows(NullPointerException.class, () -> ragService.input(null));
     }
 
     @Test
-    @DisplayName("导入时注入 Metadata - 包含 source 和 file_path")
-    void input_metadata_containsSourceAndFilePath() throws IOException {
-        Path file = createTxtFile("mydoc.txt", "Metadata test content.");
+    @DisplayName("Metadata 注入 source 和 file_path")
+    void input_metadata() throws IOException {
+        createTxtFile("mydoc.txt", "Metadata test content.");
         mockEmbedding();
 
-        ragService.input(List.of(file.toString()));
+        ragService.input(List.of("mydoc.txt"));
 
         verify(embeddingStore).addAll(anyList(), segmentsCaptor.capture());
         List<TextSegment> segments = segmentsCaptor.getValue();
         assertFalse(segments.isEmpty());
         for (TextSegment segment : segments) {
             assertEquals("mydoc.txt", segment.metadata().getString("source"));
-            assertEquals(file.toAbsolutePath().toString(), segment.metadata().getString("file_path"));
+            assertEquals(tempDir.resolve("mydoc.txt").toAbsolutePath().toString(),
+                    segment.metadata().getString("file_path"));
         }
     }
 
     @Test
     @DisplayName(".docx 文件走 ApachePoiParser 分支")
-    void input_docxFile_triggersApachePoiParser() throws IOException {
-        Path file = createDocxFile("report.docx");
+    void input_docxFile() throws IOException {
+        createDocxFile("report.docx");
 
-        Map<String, String> result = ragService.input(List.of(file.toString()));
+        List<Map<String, String>> result = ragService.input(List.of("report.docx"));
 
-        String msg = result.get("report.docx");
-        assertNotNull(msg);
-        assertTrue(msg.contains("Failed to load document"),
-                "应触发 ApachePoiParser 解析失败，实际: " + msg);
+        assertEquals(1, result.size());
+        assertEquals("report.docx", result.get(0).get("fileName"));
+        assertTrue(result.get(0).get("error").contains("Failed to load document"),
+                "应触发 ApachePoiParser 解析失败，实际: " + result.get(0).get("error"));
     }
 
     @Test
-    @DisplayName("导入异常 - 错误消息包含文件名")
-    void input_failure_messageContainsFileName() {
-        Map<String, String> result = ragService.input(List.of(tempDir.resolve("unknown.txt").toString()));
+    @DisplayName("文件不存在 - 错误信息为'文件不存在'")
+    void input_notExistMessage() {
+        List<Map<String, String>> result = ragService.input(List.of("unknown.txt"));
 
-        String msg = result.get("unknown.txt");
-        assertNotNull(msg);
-        assertTrue(msg.contains("unknown.txt"),
-                "错误消息应包含文件名，实际: " + msg);
+        assertEquals("unknown.txt", result.get(0).get("fileName"));
+        assertEquals("文件不存在", result.get(0).get("error"));
     }
 }

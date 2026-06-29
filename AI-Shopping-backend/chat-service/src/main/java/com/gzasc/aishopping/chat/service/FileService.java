@@ -6,4 +6,5 @@ import java.util.List;
 public interface FileService {
     List<String> save(List<MultipartFile> files);
     void deleteFilesFromUpload(List<String> fileNames);
+    void move(String fileName);
 }
