@@ -80,9 +80,35 @@ public class FileServiceImpl implements FileService {
         }
         try {
             fileStorageDao.deleteFileFromUpload(fileNames);
-            log.info("补偿删除完成，已删除文件：{}", fileNames);
+            log.info("upload 删除完成，已删除文件：{}", fileNames);
         } catch (FileException e) {
-            log.error("补偿删除失败：" + e.getMessage());
+            log.error("upload 删除失败：" + e.getMessage());
         }
+    }
+
+    /** 批量删除 finish 目录中的文件，null/空列表时直接返回 */
+    @Override
+    public void deleteFilesFromFinish(List<String> fileNames) {
+        if (fileNames == null || fileNames.isEmpty()) {
+            return;
+        }
+        try {
+            fileStorageDao.deleteFileFromFinish(fileNames);
+            log.info("finish 删除完成，已删除文件：{}", fileNames);
+        } catch (FileException e) {
+            log.error("finish 删除失败：" + e.getMessage());
+        }
+    }
+
+    /** 获取 upload 目录的文件名列表 */
+    @Override
+    public List<String> getFileNamesFromUpload() {
+        return fileStorageDao.getFileNameFromUpload();
+    }
+
+    /** 获取 finish 目录的文件名列表 */
+    @Override
+    public List<String> getFileNamesFromFinish() {
+        return fileStorageDao.getFileNameFromFinish();
     }
 }

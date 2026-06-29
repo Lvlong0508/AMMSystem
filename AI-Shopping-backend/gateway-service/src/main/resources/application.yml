@@ -119,6 +119,14 @@ spring:
           filters:
             - RewritePath=/api/seller/chat/(?<segment>.*), /chat/${segment}
         
+        # 商家知识库文件管理（上传 / 删除 / 导入向量库）
+        - id: seller-knowledge
+          uri: lb://chat-service
+          predicates:
+            - Path=/api/seller/knowledge/**
+          filters:
+            - RewritePath=/api/seller/knowledge/(?<segment>.*), /file/${segment}
+        
         # 商家店铺服务
         - id: seller-shop
           uri: lb://shop-service

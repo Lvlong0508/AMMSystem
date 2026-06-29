@@ -12,13 +12,28 @@ public interface FileService {
     List<String> save(List<MultipartFile> files);
 
     /**
-     * 从 upload 目录删除指定文件（补偿机制用）
+     * 从 upload 目录删除指定文件
      */
     void deleteFilesFromUpload(List<String> fileNames);
+
+    /**
+     * 从 finish 目录删除指定文件
+     */
+    void deleteFilesFromFinish(List<String> fileNames);
 
     /**
      * 异步将文件从 upload 移至 finish 目录
      * <p>内部由单线程执行器排队执行，不阻塞调用方</p>
      */
     void move(String fileName);
+
+    /**
+     * 获取 upload 目录的文件名列表
+     */
+    List<String> getFileNamesFromUpload();
+
+    /**
+     * 获取 finish 目录的文件名列表
+     */
+    List<String> getFileNamesFromFinish();
 }
