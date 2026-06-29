@@ -53,13 +53,13 @@ services:
       retries: 5
 
   sentinel:
-    image: bladex/sentinel-dashboard:1.8.8
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile.sentinel
     container_name: ai-sentinel
     networks: [ai-shopping-net]
     ports:
       - "8888:8858"
-    environment:
-      JAVA_OPTS: "-Dserver.port=8858"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8858"]
       interval: 15s
