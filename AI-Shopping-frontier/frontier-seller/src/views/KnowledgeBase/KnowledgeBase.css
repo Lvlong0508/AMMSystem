@@ -1,0 +1,137 @@
+.knowledge-base {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.knowledge-base__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.knowledge-base__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--el-text-color-primary, #1a1a2e);
+  margin: 0;
+}
+
+.knowledge-base__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.knowledge-base__toolbar-spacer {
+  flex: 1;
+}
+
+.knowledge-base__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.knowledge-base__file-row {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--el-border-color-light, #e8e8e8);
+  border-radius: 8px;
+  transition: all 0.15s;
+}
+
+.knowledge-base__file-row:hover {
+  border-color: var(--el-color-primary, #4361ee);
+  box-shadow: 0 1px 4px rgba(67, 97, 238, 0.08);
+}
+
+.knowledge-base__file-checkbox {
+  margin-right: 12px;
+}
+
+.knowledge-base__file-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f2ff;
+  border-radius: 8px;
+  margin-right: 12px;
+  flex-shrink: 0;
+  color: var(--el-color-primary, #4361ee);
+}
+
+.knowledge-base__file-name {
+  flex: 1;
+  font-size: 14px;
+  color: var(--el-text-color-primary, #333);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.knowledge-base__file-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Upload Dialog */
+.knowledge-base__upload-dialog :deep(.el-dialog__body) {
+  min-height: 480px;
+}
+
+.knowledge-base__upload-drag {
+  margin-bottom: 16px;
+}
+
+.knowledge-base__upload-drag :deep(.el-upload-dragger) {
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.knowledge-base__selected-files {
+  margin-bottom: 16px;
+}
+
+.knowledge-base__selected-files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.knowledge-base__selected-files-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--el-text-color-secondary, #666);
+  margin: 0;
+}
+
+.knowledge-base__selected-files-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.knowledge-base__selected-file-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+  color: var(--el-text-color-regular, #444);
+}
+
+.knowledge-base__selected-file-item::before {
+  content: '•';
+  margin-right: 8px;
+  color: var(--el-color-primary, #4361ee);
+}
