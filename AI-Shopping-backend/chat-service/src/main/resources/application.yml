@@ -27,6 +27,10 @@ chat:
   memory:
     maxMessages: 20
 
+chroma:
+  base-url: http://localhost:8000
+  collection-name: ai_shopping
+
 app:
   file:
     storage: ${project.root:./AI-Shopping-backend}/static/file/upload

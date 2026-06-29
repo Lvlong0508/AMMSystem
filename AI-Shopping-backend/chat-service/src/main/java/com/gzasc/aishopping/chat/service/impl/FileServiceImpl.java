@@ -19,11 +19,6 @@ public class FileServiceImpl implements FileService {
 
     @Override
     public List<String> save(List<MultipartFile> files) {
-        try {
-            // 重命名
-        }catch (FileException e){
-            log.error("文件重命名发生错误："+e.getMessage());
-        }
         List<String> failedFiles = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
@@ -47,9 +42,5 @@ public class FileServiceImpl implements FileService {
         } catch (FileException e) {
             log.error("补偿删除失败：" + e.getMessage());
         }
-    }
-
-    private void rag(List<String> filePaths) {
-        log.info("执行rag:"+filePaths.toString());
     }
 }
