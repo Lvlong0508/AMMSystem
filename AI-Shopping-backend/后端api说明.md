@@ -276,6 +276,43 @@
 
 ---
 
+---
+
+## Knowledge File Service（商家知识库文件管理）
+
+- **端口**：`8085`
+- **Gateway 路径前缀**：`/api/seller/knowledge` → `chat-service`（重写为 `/file`）
+- **Header**：自动通过 Sa-Token 鉴权（需 MERCHANT 角色）
+
+| 方法 | 路径 | 作用 | 请求体/参数 |
+|------|------|------|-------------|
+| POST | `/api/seller/knowledge/upload` | 上传文件至知识库 | `files: MultipartFile[]`（支持多文件） |
+| POST | `/api/seller/knowledge/list/upload` | 获取 upload 目录文件名列表 | - |
+| POST | `/api/seller/knowledge/list/finish` | 获取 finish 目录文件名列表 | - |
+| POST | `/api/seller/knowledge/delete/upload` | 删除 upload 目录文件 | `["fileName1.txt","fileName2.txt"]` |
+| POST | `/api/seller/knowledge/delete/finish` | 删除 finish 目录文件 | `["fileName1.txt","fileName2.txt"]` |
+| POST | `/api/seller/knowledge/ingest` | 导入文件至向量库并移至 finish | `["fileName1.txt","fileName2.txt"]` |
+
+### 上传响应示例
+
+```json
+{"code":200,"message":"上传成功"}
+```
+
+### ingest 响应示例（全部成功）
+
+```json
+{"code":200,"message":"成功","data":[]}
+```
+
+### ingest 响应示例（部分失败）
+
+```json
+{"code":200,"message":"导入完成，部分文件失败","data":[{"a.txt":"文件不存在"}]}
+```
+
+---
+
 # Gateway 路由配置
 
 - **端口**：`8088`
@@ -295,4 +332,5 @@
 | seller-logistics | `/api/seller/logistics/**` | `logistics-service` | 重写为 `/logistics/**` |
 | seller-chat | `/api/seller/chat/**` | `chat-service` | 重写为 `/chat/**` |
 | seller-shop | `/api/seller/shop/**` | `shop-service` | 透传 |
+| seller-knowledge | `/api/seller/knowledge/**` | `chat-service` | 重写为 `/file/**` |
 | user-shop | `/api/user/shop/**` | `shop-service` | 透传 |

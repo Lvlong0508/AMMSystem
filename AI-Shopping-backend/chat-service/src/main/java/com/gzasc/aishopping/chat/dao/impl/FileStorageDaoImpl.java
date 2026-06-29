@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,12 +26,21 @@ public class FileStorageDaoImpl implements FileStorageDao {
     @Value("${app.file.finish}")
     private String finishPath;
 
+    private Path uploadDir;
+    private Path finishDir;
+
+    @PostConstruct
+    public void init() {
+        this.uploadDir = Path.of(storagePath).toAbsolutePath().normalize();
+        this.finishDir = Path.of(finishPath).toAbsolutePath().normalize();
+    }
+
     private Path getStoragePath() {
-        return Path.of(storagePath);
+        return uploadDir;
     }
 
     private Path getFinishPath() {
-        return Path.of(finishPath);
+        return finishDir;
     }
 
     @Override

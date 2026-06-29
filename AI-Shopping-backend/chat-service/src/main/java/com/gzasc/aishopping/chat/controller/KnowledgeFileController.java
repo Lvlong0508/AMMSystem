@@ -43,7 +43,10 @@ public class KnowledgeFileController {
         if (failedFiles.isEmpty()) {
             return ApiResponse.success("上传成功");
         }
-        return ApiResponse.success("上传完成，部分文件失败：" + String.join(", ", failedFiles));
+        if (failedFiles.size() == files.size()) {
+            return ApiResponse.error("全部文件上传失败：" + String.join(", ", failedFiles));
+        }
+        return ApiResponse.success("部分文件上传失败：" + String.join(", ", failedFiles));
     }
 
     // 删除 upload 目录文件

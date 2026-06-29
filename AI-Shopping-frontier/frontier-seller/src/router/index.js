@@ -12,6 +12,7 @@ import ShopAddresses from '../views/ShopAddresses/ShopAddresses.vue'
 import ShopReturns from '../views/ReturnManagement/ReturnManagement.vue'
 import ShopInfo from '../views/ShopInfo/ShopInfo.vue'
 import Dashboard from '../views/Dashboard/Dashboard.vue'
+import KnowledgeBase from '../views/KnowledgeBase/KnowledgeBase.vue'
 
 const routes = [
   {
@@ -61,6 +62,11 @@ const routes = [
         path: 'shop/:shopId/info',
         name: 'shop-info',
         component: ShopInfo
+      },
+      {
+        path: 'shop/:shopId/knowledge',
+        name: 'shop-knowledge',
+        component: KnowledgeBase
       }
     ]
   }

@@ -25,3 +25,13 @@ export { createProduct, updateProduct, deleteProduct, getProductById, batchGetPr
 
 // Shop
 export { getMyShop, createShop, getShopDetail, updateShop, closeShop, openShop } from './shop'
+
+// Knowledge
+export {
+  uploadKnowledgeFiles,
+  listUploadFiles,
+  listFinishFiles,
+  deleteUploadFiles,
+  deleteFinishFiles,
+  ingestFiles
+} from './knowledge'
