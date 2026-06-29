@@ -92,7 +92,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("test.txt", "Hello. This is a test document for RAG ingestion.");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.input(List.of("test.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("test.txt"));
 
         assertTrue(result.isEmpty());
         verify(fileService).move("test.txt");
@@ -108,7 +108,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("c.txt", "Content C");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.input(List.of("a.txt", "b.txt", "c.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("a.txt", "b.txt", "c.txt"));
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, times(3)).embedAll(anyList());
@@ -118,7 +118,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("文件不存在 - 不调用 fileService.move()")
     void input_fileNotFound() {
-        List<Map<String, String>> result = embeddingService.input(List.of("not-exist.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("not-exist.txt"));
 
         assertEquals(1, result.size());
         assertEquals("not-exist.txt", result.get(0).get("fileName"));
@@ -132,7 +132,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("good.txt", "Good content.");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.input(List.of("good.txt", "bad.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("good.txt", "bad.txt"));
 
         assertEquals(1, result.size());
         assertEquals("bad.txt", result.get(0).get("fileName"));
@@ -143,7 +143,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("空列表 - 返回空列表")
     void input_emptyList() {
-        List<Map<String, String>> result = embeddingService.input(List.of());
+        List<Map<String, String>> result = embeddingService.ingest(List.of());
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, never()).embedAll(anyList());
@@ -153,7 +153,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("null 列表 - 抛 NullPointerException")
     void input_null() {
-        assertThrows(NullPointerException.class, () -> embeddingService.input(null));
+        assertThrows(NullPointerException.class, () -> embeddingService.ingest(null));
     }
 
     @Test
@@ -162,7 +162,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("mydoc.txt", "Metadata test content.");
         mockEmbedding();
 
-        embeddingService.input(List.of("mydoc.txt"));
+        embeddingService.ingest(List.of("mydoc.txt"));
 
         verify(embeddingStore).addAll(anyList(), segmentsCaptor.capture());
         List<TextSegment> segments = segmentsCaptor.getValue();
@@ -179,7 +179,7 @@ class EmbeddingServiceImplTest {
     void input_docxFile() throws IOException {
         createDocxFile("report.docx");
 
-        List<Map<String, String>> result = embeddingService.input(List.of("report.docx"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("report.docx"));
 
         assertEquals(1, result.size());
         assertEquals("report.docx", result.get(0).get("fileName"));
@@ -190,7 +190,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("文件不存在 - 错误信息为'文件不存在'")
     void input_notExistMessage() {
-        List<Map<String, String>> result = embeddingService.input(List.of("unknown.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("unknown.txt"));
 
         assertEquals("unknown.txt", result.get(0).get("fileName"));
         assertEquals("文件不存在", result.get(0).get("error"));

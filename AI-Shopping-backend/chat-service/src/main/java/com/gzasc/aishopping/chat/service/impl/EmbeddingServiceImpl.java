@@ -60,7 +60,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
      * @return 失败列表[{fileName, error}]，空列表表示全部成功
      */
     @Override
-    public List<Map<String, String>> input(List<String> fileNames) {
+    public List<Map<String, String>> ingest(List<String> fileNames) {
         if (fileNames == null) {
             throw new NullPointerException("fileNames must not be null");
         }
