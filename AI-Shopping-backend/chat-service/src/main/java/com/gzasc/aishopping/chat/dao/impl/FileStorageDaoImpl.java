@@ -44,7 +44,7 @@ public class FileStorageDaoImpl implements FileStorageDao {
     }
 
     @Override
-    public String storeFile(MultipartFile file) {
+    public String storeFile(MultipartFile file, Long userId) {
         try {
             String originalName = file.getOriginalFilename();
             String storageName = resolveConflict(originalName);
@@ -53,8 +53,10 @@ public class FileStorageDaoImpl implements FileStorageDao {
             Files.createDirectories(targetDir);
             file.transferTo(targetDir.resolve(storageName).toFile());
 
-            String line = String.format("%s|%s|%s%n",
-                    storageName, originalName, LocalDateTime.now().toString());
+            String line = String.format("%s|%s|%s|%s%n",
+                    storageName, originalName,
+                    userId != null ? userId.toString() : "",
+                    LocalDateTime.now().toString());
             Files.writeString(targetDir.resolve("index.txt"), line,
                     StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
 
@@ -89,8 +91,8 @@ public class FileStorageDaoImpl implements FileStorageDao {
                     .collect(Collectors.toList());
             writeIndex(getStoragePath(), remaining);
 
-            String line = String.format("%s|%s|%s%n",
-                    target[0], target[1], LocalDateTime.now().toString());
+            String line = String.format("%s|%s|%s|%s%n",
+                    target[0], target[1], target[2], LocalDateTime.now().toString());
             Files.writeString(targetDir.resolve("index.txt"), line,
                     StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
@@ -151,7 +153,14 @@ public class FileStorageDaoImpl implements FileStorageDao {
             return new ArrayList<>();
         }
         return Files.readAllLines(indexFile, StandardCharsets.UTF_8).stream()
-                .map(line -> line.split("\\|", 3))
+                .map(line -> {
+                    String[] parts = line.split("\\|", 4);
+                    if (parts.length == 3) {
+                        // 旧格式 name|orig|time → 补空 userId
+                        return new String[]{parts[0], parts[1], "", parts[2]};
+                    }
+                    return parts;
+                })
                 .collect(Collectors.toList());
     }
 

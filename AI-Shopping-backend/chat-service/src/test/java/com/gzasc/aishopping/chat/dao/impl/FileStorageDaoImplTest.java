@@ -35,6 +35,7 @@ class FileStorageDaoImplTest {
         dao = new FileStorageDaoImpl();
         ReflectionTestUtils.setField(dao, "storagePath", uploadDir.toString());
         ReflectionTestUtils.setField(dao, "finishPath", finishDir.toString());
+        dao.init();
     }
 
     @AfterEach
@@ -60,7 +61,7 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("存储文件 - 写入文件并记录索引")
     void storeFile_createsFileAndIndex() {
-        dao.storeFile(file("report.txt", "hello"));
+        dao.storeFile(file("report.txt", "hello"), 1L);
 
         assertTrue(Files.exists(uploadDir.resolve("report.txt")));
         assertTrue(Files.exists(uploadDir.resolve("index.txt")));
@@ -72,9 +73,9 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("存储文件 - 同名文件自动追加 (1) (2) 冲突后缀")
     void storeFile_conflictAppendsNumber() {
-        dao.storeFile(file("report.txt", "first"));
-        dao.storeFile(file("report.txt", "second"));
-        dao.storeFile(file("report.txt", "third"));
+        dao.storeFile(file("report.txt", "first"), 1L);
+        dao.storeFile(file("report.txt", "second"), 1L);
+        dao.storeFile(file("report.txt", "third"), 1L);
 
         assertTrue(Files.exists(uploadDir.resolve("report.txt")));
         assertTrue(Files.exists(uploadDir.resolve("report (1).txt")));
@@ -85,8 +86,8 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("存储文件 - 无扩展名文件冲突处理")
     void storeFile_conflictNoExtension() {
-        dao.storeFile(file("README", "first"));
-        dao.storeFile(file("README", "second"));
+        dao.storeFile(file("README", "first"), 1L);
+        dao.storeFile(file("README", "second"), 1L);
 
         assertTrue(Files.exists(uploadDir.resolve("README")));
         assertTrue(Files.exists(uploadDir.resolve("README (1)")));
@@ -95,7 +96,7 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("移动文件 - 从 upload 移到 finish，索引同步")
     void moveFile_movesFileAndUpdatesIndex() {
-        dao.storeFile(file("doc.txt", "content"));
+        dao.storeFile(file("doc.txt", "content"), 1L);
         dao.moveFile("doc.txt");
 
         assertFalse(Files.exists(uploadDir.resolve("doc.txt")));
@@ -115,8 +116,8 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("删除 upload 文件 - 删文件并清理索引")
     void deleteFileFromUpload_removesFileAndIndex() {
-        dao.storeFile(file("a.txt", "1"));
-        dao.storeFile(file("b.txt", "2"));
+        dao.storeFile(file("a.txt", "1"), 1L);
+        dao.storeFile(file("b.txt", "2"), 1L);
         dao.deleteFileFromUpload(List.of("a.txt"));
 
         assertFalse(Files.exists(uploadDir.resolve("a.txt")));
@@ -127,7 +128,7 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("删除 finish 文件 - 删文件并清理索引")
     void deleteFileFromFinish_removesFileAndIndex() {
-        dao.storeFile(file("doc.txt", "content"));
+        dao.storeFile(file("doc.txt", "content"), 1L);
         dao.moveFile("doc.txt");
         dao.deleteFileFromFinish(List.of("doc.txt"));
 
@@ -144,9 +145,30 @@ class FileStorageDaoImplTest {
     @Test
     @DisplayName("文件存储 - 写入内容与读取一致")
     void storeFile_contentMatches() throws IOException {
-        dao.storeFile(file("data.txt", "hello world"));
+        dao.storeFile(file("data.txt", "hello world"), 1L);
 
         String actual = Files.readString(uploadDir.resolve("data.txt"), StandardCharsets.UTF_8);
         assertEquals("hello world", actual);
+    }
+
+    @Test
+    @DisplayName("存储文件 - userId 写入索引文件")
+    void storeFile_recordsUserIdInIndex() throws IOException {
+        dao.storeFile(file("user.txt", "data"), 42L);
+
+        String indexContent = Files.readString(uploadDir.resolve("index.txt"), StandardCharsets.UTF_8);
+        String[] parts = indexContent.trim().split("\\|");
+        assertEquals("user.txt", parts[0]);
+        assertEquals("user.txt", parts[1]);
+        assertEquals("42", parts[2]);
+
+        // 验证空 userId
+        dao.storeFile(file("anon.txt", "data"), null);
+        indexContent = Files.readString(uploadDir.resolve("index.txt"), StandardCharsets.UTF_8);
+        String[] lines = indexContent.trim().split("\n");
+        parts = lines[1].split("\\|");
+        assertEquals("anon.txt", parts[0]);
+        assertEquals("anon.txt", parts[1]);
+        assertEquals("", parts[2]);
     }
 }

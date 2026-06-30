@@ -15,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Map;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -42,10 +43,11 @@ class KnowledgeFileControllerTest {
     @Test
     @DisplayName("上传全部成功 - 返回上传成功")
     void upload_allSuccess() throws Exception {
-        when(fileService.save(anyList())).thenReturn(List.of());
+        when(fileService.save(anyList(), any())).thenReturn(List.of());
 
         mockMvc.perform(multipart("/file/upload")
-                        .file(new MockMultipartFile("files", "a.txt", "text/plain", "content".getBytes())))
+                        .file(new MockMultipartFile("files", "a.txt", "text/plain", "content".getBytes()))
+                        .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("操作成功"))
@@ -55,15 +57,16 @@ class KnowledgeFileControllerTest {
     @Test
     @DisplayName("上传部分失败 - 返回失败文件名")
     void upload_someFail() throws Exception {
-        when(fileService.save(anyList())).thenReturn(List.of("b.txt"));
+        when(fileService.save(anyList(), any())).thenReturn(List.of("b.txt"));
 
         mockMvc.perform(multipart("/file/upload")
                         .file(new MockMultipartFile("files", "a.txt", "text/plain", "content".getBytes()))
-                        .file(new MockMultipartFile("files", "b.txt", "text/plain", "content".getBytes())))
+                        .file(new MockMultipartFile("files", "b.txt", "text/plain", "content".getBytes()))
+                        .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("操作成功"))
-                .andExpect(jsonPath("$.data").value("上传完成，部分文件失败：b.txt"));
+                .andExpect(jsonPath("$.data").value("部分文件上传失败：b.txt"));
     }
 
     @Test
@@ -130,7 +133,8 @@ class KnowledgeFileControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"a.txt\", \"b.txt\"]"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(jsonPath("$.message").value("部分文件导入失败"))
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data[0].fileName").value("b.txt"))
                 .andExpect(jsonPath("$.data[0].error").value("文件不存在"));

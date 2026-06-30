@@ -59,11 +59,11 @@ public class FileServiceImpl implements FileService {
      * @return 失败的文件原始名列表，空表示全部成功
      */
     @Override
-    public List<String> save(List<MultipartFile> files) {
+    public List<String> save(List<MultipartFile> files, Long userId) {
         List<String> failedFiles = new ArrayList<>();
         for (MultipartFile file : files) {
             try {
-                fileStorageDao.storeFile(file);
+                fileStorageDao.storeFile(file, userId);
             } catch (FileException e) {
                 log.error("文件存储失败：{}", e.getMessage());
                 failedFiles.add(file.getOriginalFilename());

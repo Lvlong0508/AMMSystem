@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +28,9 @@ public class KnowledgeFileController {
 
     // 上传文件
     @PostMapping("/upload")
-    public ApiResponse<String> storageFile(@RequestParam("files") List<MultipartFile> files) {
+    public ApiResponse<String> storageFile(
+            @RequestParam("files") List<MultipartFile> files,
+            @RequestHeader("X-User-Id") Long userId) {
         // 1. 前置空值校验，避免 NPE 和无效调用
         if (files == null || files.isEmpty()) {
             return ApiResponse.error("请至少选择一个文件");
@@ -39,7 +42,7 @@ public class KnowledgeFileController {
             return ApiResponse.error("存在文件格式不支持，仅支持：" + FileTypeUtil.SUPPORTED_EXTENSIONS_DISPLAY);
         }
 
-        List<String> failedFiles = fileService.save(files);
+        List<String> failedFiles = fileService.save(files, userId);
         if (failedFiles.isEmpty()) {
             return ApiResponse.success("上传成功");
         }

@@ -6,7 +6,7 @@ import java.util.List;
 public interface FileStorageDao {
 
     // 文件存储本地upload，返回实际存储的文件名
-    String storeFile(MultipartFile file);
+    String storeFile(MultipartFile file, Long userId);
 
     // 文件移动到本地finish
     void moveFile(String fileName);

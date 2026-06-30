@@ -9,7 +9,7 @@ public interface FileService {
      * 存储文件到 upload 目录，返回实际存储的文件名列表
      * <p>返回空列表表示全部成功，否则返回失败的文件原始名列表</p>
      */
-    List<String> save(List<MultipartFile> files);
+    List<String> save(List<MultipartFile> files, Long userId);
 
     /**
      * 从 upload 目录删除指定文件

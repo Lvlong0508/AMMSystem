@@ -40,47 +40,47 @@ class FileServiceImplTest {
     @Test
     @DisplayName("保存全部成功 - 返回空列表")
     void save_allSuccess_returnsEmptyList() {
-        when(fileStorageDao.storeFile(any())).thenReturn("a.txt");
+        when(fileStorageDao.storeFile(any(), any())).thenReturn("a.txt");
 
-        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")));
+        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")), 1L);
 
         assertTrue(result.isEmpty());
-        verify(fileStorageDao, times(2)).storeFile(any());
+        verify(fileStorageDao, times(2)).storeFile(any(), any());
     }
 
     @Test
     @DisplayName("部分文件失败 - 返回失败文件名列表")
     void save_oneFails_returnsFailedFileNames() {
-        when(fileStorageDao.storeFile(any()))
+        when(fileStorageDao.storeFile(any(), any()))
                 .thenReturn("a.txt")
                 .thenThrow(new FileException("存储失败"));
 
-        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")));
+        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")), 1L);
 
         assertEquals(List.of("b.txt"), result);
-        verify(fileStorageDao, times(2)).storeFile(any());
+        verify(fileStorageDao, times(2)).storeFile(any(), any());
     }
 
     @Test
     @DisplayName("全部失败 - 返回全部文件名")
     void save_allFail_returnsAllNames() {
-        when(fileStorageDao.storeFile(any()))
+        when(fileStorageDao.storeFile(any(), any()))
                 .thenThrow(new FileException("存储失败"))
                 .thenThrow(new FileException("存储失败"));
 
-        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")));
+        List<String> result = fileService.save(List.of(file("a.txt"), file("b.txt")), 1L);
 
         assertEquals(List.of("a.txt", "b.txt"), result);
-        verify(fileStorageDao, times(2)).storeFile(any());
+        verify(fileStorageDao, times(2)).storeFile(any(), any());
     }
 
     @Test
     @DisplayName("空文件列表 - 返回空列表")
     void save_emptyList_returnsEmptyList() {
-        List<String> result = fileService.save(List.of());
+        List<String> result = fileService.save(List.of(), 1L);
 
         assertTrue(result.isEmpty());
-        verify(fileStorageDao, never()).storeFile(any());
+        verify(fileStorageDao, never()).storeFile(any(), any());
     }
 
     @Test
