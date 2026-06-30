@@ -13,6 +13,7 @@ import ShopReturns from '../views/ReturnManagement/ReturnManagement.vue'
 import ShopInfo from '../views/ShopInfo/ShopInfo.vue'
 import Dashboard from '../views/Dashboard/Dashboard.vue'
 import KnowledgeBase from '../views/KnowledgeBase/KnowledgeBase.vue'
+import VectorManager from '../views/VectorManager/VectorManager.vue'
 
 const routes = [
   {
@@ -65,8 +66,19 @@ const routes = [
       },
       {
         path: 'shop/:shopId/knowledge',
-        name: 'shop-knowledge',
-        component: KnowledgeBase
+        redirect: to => `/shop/${to.params.shopId}/knowledge/files`,
+        children: [
+          {
+            path: 'files',
+            name: 'shop-knowledge-files',
+            component: KnowledgeBase
+          },
+          {
+            path: 'vector',
+            name: 'shop-knowledge-vector',
+            component: VectorManager
+          }
+        ]
       }
     ]
   }
