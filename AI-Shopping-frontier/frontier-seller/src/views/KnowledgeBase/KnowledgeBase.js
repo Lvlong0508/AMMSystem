@@ -26,6 +26,23 @@ export function useKnowledgeBase() {
     activeTab.value === 'upload' ? uploadFiles : finishFiles
   )
 
+  const currentFileList = computed(() =>
+    activeTab.value === 'upload' ? uploadFiles.value : finishFiles.value
+  )
+
+  const isAllSelected = computed(() =>
+    currentFileList.value.length > 0 &&
+    currentFileList.value.every(f => selectedFiles.value.includes(f))
+  )
+
+  function toggleSelectAll() {
+    if (isAllSelected.value) {
+      selectedFiles.value = []
+    } else {
+      selectedFiles.value = [...currentFileList.value]
+    }
+  }
+
   async function loadUploadFiles() {
     try {
       const res = await listUploadFiles()
@@ -100,12 +117,15 @@ export function useKnowledgeBase() {
   }
 
   async function importSingle(fileName) {
+    loading.value = true
     try {
       await ingestFiles([fileName])
       ElMessage.success(T.IMPORT_SUCCESS)
       await refresh()
     } catch {
       ElMessage.error(T.IMPORT_FAILED)
+    } finally {
+      loading.value = false
     }
   }
 
@@ -114,6 +134,7 @@ export function useKnowledgeBase() {
       ElMessage.warning(T.SELECT_IMPORT_PROMPT)
       return
     }
+    loading.value = true
     try {
       await ingestFiles(selectedFiles.value)
       ElMessage.success(T.IMPORT_SUCCESS)
@@ -122,6 +143,8 @@ export function useKnowledgeBase() {
       await refresh()
     } catch {
       ElMessage.error(T.IMPORT_FAILED)
+    } finally {
+      loading.value = false
     }
   }
 
@@ -175,6 +198,9 @@ export function useKnowledgeBase() {
     uploadFiles,
     finishFiles,
     currentList,
+    currentFileList,
+    isAllSelected,
+    toggleSelectAll,
     batchMode,
     selectedFiles,
     uploadDialogVisible,

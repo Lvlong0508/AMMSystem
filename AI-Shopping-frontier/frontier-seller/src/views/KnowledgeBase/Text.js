@@ -10,6 +10,8 @@ export const BTN_BATCH = '批量操作'
 export const BTN_CANCEL_BATCH = '取消批量'
 export const BTN_IMPORT_SELECTED = '导入选中'
 export const BTN_DELETE_SELECTED = '删除选中'
+export const BTN_SELECT_ALL = '全选'
+export const BTN_DESELECT_ALL = '取消全选'
 export const BTN_REFRESH = '刷新'
 
 // 行操作

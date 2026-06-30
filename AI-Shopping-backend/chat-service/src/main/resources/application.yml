@@ -29,6 +29,8 @@ chat:
 
 chroma:
   base-url: http://localhost:8000
+  tenant: ai
+  database: ai
   collection-name: ai_shopping
 
 app:

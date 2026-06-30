@@ -17,6 +17,9 @@
             <el-button @click="toggleBatch">
               {{ T.BTN_CANCEL_BATCH }}
             </el-button>
+            <el-button @click="toggleSelectAll" :disabled="currentFileList.length === 0">
+              {{ isAllSelected ? T.BTN_DESELECT_ALL : T.BTN_SELECT_ALL }}
+            </el-button>
             <el-button type="primary" :disabled="selectedFiles.length === 0" @click="importSelected">
               {{ T.BTN_IMPORT_SELECTED }}
             </el-button>
@@ -33,6 +36,7 @@
             <el-checkbox
               v-if="batchMode"
               class="knowledge-base__file-checkbox"
+              :model-value="selectedFiles.includes(file)"
               @change="(val) => val ? selectedFiles.push(file) : (selectedFiles = selectedFiles.filter(f => f !== file))"
             />
             <div class="knowledge-base__file-icon">
@@ -63,6 +67,9 @@
             <el-button @click="toggleBatch">
               {{ T.BTN_CANCEL_BATCH }}
             </el-button>
+            <el-button @click="toggleSelectAll" :disabled="currentFileList.length === 0">
+              {{ isAllSelected ? T.BTN_DESELECT_ALL : T.BTN_SELECT_ALL }}
+            </el-button>
             <el-button type="danger" :disabled="selectedFiles.length === 0" @click="deleteSelected">
               {{ T.BTN_DELETE_SELECTED }}
             </el-button>
@@ -76,6 +83,7 @@
             <el-checkbox
               v-if="batchMode"
               class="knowledge-base__file-checkbox"
+              :model-value="selectedFiles.includes(file)"
               @change="(val) => val ? selectedFiles.push(file) : (selectedFiles = selectedFiles.filter(f => f !== file))"
             />
             <div class="knowledge-base__file-icon">
@@ -155,6 +163,7 @@ const {
   batchMode, selectedFiles, uploadingFiles,
   uploadDialogVisible, uploading,
   refresh, toggleBatch,
+  currentFileList, isAllSelected, toggleSelectAll,
   uploadRef, onUploadFileChange, removeFile, removeAll, onDialogClose,
   confirmUpload,
   importSingle, importSelected,
