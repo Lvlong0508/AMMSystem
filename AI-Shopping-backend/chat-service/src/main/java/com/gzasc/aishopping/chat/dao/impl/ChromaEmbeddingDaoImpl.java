@@ -327,7 +327,7 @@ public class ChromaEmbeddingDaoImpl implements ChromaEmbeddingDao {
             body.put("ids", ids);
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            restTemplate.exchange(url, HttpMethod.POST, request, Map.class);
+            restTemplate.postForObject(url, request, String.class);
 
             return ids;
         } catch (Exception e) {

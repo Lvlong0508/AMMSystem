@@ -43,4 +43,12 @@ public class ApiResponse<T> implements Serializable {
         resp.setMessage(message);
         return resp;
     }
+
+    public static <T> ApiResponse<T> error(String message, T data) {
+        ApiResponse<T> resp = new ApiResponse<T>();
+        resp.setCode(500);
+        resp.setMessage(message);
+        resp.setData(data);
+        return resp;
+    }
 }

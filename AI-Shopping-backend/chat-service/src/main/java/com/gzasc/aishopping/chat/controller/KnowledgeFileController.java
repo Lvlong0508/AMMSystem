@@ -91,6 +91,6 @@ public class KnowledgeFileController {
         if (failed.isEmpty()) {
             return ApiResponse.success(failed);
         }
-        return ApiResponse.success("导入完成，部分文件失败", failed);
+        return ApiResponse.error("部分文件导入失败", failed);
     }
 }
