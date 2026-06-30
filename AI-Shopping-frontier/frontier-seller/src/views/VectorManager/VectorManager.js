@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getVectorCollections,
@@ -20,6 +20,13 @@ export function useVectorManager() {
   })
   const recentDocs = ref([])
   const documents = ref([])
+  const batchMode = ref(false)
+  const selectedFiles = ref([])
+
+  const isAllSelected = computed(() => {
+    return documents.value.length > 0 && selectedFiles.value.length === documents.value.length
+  })
+
   const searchQuery = ref('')
   const topK = ref(5)
   const searchResults = ref(null)
@@ -88,6 +95,37 @@ export function useVectorManager() {
     }
   }
 
+  function toggleBatch() {
+    batchMode.value = !batchMode.value
+    if (!batchMode.value) {
+      selectedFiles.value = []
+    }
+  }
+
+  function toggleSelectAll() {
+    if (isAllSelected.value) {
+      selectedFiles.value = []
+    } else {
+      selectedFiles.value = documents.value.map(d => d.fileName)
+    }
+  }
+
+  async function batchDeleteSelected() {
+    if (selectedFiles.value.length === 0) return
+    try {
+      await ElMessageBox.confirm(T.BATCH_CONFIRM_TEXT, T.BATCH_CONFIRM_TITLE)
+      const res = await deleteVectorDocuments(selectedFiles.value)
+      if (res?.code === 200) {
+        ElMessage.success(T.BATCH_DELETE_SUCCESS)
+        selectedFiles.value = []
+        batchMode.value = false
+        await refresh()
+      }
+    } catch {
+      // cancelled or error
+    }
+  }
+
   function goToLibrary() {
     activeTab.value = 'library'
   }
@@ -99,6 +137,8 @@ export function useVectorManager() {
   return {
     loading, activeTab, stats, recentDocs,
     documents, searchQuery, topK, searchResults, isSearching,
-    refresh, handleSearch, clearSearch, deleteDocument, goToLibrary
+    refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
+    batchMode, selectedFiles, isAllSelected,
+    toggleBatch, toggleSelectAll, batchDeleteSelected
   }
 }

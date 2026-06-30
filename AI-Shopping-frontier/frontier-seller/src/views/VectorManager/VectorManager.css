@@ -141,6 +141,10 @@
   border-bottom: none;
 }
 
+.vector-manager__doc-checkbox {
+  margin-right: 4px;
+}
+
 .vector-manager__doc-row:hover {
   background: #fafbff;
 }

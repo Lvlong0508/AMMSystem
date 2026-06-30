@@ -77,10 +77,28 @@
         <div v-else>
           <div class="vector-manager__toolbar">
             <span class="vector-manager__toolbar-title">{{ T.ALL_DOCUMENTS }}（{{ documents.length }}）</span>
+            <template v-if="!batchMode">
+              <el-button size="small" @click="toggleBatch">{{ T.BTN_BATCH }}</el-button>
+            </template>
+            <template v-else>
+              <el-button size="small" @click="toggleBatch">{{ T.BTN_CANCEL_BATCH }}</el-button>
+              <el-button size="small" :disabled="documents.length === 0" @click="toggleSelectAll">
+                {{ isAllSelected ? T.BTN_DESELECT_ALL : T.BTN_SELECT_ALL }}
+              </el-button>
+              <el-button size="small" type="danger" :disabled="selectedFiles.length === 0" @click="batchDeleteSelected">
+                {{ T.BTN_DELETE_SELECTED }}
+              </el-button>
+            </template>
             <el-button size="small" @click="refresh">{{ T.BTN_REFRESH }}</el-button>
           </div>
           <div v-if="documents.length > 0" class="vector-manager__doc-list">
             <div v-for="(doc, idx) in documents" :key="idx" class="vector-manager__doc-row">
+              <el-checkbox
+                v-if="batchMode"
+                class="vector-manager__doc-checkbox"
+                :model-value="selectedFiles.includes(doc.fileName)"
+                @change="(val) => val ? selectedFiles.push(doc.fileName) : (selectedFiles = selectedFiles.filter(f => f !== doc.fileName))"
+              />
               <div class="vector-manager__doc-icon">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4361ee" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
               </div>
@@ -104,7 +122,9 @@ import * as T from './Text.js'
 const {
   loading, activeTab, stats, recentDocs,
   documents, searchQuery, topK, searchResults, isSearching,
-  refresh, handleSearch, clearSearch, deleteDocument, goToLibrary
+  refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
+  batchMode, selectedFiles, isAllSelected,
+  toggleBatch, toggleSelectAll, batchDeleteSelected
 } = useVectorManager()
 </script>
 
