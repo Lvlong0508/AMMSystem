@@ -129,7 +129,7 @@ AI-Shopping
 │   └── frontier-seller
 ├── deploy                   Docker 部署文件（docker-compose、Dockerfile、nginx 配置等）
 ├── frontend-dist            前端构建产物，供 Docker volume 挂载
-├── jar                     后端各模块打包后的 JAR（含 Sentinel Dashboard 1.8.10）
+├── jar                     后端各模块打包后的 JAR（含 Sentinel Dashboard 1.8.10，建议自行 `mvn package` 以获得最新版本）
 ├── 前端代码规格说明.md
 ├── 后端代码规格说明.md
 └── pom.xml
