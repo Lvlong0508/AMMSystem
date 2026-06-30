@@ -40,10 +40,21 @@
           </div>
         </div>
 
-        <router-link :to="`/shop/${shop.currentShopId}/knowledge`" class="sidebar__item" :class="{ 'sidebar__item--active': route.path.includes('/knowledge') }">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M12 6v7"/><path d="M9 9h6"/></svg>
-          <span v-show="!app.sidebarCollapsed">知识库管理</span>
-        </router-link>
+        <div class="sidebar__group">
+          <div class="sidebar__group-title" :class="{ 'sidebar__group-title--expanded': expandedGroups.has('knowledge') }" @click="toggleGroup('knowledge')" v-show="!app.sidebarCollapsed">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M12 6v7"/><path d="M9 9h6"/></svg>
+            <span>知识库</span>
+            <svg class="sidebar__arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div class="sidebar__sub-items" v-show="expandedGroups.has('knowledge') && !app.sidebarCollapsed">
+            <router-link :to="`/shop/${shop.currentShopId}/knowledge/files`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/knowledge/files') }">
+              <span>📁 文件管理</span>
+            </router-link>
+            <router-link :to="`/shop/${shop.currentShopId}/knowledge/vector`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/knowledge/vector') }">
+              <span>📊 知识库管理</span>
+            </router-link>
+          </div>
+        </div>
 
         <div class="sidebar__group">
           <div class="sidebar__group-title" :class="{ 'sidebar__group-title--expanded': expandedGroups.has('settings') }" @click="toggleGroup('settings')" v-show="!app.sidebarCollapsed">
@@ -90,6 +101,9 @@ watch(() => route.path, (path) => {
   }
   if (path.includes('/info') || path.includes('/addresses')) {
     expandedGroups.add('settings')
+  }
+  if (path.includes('/knowledge')) {
+    expandedGroups.add('knowledge')
   }
 })
 
