@@ -1,5 +1,7 @@
 package com.gzasc.aishopping.chat.service.impl;
 
+import com.gzasc.aishopping.chat.dao.ChromaAdminDao;
+import com.gzasc.aishopping.chat.dao.ChromaEmbeddingStorageDao;
 import com.gzasc.aishopping.chat.exception.RAGException;
 import com.gzasc.aishopping.chat.service.EmbeddingService;
 import com.gzasc.aishopping.chat.service.FileService;
@@ -9,8 +11,11 @@ import dev.langchain4j.data.document.loader.FileSystemDocumentLoader;
 import dev.langchain4j.data.document.parser.TextDocumentParser;
 import dev.langchain4j.data.document.parser.apache.poi.ApachePoiDocumentParser;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
+import dev.langchain4j.store.embedding.EmbeddingMatch;
+import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingStore;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import jakarta.annotation.PostConstruct;
@@ -22,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,17 +38,18 @@ public class EmbeddingServiceImpl implements EmbeddingService {
 
     private final EmbeddingModel embeddingModel;
     private final EmbeddingStore<TextSegment> embeddingStore;
+    private final ChromaEmbeddingStorageDao chromaStorageDao;
+    private final ChromaAdminDao chromaAdminDao;
     private final FileService fileService;
 
     @Value("${app.file.storage}")
     private String uploadDir;
 
-    // EmbeddingStoreIngestor 负责切分文档 + 生成 embedding + 写入向量库
     private EmbeddingStoreIngestor ingestor;
 
-    /** 初始化 Ingestor：embedding 模型、向量存储、递归切分器（每段 300 字符，重叠 30） */
     @PostConstruct
     public void init() {
+        // 初始化 Ingestor：embedding 模型、向量存储、递归切分器（每段 300 字符，重叠 30）
         this.ingestor = EmbeddingStoreIngestor.builder()
                 .embeddingModel(embeddingModel)
                 .embeddingStore(embeddingStore)
@@ -50,23 +57,13 @@ public class EmbeddingServiceImpl implements EmbeddingService {
                 .build();
     }
 
-    /**
-     * 遍历文件名列表，逐个执行 RAG 导入：
-     *   1) 检查文件是否存在
-     *   2) 解析文档 → 注入 source/file_path 元数据 → ingest 到向量库
-     *   3) 成功后异步将文件移至 finish 目录
-     *   4) 失败时记录错误继续下一个
-     *
-     * @return 失败列表[{fileName, error}]，空列表表示全部成功
-     */
     @Override
     public List<Map<String, String>> ingest(List<String> fileNames) {
         if (fileNames == null) {
             throw new NullPointerException("fileNames must not be null");
         }
-
+        // 遍历文件列表逐个处理，失败项记录后继续下一个
         List<Map<String, String>> failed = new ArrayList<>();
-
         for (String fileName : fileNames) {
             Path filePath = Path.of(uploadDir, fileName);
             if (!Files.exists(filePath)) {
@@ -76,6 +73,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
             }
             try {
                 processDocument(filePath);
+                // 处理成功后异步移至 finish 目录
                 fileService.move(fileName);
                 log.info("RAG 导入成功：{}", fileName);
             } catch (Exception e) {
@@ -88,27 +86,72 @@ public class EmbeddingServiceImpl implements EmbeddingService {
 
     @Override
     public float[] embed(String text) {
+        // 调用 embedding 模型生成文本向量
         return embeddingModel.embed(text).content().vector();
     }
 
-    /** 根据扩展名选择解析器（.txt → TextDocumentParser，其余 → ApachePoiDocumentParser），
-     *  注入 source/file_path 元数据，调用 ingest 写入向量库 */
+    @Override
+    public Map<String, Object> getCollectionStats() {
+        // 通过 HTTP 管理 DAO 获取集合元信息
+        long totalChunks = chromaAdminDao.count();
+        Map<String, Object> stats = new LinkedHashMap<>();
+        stats.put("totalChunks", totalChunks);
+        stats.put("totalDocs", chromaAdminDao.getDocuments().size());
+        return stats;
+    }
+
+    @Override
+    public List<Map<String, Object>> getDocuments() {
+        // 从 Chroma metadata 中按 source 字段聚合文档列表
+        return chromaAdminDao.getDocuments();
+    }
+
+    @Override
+    public List<Map<String, Object>> search(String query, int topK) {
+        // 先对查询文本向量化，再通过存储 DAO 执行近似搜索
+        float[] queryEmbedding = embeddingModel.embed(query).content().vector();
+        EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
+                .queryEmbedding(Embedding.from(queryEmbedding))
+                .maxResults(topK)
+                .minScore(0.0)
+                .build();
+        List<EmbeddingMatch<TextSegment>> matches = chromaStorageDao.search(request);
+        // 将匹配结果组装为前端需要的格式
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (EmbeddingMatch<TextSegment> match : matches) {
+            TextSegment segment = match.embedded();
+            Map<String, Object> item = new LinkedHashMap<>();
+            item.put("chunkId", match.embeddingId());
+            item.put("fileName", segment != null && segment.metadata() != null
+                    ? segment.metadata().getString("source") : "");
+            item.put("content", segment != null ? segment.text() : "");
+            item.put("score", match.score());
+            results.add(item);
+        }
+        return results;
+    }
+
+    @Override
+    public int deleteFromVector(String fileName) {
+        // 按 source 文件名删除 Chroma 中所有关联的文本段
+        return chromaAdminDao.deleteBySource(fileName);
+    }
+
     private void processDocument(Path path) {
         String fileName = path.getFileName().toString();
-
         try {
+            // 根据扩展名选择解析器（.txt 用纯文本，其余用 POI）
             Document document;
             if (fileName.toLowerCase().endsWith(".txt")) {
                 document = FileSystemDocumentLoader.loadDocument(path, new TextDocumentParser());
             } else {
                 document = FileSystemDocumentLoader.loadDocument(path, new ApachePoiDocumentParser());
             }
-
+            // 注入 source / file_path 元数据后写入向量库
             Metadata metadata = document.metadata().copy();
             metadata.put("source", fileName);
             metadata.put("file_path", path.toAbsolutePath().toString());
             Document enrichedDocument = Document.from(document.text(), metadata);
-
             ingestor.ingest(enrichedDocument);
         } catch (Exception e) {
             throw new RAGException("文档处理失败 [" + fileName + "]：" + e.getMessage(), e);

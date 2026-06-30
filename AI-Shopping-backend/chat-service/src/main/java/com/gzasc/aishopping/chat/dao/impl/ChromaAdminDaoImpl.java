@@ -1,31 +1,25 @@
-package com.gzasc.aishopping.chat.service;
+package com.gzasc.aishopping.chat.dao.impl;
 
-import com.gzasc.aishopping.chat.dao.ChromaEmbeddingStorageDao;
-import dev.langchain4j.data.embedding.Embedding;
-import dev.langchain4j.data.segment.TextSegment;
-import dev.langchain4j.store.embedding.EmbeddingMatch;
-import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
+import com.gzasc.aishopping.chat.dao.ChromaAdminDao;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
-@Service
+@Repository
 @RequiredArgsConstructor
-public class VectorAdminService {
+public class ChromaAdminDaoImpl implements ChromaAdminDao {
 
     private final RestTemplate restTemplate;
-    private final ChromaEmbeddingStorageDao chromaDao;
 
     @Value("${chroma.base-url}")
     private String chromaBaseUrl;
@@ -33,29 +27,19 @@ public class VectorAdminService {
     @Value("${chroma.collection-name}")
     private String collectionName;
 
-    /**
-     * 获取集合概览：通过 Chroma REST API 获取 count
-     */
-    public Map<String, Object> getCollectionStats() {
-        String url = chromaBaseUrl + "/api/v1/collections/" + collectionName + "/count";
-        Long count;
+    @Override
+    public long count() {
         try {
-            count = restTemplate.getForObject(url, Long.class);
+            String url = chromaBaseUrl + "/api/v1/collections/" + collectionName + "/count";
+            Long result = restTemplate.getForObject(url, Long.class);
+            return result != null ? result : 0L;
         } catch (Exception e) {
-            log.warn("调用 Chroma count API 失败, 返回 fallback: 0", e);
-            count = 0L;
+            log.warn("Chroma count 失败", e);
+            return 0L;
         }
-        Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("collectionName", collectionName);
-        stats.put("totalChunks", count != null ? count : 0L);
-        stats.put("totalDocs", 0);
-        stats.put("dimension", 1536);
-        return stats;
     }
 
-    /**
-     * 获取所有已导入文档列表（按 source 文件名分组）
-     */
+    @Override
     public List<Map<String, Object>> getDocuments() {
         try {
             String url = chromaBaseUrl + "/api/v1/collections/" + collectionName + "/get";
@@ -66,7 +50,7 @@ public class VectorAdminService {
             body.put("include", Collections.singletonList("metadatas"));
 
             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            var response = restTemplate.exchange(url, HttpMethod.POST, request,
+            var response = restTemplate.exchange(url, org.springframework.http.HttpMethod.POST, request,
                     new ParameterizedTypeReference<Map<String, Object>>() {}).getBody();
 
             if (response == null) return List.of();
@@ -84,66 +68,32 @@ public class VectorAdminService {
                 Map<String, Object> doc = new LinkedHashMap<>();
                 doc.put("fileName", entry.getKey());
                 doc.put("chunkCount", entry.getValue().size());
-                doc.put("importTime", "");
                 docs.add(doc);
             }
-
             docs.sort(Comparator.comparing(d -> (String) d.get("fileName")));
             return docs;
 
         } catch (Exception e) {
-            log.warn("获取 Chroma 文档列表失败", e);
+            log.warn("Chroma 获取文档列表失败", e);
             return List.of();
         }
     }
 
-    /**
-     * 向量搜索
-     */
-    public List<Map<String, Object>> search(float[] queryEmbedding, int topK) {
-        EmbeddingSearchRequest request = EmbeddingSearchRequest.builder()
-                .queryEmbedding(Embedding.from(queryEmbedding))
-                .maxResults(topK)
-                .minScore(0.0)
-                .build();
-
-        List<EmbeddingMatch<TextSegment>> matches = chromaDao.search(request);
-
-        List<Map<String, Object>> results = new ArrayList<>();
-        for (EmbeddingMatch<TextSegment> match : matches) {
-            TextSegment segment = match.embedded();
-            Map<String, Object> item = new LinkedHashMap<>();
-            item.put("chunkId", match.embeddingId());
-            item.put("fileName", segment != null && segment.metadata() != null
-                    ? segment.metadata().getString("source") : "");
-            item.put("content", segment != null ? segment.text() : "");
-            item.put("score", match.score());
-            results.add(item);
-        }
-        return results;
-    }
-
-    /**
-     * 根据 source 文件名删除向量库中所有相关记录
-     */
+    @Override
     public int deleteBySource(String fileName) {
-        if (fileName == null || fileName.isBlank()) {
-            log.warn("deleteBySource: fileName is null or blank, skipping");
-            return 0;
-        }
         try {
             String url = chromaBaseUrl + "/api/v1/collections/" + collectionName + "/delete";
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, Object> body = new HashMap<>();
             body.put("where", Map.of("source", fileName));
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
 
-            var deletedIds = restTemplate.exchange(url, HttpMethod.POST, request,
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            var deletedIds = restTemplate.exchange(url, org.springframework.http.HttpMethod.POST, request,
                     new ParameterizedTypeReference<List<String>>() {}).getBody();
             return deletedIds != null ? deletedIds.size() : 0;
         } catch (Exception e) {
-            log.warn("Chroma 按文件名删除失败: {}", fileName, e);
+            log.warn("Chroma 按文件名删除失败：{}", fileName, e);
             return 0;
         }
     }

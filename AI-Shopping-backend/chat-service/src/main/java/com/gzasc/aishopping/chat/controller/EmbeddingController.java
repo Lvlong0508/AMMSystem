@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.chat.controller;
 
 import com.gzasc.aishopping.chat.service.EmbeddingService;
-import com.gzasc.aishopping.chat.service.VectorAdminService;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,21 +11,20 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/file/vector")
+@RequestMapping("/embedding")
 @RequiredArgsConstructor
-public class VisualController {
+public class EmbeddingController {
 
-    private final VectorAdminService vectorAdminService;
     private final EmbeddingService embeddingService;
 
     @PostMapping("/collections")
     public ApiResponse<Map<String, Object>> getCollectionStats() {
-        return ApiResponse.success(vectorAdminService.getCollectionStats());
+        return ApiResponse.success(embeddingService.getCollectionStats());
     }
 
     @PostMapping("/documents")
     public ApiResponse<List<Map<String, Object>>> getDocuments() {
-        return ApiResponse.success(vectorAdminService.getDocuments());
+        return ApiResponse.success(embeddingService.getDocuments());
     }
 
     @PostMapping("/search")
@@ -36,8 +34,7 @@ public class VisualController {
             return ApiResponse.error("搜索关键词不能为空");
         }
         int topK = params.get("topK") instanceof Number n ? n.intValue() : 5;
-        float[] queryEmbedding = embeddingService.embed(query);
-        return ApiResponse.success(vectorAdminService.search(queryEmbedding, topK));
+        return ApiResponse.success(embeddingService.search(query, topK));
     }
 
     @PostMapping("/delete")
@@ -47,7 +44,7 @@ public class VisualController {
         }
         int total = 0;
         for (String fileName : fileNames) {
-            total += vectorAdminService.deleteBySource(fileName);
+            total += embeddingService.deleteFromVector(fileName);
         }
         return ApiResponse.success(Map.of("deleted", total));
     }
