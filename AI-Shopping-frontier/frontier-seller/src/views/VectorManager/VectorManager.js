@@ -1,0 +1,104 @@
+import { ref, onMounted } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  getVectorCollections,
+  getVectorDocuments,
+  searchVector,
+  deleteVectorDocuments
+} from '@/api/knowledge'
+import * as T from './Text.js'
+
+export function useVectorManager() {
+  const loading = ref(false)
+  const activeTab = ref('overview')
+
+  const stats = ref({
+    totalDocs: 0,
+    totalChunks: 0,
+    collectionName: '',
+    dimension: 0
+  })
+  const recentDocs = ref([])
+  const documents = ref([])
+  const searchQuery = ref('')
+  const topK = ref(5)
+  const searchResults = ref(null)
+  const isSearching = ref(false)
+
+  async function loadStats() {
+    try {
+      const res = await getVectorCollections()
+      if (res?.code === 200) {
+        stats.value = res.data
+      }
+    } catch {
+      ElMessage.error(T.LOAD_FAILED)
+    }
+  }
+
+  async function loadDocuments() {
+    try {
+      const res = await getVectorDocuments()
+      if (res?.code === 200) {
+        documents.value = res.data || []
+        stats.value.totalDocs = documents.value.length
+        recentDocs.value = documents.value.slice(0, 5)
+      }
+    } catch {
+      ElMessage.error(T.LOAD_FAILED)
+    }
+  }
+
+  async function refresh() {
+    loading.value = true
+    await Promise.all([loadStats(), loadDocuments()])
+    loading.value = false
+  }
+
+  async function handleSearch() {
+    if (!searchQuery.value.trim()) return
+    isSearching.value = true
+    try {
+      const res = await searchVector(searchQuery.value.trim(), topK.value)
+      if (res?.code === 200) {
+        searchResults.value = res.data || []
+      }
+    } catch {
+      ElMessage.error(T.SEARCH_FAILED)
+    } finally {
+      isSearching.value = false
+    }
+  }
+
+  function clearSearch() {
+    searchQuery.value = ''
+    searchResults.value = null
+  }
+
+  async function deleteDocument(fileName) {
+    try {
+      await ElMessageBox.confirm(T.CONFIRM_DELETE_TEXT, T.CONFIRM_DELETE_TITLE)
+      const res = await deleteVectorDocuments([fileName])
+      if (res?.code === 200) {
+        ElMessage.success(T.DELETE_SUCCESS)
+        await refresh()
+      }
+    } catch {
+      // cancelled or error
+    }
+  }
+
+  function goToLibrary() {
+    activeTab.value = 'library'
+  }
+
+  onMounted(() => {
+    refresh()
+  })
+
+  return {
+    loading, activeTab, stats, recentDocs,
+    documents, searchQuery, topK, searchResults, isSearching,
+    refresh, handleSearch, clearSearch, deleteDocument, goToLibrary
+  }
+}
