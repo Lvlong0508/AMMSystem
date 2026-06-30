@@ -131,9 +131,9 @@ spring:
         - id: seller-knowledge
           uri: lb://chat-service
           predicates:
-            - Path=/api/seller/knowledge/**
+            - Path=/api/seller/knowledge/file/**
           filters:
-            - RewritePath=/api/seller/knowledge/(?<segment>.*), /file/${segment}
+            - RewritePath=/api/seller/knowledge/file/(?<segment>.*), /file/${segment}
         
         # 商家店铺服务
         - id: seller-shop

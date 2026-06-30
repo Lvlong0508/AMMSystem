@@ -1,29 +1,30 @@
 import { request } from './request'
 
-const BASE = '/api/seller/knowledge'
+const FILE_BASE = '/api/seller/knowledge/file'
+const EMBEDDING_BASE = '/api/seller/knowledge/embedding'
 
 export const uploadKnowledgeFiles = (files) => {
   const formData = new FormData()
   files.forEach(f => formData.append('files', f))
-  return request.post(`${BASE}/upload`, formData)
+  return request.post(`${FILE_BASE}/upload`, formData)
 }
 
-export const listUploadFiles = () => request.post(`${BASE}/list/upload`)
+export const listUploadFiles = () => request.post(`${FILE_BASE}/list/upload`)
 
-export const listFinishFiles = () => request.post(`${BASE}/list/finish`)
+export const listFinishFiles = () => request.post(`${FILE_BASE}/list/finish`)
 
-export const deleteUploadFiles = (fileNames) => request.post(`${BASE}/delete/upload`, fileNames)
+export const deleteUploadFiles = (fileNames) => request.post(`${FILE_BASE}/delete/upload`, fileNames)
 
-export const deleteFinishFiles = (fileNames) => request.post(`${BASE}/delete/finish`, fileNames)
+export const deleteFinishFiles = (fileNames) => request.post(`${FILE_BASE}/delete/finish`, fileNames)
 
-export const ingestFiles = (fileNames) => request.post(`${BASE}/ingest`, fileNames)
+export const ingestFiles = (fileNames) => request.post(`${FILE_BASE}/ingest`, fileNames)
 
-export const getVectorCollections = () => request.post(`${BASE}/embedding/collections`)
+export const getVectorCollections = () => request.post(`${EMBEDDING_BASE}/collections`)
 
-export const getVectorDocuments = () => request.post(`${BASE}/embedding/documents`)
+export const getVectorDocuments = () => request.post(`${EMBEDDING_BASE}/documents`)
 
 export const searchVector = (query, topK = 5) =>
-  request.post(`${BASE}/embedding/search`, { query, topK })
+  request.post(`${EMBEDDING_BASE}/search`, { query, topK })
 
 export const deleteVectorDocuments = (fileNames) =>
-  request.post(`${BASE}/embedding/delete`, fileNames)
+  request.post(`${EMBEDDING_BASE}/delete`, fileNames)
