@@ -17,3 +17,13 @@ export const deleteUploadFiles = (fileNames) => request.post(`${BASE}/delete/upl
 export const deleteFinishFiles = (fileNames) => request.post(`${BASE}/delete/finish`, fileNames)
 
 export const ingestFiles = (fileNames) => request.post(`${BASE}/ingest`, fileNames)
+
+export const getVectorCollections = () => request.post(`${BASE}/vector/collections`)
+
+export const getVectorDocuments = () => request.post(`${BASE}/vector/documents`)
+
+export const searchVector = (query, topK = 5) =>
+  request.post(`${BASE}/vector/search`, { query, topK })
+
+export const deleteVectorDocuments = (fileNames) =>
+  request.post(`${BASE}/vector/delete`, fileNames)
