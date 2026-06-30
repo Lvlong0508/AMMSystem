@@ -5,7 +5,7 @@
       <p class="vector-manager__desc">{{ T.PAGE_DESC }}</p>
     </div>
 
-    <el-tabs v-model="activeTab">
+    <el-tabs v-model="activeTab" @tab-change="onTabChange">
       <el-tab-pane :label="T.TAB_OVERVIEW" name="overview">
         <div class="vector-manager__stats">
           <div class="vector-manager__stat-card">
@@ -129,7 +129,7 @@ const {
   refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
   batchMode, selectedFiles, isAllSelected,
   toggleBatch, toggleSelectAll, batchDeleteSelected,
-  formatTime
+  formatTime, onTabChange
 } = useVectorManager()
 </script>
 
