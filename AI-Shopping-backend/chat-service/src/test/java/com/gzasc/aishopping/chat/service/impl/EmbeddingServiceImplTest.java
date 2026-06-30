@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.chat.service.impl;
 
-import com.gzasc.aishopping.chat.dao.ChromaAdminDao;
-import com.gzasc.aishopping.chat.dao.ChromaEmbeddingStorageDao;
+import com.gzasc.aishopping.chat.dao.ChromaEmbeddingDao;
 import com.gzasc.aishopping.chat.service.FileService;
 import dev.langchain4j.data.embedding.Embedding;
 import dev.langchain4j.data.segment.TextSegment;
@@ -9,7 +8,7 @@ import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,13 +40,7 @@ class EmbeddingServiceImplTest {
     private EmbeddingModel embeddingModel;
 
     @Mock
-    private EmbeddingStore<TextSegment> embeddingStore;
-
-    @Mock
-    private ChromaEmbeddingStorageDao chromaStorageDao;
-
-    @Mock
-    private ChromaAdminDao chromaAdminDao;
+    private ChromaEmbeddingDao chromaEmbeddingDao;
 
     @Mock
     private FileService fileService;
@@ -62,7 +55,7 @@ class EmbeddingServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        embeddingService = new EmbeddingServiceImpl(embeddingModel, embeddingStore, chromaStorageDao, chromaAdminDao, fileService);
+        embeddingService = new EmbeddingServiceImpl(embeddingModel, chromaEmbeddingDao, fileService);
         ReflectionTestUtils.setField(embeddingService, "uploadDir", tempDir.toString());
         embeddingService.init();
     }
@@ -92,7 +85,7 @@ class EmbeddingServiceImplTest {
                     .toList();
             return Response.from(embeddings);
         });
-        when(embeddingStore.addAll(anyList(), anyList())).thenReturn(List.of("id1"));
+        when(chromaEmbeddingDao.addAll(anyList(), anyList())).thenReturn(List.of("id1"));
     }
 
     // ==================== ingest ====================
@@ -108,7 +101,7 @@ class EmbeddingServiceImplTest {
         assertTrue(result.isEmpty());
         verify(fileService).move("test.txt");
         verify(embeddingModel).embedAll(anyList());
-        verify(embeddingStore).addAll(anyList(), anyList());
+        verify(chromaEmbeddingDao).addAll(anyList(), anyList());
     }
 
     @Test
@@ -123,7 +116,7 @@ class EmbeddingServiceImplTest {
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, times(3)).embedAll(anyList());
-        verify(embeddingStore, times(3)).addAll(anyList(), anyList());
+        verify(chromaEmbeddingDao, times(3)).addAll(anyList(), anyList());
     }
 
     @Test
@@ -158,7 +151,7 @@ class EmbeddingServiceImplTest {
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, never()).embedAll(anyList());
-        verify(embeddingStore, never()).addAll(anyList(), anyList());
+        verify(chromaEmbeddingDao, never()).addAll(anyList(), anyList());
     }
 
     @Test
@@ -175,7 +168,7 @@ class EmbeddingServiceImplTest {
 
         embeddingService.ingest(List.of("mydoc.txt"));
 
-        verify(embeddingStore).addAll(anyList(), segmentsCaptor.capture());
+        verify(chromaEmbeddingDao).addAll(anyList(), segmentsCaptor.capture());
         List<TextSegment> segments = segmentsCaptor.getValue();
         assertFalse(segments.isEmpty());
         for (TextSegment segment : segments) {
@@ -216,8 +209,8 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("getCollectionStats - 返回统计信息")
     void getCollectionStats_returnsStats() {
-        when(chromaAdminDao.count()).thenReturn(100L);
-        when(chromaAdminDao.getDocuments()).thenReturn(
+        when(chromaEmbeddingDao.count()).thenReturn(100L);
+        when(chromaEmbeddingDao.getDocuments()).thenReturn(
                 List.of(Map.of("fileName", "a.txt"), Map.of("fileName", "b.txt")));
 
         Map<String, Object> stats = embeddingService.getCollectionStats();
@@ -229,10 +222,10 @@ class EmbeddingServiceImplTest {
     // ==================== getDocuments ====================
 
     @Test
-    @DisplayName("getDocuments - 委托到 chromaAdminDao")
+    @DisplayName("getDocuments - 委托到 chromaEmbeddingDao")
     void getDocuments_delegates() {
         List<Map<String, Object>> expected = List.of(Map.of("fileName", "a.txt", "chunkCount", 5));
-        when(chromaAdminDao.getDocuments()).thenReturn(expected);
+        when(chromaEmbeddingDao.getDocuments()).thenReturn(expected);
 
         List<Map<String, Object>> result = embeddingService.getDocuments();
 
@@ -250,7 +243,7 @@ class EmbeddingServiceImplTest {
         segment.metadata().put("source", "file.txt");
         List<EmbeddingMatch<TextSegment>> matches = List.of(
                 new EmbeddingMatch<>(0.95, "chunk1", Embedding.from(new float[]{0.1f, 0.2f, 0.3f}), segment));
-        when(chromaStorageDao.search(any(EmbeddingSearchRequest.class))).thenReturn(matches);
+        when(chromaEmbeddingDao.search(any(EmbeddingSearchRequest.class))).thenReturn(new EmbeddingSearchResult<>(matches));
 
         List<Map<String, Object>> results = embeddingService.search("test query", 5);
 
@@ -266,7 +259,7 @@ class EmbeddingServiceImplTest {
     void search_emptyResult() {
         when(embeddingModel.embed(anyString())).thenReturn(
                 Response.from(Embedding.from(new float[]{0.1f, 0.2f})));
-        when(chromaStorageDao.search(any(EmbeddingSearchRequest.class))).thenReturn(List.of());
+        when(chromaEmbeddingDao.search(any(EmbeddingSearchRequest.class))).thenReturn(new EmbeddingSearchResult<>(List.of()));
 
         List<Map<String, Object>> results = embeddingService.search("empty", 5);
 
@@ -276,20 +269,20 @@ class EmbeddingServiceImplTest {
     // ==================== deleteFromVector ====================
 
     @Test
-    @DisplayName("deleteFromVector - 委托到 chromaAdminDao 并返回删除数")
+    @DisplayName("deleteFromVector - 委托到 chromaEmbeddingDao 并返回删除数")
     void deleteFromVector_delegates() {
-        when(chromaAdminDao.deleteBySource("bad.txt")).thenReturn(3);
+        when(chromaEmbeddingDao.deleteBySource("bad.txt")).thenReturn(3);
 
         int deleted = embeddingService.deleteFromVector("bad.txt");
 
         assertEquals(3, deleted);
-        verify(chromaAdminDao).deleteBySource("bad.txt");
+        verify(chromaEmbeddingDao).deleteBySource("bad.txt");
     }
 
     @Test
     @DisplayName("deleteFromVector - 无匹配返回 0")
     void deleteFromVector_noMatch() {
-        when(chromaAdminDao.deleteBySource("nonexistent.txt")).thenReturn(0);
+        when(chromaEmbeddingDao.deleteBySource("nonexistent.txt")).thenReturn(0);
 
         int deleted = embeddingService.deleteFromVector("nonexistent.txt");
 

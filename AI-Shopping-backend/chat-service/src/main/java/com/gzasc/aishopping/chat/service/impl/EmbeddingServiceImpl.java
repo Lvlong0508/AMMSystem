@@ -1,7 +1,6 @@
 package com.gzasc.aishopping.chat.service.impl;
 
-import com.gzasc.aishopping.chat.dao.ChromaAdminDao;
-import com.gzasc.aishopping.chat.dao.ChromaEmbeddingStorageDao;
+import com.gzasc.aishopping.chat.dao.ChromaEmbeddingDao;
 import com.gzasc.aishopping.chat.exception.RAGException;
 import com.gzasc.aishopping.chat.service.EmbeddingService;
 import com.gzasc.aishopping.chat.service.FileService;
@@ -16,7 +15,7 @@ import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingMatch;
 import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
-import dev.langchain4j.store.embedding.EmbeddingStore;
+import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +36,7 @@ import java.util.Map;
 public class EmbeddingServiceImpl implements EmbeddingService {
 
     private final EmbeddingModel embeddingModel;
-    private final EmbeddingStore<TextSegment> embeddingStore;
-    private final ChromaEmbeddingStorageDao chromaStorageDao;
-    private final ChromaAdminDao chromaAdminDao;
+    private final ChromaEmbeddingDao chromaEmbeddingDao;
     private final FileService fileService;
 
     @Value("${app.file.storage}")
@@ -52,7 +49,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         // 初始化 Ingestor：embedding 模型、向量存储、递归切分器（每段 300 字符，重叠 30）
         this.ingestor = EmbeddingStoreIngestor.builder()
                 .embeddingModel(embeddingModel)
-                .embeddingStore(embeddingStore)
+                .embeddingStore(chromaEmbeddingDao)
                 .documentSplitter(DocumentSplitters.recursive(300, 30))
                 .build();
     }
@@ -93,17 +90,17 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     @Override
     public Map<String, Object> getCollectionStats() {
         // 通过 HTTP 管理 DAO 获取集合元信息
-        long totalChunks = chromaAdminDao.count();
+        long totalChunks = chromaEmbeddingDao.count();
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("totalChunks", totalChunks);
-        stats.put("totalDocs", chromaAdminDao.getDocuments().size());
+        stats.put("totalDocs", chromaEmbeddingDao.getDocuments().size());
         return stats;
     }
 
     @Override
     public List<Map<String, Object>> getDocuments() {
         // 从 Chroma metadata 中按 source 字段聚合文档列表
-        return chromaAdminDao.getDocuments();
+        return chromaEmbeddingDao.getDocuments();
     }
 
     @Override
@@ -115,7 +112,8 @@ public class EmbeddingServiceImpl implements EmbeddingService {
                 .maxResults(topK)
                 .minScore(0.0)
                 .build();
-        List<EmbeddingMatch<TextSegment>> matches = chromaStorageDao.search(request);
+        EmbeddingSearchResult<TextSegment> searchResult = chromaEmbeddingDao.search(request);
+        List<EmbeddingMatch<TextSegment>> matches = searchResult.matches();
         // 将匹配结果组装为前端需要的格式
         List<Map<String, Object>> results = new ArrayList<>();
         for (EmbeddingMatch<TextSegment> match : matches) {
@@ -134,7 +132,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     @Override
     public int deleteFromVector(String fileName) {
         // 按 source 文件名删除 Chroma 中所有关联的文本段
-        return chromaAdminDao.deleteBySource(fileName);
+        return chromaEmbeddingDao.deleteBySource(fileName);
     }
 
     private void processDocument(Path path) {
