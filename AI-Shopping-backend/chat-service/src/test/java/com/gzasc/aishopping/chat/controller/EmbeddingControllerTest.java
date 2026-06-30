@@ -30,7 +30,9 @@ class EmbeddingControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = standaloneSetup(new EmbeddingController(embeddingService)).build();
+        mockMvc = standaloneSetup(new EmbeddingController(embeddingService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
     }
 
     // ---- /embedding/overview ----
@@ -122,8 +124,7 @@ class EmbeddingControllerTest {
     @Test
     @DisplayName("删除 - 正常删除返回删除数")
     void delete_success() throws Exception {
-        when(embeddingService.deleteFromVector("a.txt")).thenReturn(3);
-        when(embeddingService.deleteFromVector("b.txt")).thenReturn(2);
+        when(embeddingService.deleteFromVector(anyList())).thenReturn(Map.of("deleted", 5));
 
         mockMvc.perform(post("/embedding/delete")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -136,11 +137,14 @@ class EmbeddingControllerTest {
     @Test
     @DisplayName("删除 - 空列表返回错误")
     void delete_emptyList() throws Exception {
+        when(embeddingService.deleteFromVector(argThat(list -> ((List<?>)list).isEmpty())))
+                .thenThrow(new IllegalArgumentException("请指定要删除的文件"));
+
         mockMvc.perform(post("/embedding/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[]"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("请指定要删除的文件"));
     }
 }

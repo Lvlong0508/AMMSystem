@@ -48,10 +48,10 @@ public interface EmbeddingService {
     List<Map<String, Object>> search(String query, int topK);
 
     /**
-     * 删除指定源文件在向量库中的所有关联记录。
+     * 批量删除指定源文件在向量库中的所有关联记录。
      *
-     * @param fileName Chroma metadata 中的 source 字段值
-     * @return 删除的记录数
+     * @param fileNames Chroma metadata 中的 source 字段值列表
+     * @return 包含删除总数统计的 Map
      */
-    int deleteFromVector(String fileName);
+    Map<String, Object> deleteFromVector(List<String> fileNames);
 }

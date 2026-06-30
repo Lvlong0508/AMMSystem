@@ -39,13 +39,6 @@ public class EmbeddingController {
 
     @PostMapping("/delete")
     public ApiResponse<Map<String, Object>> delete(@RequestBody List<String> fileNames) {
-        if (fileNames == null || fileNames.isEmpty()) {
-            return ApiResponse.error("请指定要删除的文件");
-        }
-        int total = 0;
-        for (String fileName : fileNames) {
-            total += embeddingService.deleteFromVector(fileName);
-        }
-        return ApiResponse.success(Map.of("deleted", total));
+        return ApiResponse.success(embeddingService.deleteFromVector(fileNames));
     }
 }

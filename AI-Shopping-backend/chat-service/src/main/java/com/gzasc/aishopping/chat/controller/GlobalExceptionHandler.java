@@ -29,6 +29,13 @@ public class GlobalExceptionHandler {
         return ApiResponse.error(e.getCode(), e.getMessage());
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("参数错误: {}", e.getMessage());
+        return ApiResponse.error(400, e.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException e) {

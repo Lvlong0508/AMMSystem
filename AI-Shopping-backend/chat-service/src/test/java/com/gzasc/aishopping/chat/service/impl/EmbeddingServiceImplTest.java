@@ -293,14 +293,16 @@ class EmbeddingServiceImplTest {
     // ==================== deleteFromVector ====================
 
     @Test
-    @DisplayName("deleteFromVector - 委托到 chromaEmbeddingDao 并返回删除数")
-    void deleteFromVector_delegates() {
-        when(chromaEmbeddingDao.deleteBySource("bad.txt")).thenReturn(3);
+    @DisplayName("deleteFromVector - 批量删除返回总数")
+    void deleteFromVector_batch() {
+        when(chromaEmbeddingDao.deleteBySource("a.txt")).thenReturn(3);
+        when(chromaEmbeddingDao.deleteBySource("b.txt")).thenReturn(5);
 
-        int deleted = embeddingService.deleteFromVector("bad.txt");
+        Map<String, Object> result = embeddingService.deleteFromVector(List.of("a.txt", "b.txt"));
 
-        assertEquals(3, deleted);
-        verify(chromaEmbeddingDao).deleteBySource("bad.txt");
+        assertEquals(8, result.get("deleted"));
+        verify(chromaEmbeddingDao).deleteBySource("a.txt");
+        verify(chromaEmbeddingDao).deleteBySource("b.txt");
     }
 
     @Test
@@ -308,8 +310,22 @@ class EmbeddingServiceImplTest {
     void deleteFromVector_noMatch() {
         when(chromaEmbeddingDao.deleteBySource("nonexistent.txt")).thenReturn(0);
 
-        int deleted = embeddingService.deleteFromVector("nonexistent.txt");
+        Map<String, Object> result = embeddingService.deleteFromVector(List.of("nonexistent.txt"));
 
-        assertEquals(0, deleted);
+        assertEquals(0, result.get("deleted"));
+    }
+
+    @Test
+    @DisplayName("deleteFromVector - null 列表抛异常")
+    void deleteFromVector_null() {
+        assertThrows(IllegalArgumentException.class,
+                () -> embeddingService.deleteFromVector(null));
+    }
+
+    @Test
+    @DisplayName("deleteFromVector - 空列表抛异常")
+    void deleteFromVector_empty() {
+        assertThrows(IllegalArgumentException.class,
+                () -> embeddingService.deleteFromVector(List.of()));
     }
 }

@@ -165,9 +165,17 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     }
 
     @Override
-    public int deleteFromVector(String fileName) {
-        // 按 source 文件名删除 Chroma 中所有关联的文本段
-        return chromaEmbeddingDao.deleteBySource(fileName);
+    public Map<String, Object> deleteFromVector(List<String> fileNames) {
+        if (fileNames == null || fileNames.isEmpty()) {
+            throw new IllegalArgumentException("请指定要删除的文件");
+        }
+        int total = 0;
+        for (String fileName : fileNames) {
+            int deleted = chromaEmbeddingDao.deleteBySource(fileName);
+            log.info("Chroma 按文件名删除成功：{}, id:{}", fileName, deleted);
+            total += deleted;
+        }
+        return Map.of("deleted", total);
     }
 
     private void processDocument(Path path, Long userId) {
