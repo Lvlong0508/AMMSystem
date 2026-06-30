@@ -48,10 +48,10 @@
           </div>
           <div class="sidebar__sub-items" v-show="expandedGroups.has('knowledge') && !app.sidebarCollapsed">
             <router-link :to="`/shop/${shop.currentShopId}/knowledge/files`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/knowledge/files') }">
-              <span>📁 文件管理</span>
+              <span>文件管理</span>
             </router-link>
             <router-link :to="`/shop/${shop.currentShopId}/knowledge/vector`" class="sidebar__sub-item" :class="{ 'sidebar__item--active': route.path.includes('/knowledge/vector') }">
-              <span>📊 知识库管理</span>
+              <span>知识库管理</span>
             </router-link>
           </div>
         </div>
