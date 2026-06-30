@@ -40,14 +40,18 @@ class EmbeddingControllerTest {
     void collections_success() throws Exception {
         when(embeddingService.getCollectionStats()).thenReturn(Map.of(
                 "totalChunks", 100L,
-                "totalDocs", 5
+                "totalDocs", 5,
+                "collectionName", "test_collection",
+                "dimension", 384
         ));
 
         mockMvc.perform(post("/embedding/collections"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.totalChunks").value(100))
-                .andExpect(jsonPath("$.data.totalDocs").value(5));
+                .andExpect(jsonPath("$.data.totalDocs").value(5))
+                .andExpect(jsonPath("$.data.collectionName").value("test_collection"))
+                .andExpect(jsonPath("$.data.dimension").value(384));
     }
 
     // ---- /embedding/documents ----
@@ -56,8 +60,8 @@ class EmbeddingControllerTest {
     @DisplayName("GET 文档列表 - 成功返回文档列表")
     void documents_success() throws Exception {
         when(embeddingService.getDocuments()).thenReturn(List.of(
-                Map.of("fileName", "a.txt", "chunkCount", 3),
-                Map.of("fileName", "b.txt", "chunkCount", 5)
+                Map.of("fileName", "a.txt", "chunkCount", 3, "importTime", "2025-01-01T12:00:00"),
+                Map.of("fileName", "b.txt", "chunkCount", 5, "importTime", "2025-01-02T12:00:00")
         ));
 
         mockMvc.perform(post("/embedding/documents"))
@@ -65,8 +69,10 @@ class EmbeddingControllerTest {
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data[0].fileName").value("a.txt"))
                 .andExpect(jsonPath("$.data[0].chunkCount").value(3))
+                .andExpect(jsonPath("$.data[0].importTime").value("2025-01-01T12:00:00"))
                 .andExpect(jsonPath("$.data[1].fileName").value("b.txt"))
-                .andExpect(jsonPath("$.data[1].chunkCount").value(5));
+                .andExpect(jsonPath("$.data[1].chunkCount").value(5))
+                .andExpect(jsonPath("$.data[1].importTime").value("2025-01-02T12:00:00"));
     }
 
     // ---- /embedding/search ----

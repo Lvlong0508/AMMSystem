@@ -84,13 +84,14 @@ public class KnowledgeFileController {
         return ApiResponse.success(fileService.getFileNamesFromFinish());
     }
 
-    // 导入文件到向量库
     @PostMapping("/ingest")
-    public ApiResponse<List<Map<String, String>>> ingestFiles(@RequestBody List<String> fileNames) {
+    public ApiResponse<List<Map<String, String>>> ingestFiles(
+            @RequestBody List<String> fileNames,
+            @RequestHeader("X-User-Id") Long userId) {
         if (fileNames == null || fileNames.isEmpty()) {
             return ApiResponse.error("请指定要导入的文件");
         }
-        List<Map<String, String>> failed = embeddingService.ingest(fileNames);
+        List<Map<String, String>> failed = embeddingService.ingest(fileNames, userId);
         if (failed.isEmpty()) {
             return ApiResponse.success(failed);
         }

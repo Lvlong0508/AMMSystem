@@ -12,7 +12,7 @@ public interface EmbeddingService {
      * @param fileNames upload 目录下的文件名列表
      * @return 失败项列表 [{fileName, error}]，全部成功则返回空列表
      */
-    List<Map<String, String>> ingest(List<String> fileNames);
+    List<Map<String, String>> ingest(List<String> fileNames, Long userId);
 
     /**
      * 为给定文本生成 embedding 向量。

@@ -96,7 +96,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("test.txt", "Hello. This is a test document for RAG ingestion.");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.ingest(List.of("test.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("test.txt"), 1L);
 
         assertTrue(result.isEmpty());
         verify(fileService).move("test.txt");
@@ -112,7 +112,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("c.txt", "Content C");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.ingest(List.of("a.txt", "b.txt", "c.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("a.txt", "b.txt", "c.txt"), 1L);
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, times(3)).embedAll(anyList());
@@ -122,7 +122,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("文件不存在 - 不调用 fileService.move()")
     void ingest_fileNotFound() {
-        List<Map<String, String>> result = embeddingService.ingest(List.of("not-exist.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("not-exist.txt"), 1L);
 
         assertEquals(1, result.size());
         assertEquals("not-exist.txt", result.get(0).get("fileName"));
@@ -136,7 +136,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("good.txt", "Good content.");
         mockEmbedding();
 
-        List<Map<String, String>> result = embeddingService.ingest(List.of("good.txt", "bad.txt"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("good.txt", "bad.txt"), 1L);
 
         assertEquals(1, result.size());
         assertEquals("bad.txt", result.get(0).get("fileName"));
@@ -147,7 +147,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("空列表 - 返回空列表")
     void ingest_emptyList() {
-        List<Map<String, String>> result = embeddingService.ingest(List.of());
+        List<Map<String, String>> result = embeddingService.ingest(List.of(), 1L);
 
         assertTrue(result.isEmpty());
         verify(embeddingModel, never()).embedAll(anyList());
@@ -157,7 +157,7 @@ class EmbeddingServiceImplTest {
     @Test
     @DisplayName("null 列表 - 抛 NullPointerException")
     void ingest_null() {
-        assertThrows(NullPointerException.class, () -> embeddingService.ingest(null));
+        assertThrows(NullPointerException.class, () -> embeddingService.ingest(null, 1L));
     }
 
     @Test
@@ -166,7 +166,7 @@ class EmbeddingServiceImplTest {
         createTxtFile("mydoc.txt", "Metadata test content.");
         mockEmbedding();
 
-        embeddingService.ingest(List.of("mydoc.txt"));
+        embeddingService.ingest(List.of("mydoc.txt"), 1L);
 
         verify(chromaEmbeddingDao).addAll(anyList(), segmentsCaptor.capture());
         List<TextSegment> segments = segmentsCaptor.getValue();
@@ -183,12 +183,30 @@ class EmbeddingServiceImplTest {
     void ingest_docxFile() throws IOException {
         createDocxFile("report.docx");
 
-        List<Map<String, String>> result = embeddingService.ingest(List.of("report.docx"));
+        List<Map<String, String>> result = embeddingService.ingest(List.of("report.docx"), 1L);
 
         assertEquals(1, result.size());
         assertEquals("report.docx", result.get(0).get("fileName"));
         assertTrue(result.get(0).get("error").contains("Failed to load document"),
                 "应触发 ApachePoiParser 解析失败，实际: " + result.get(0).get("error"));
+    }
+
+    @Test
+    @DisplayName("Metadata 注入 importUserId 和 importTime")
+    void ingest_metadata_importInfo() throws IOException {
+        createTxtFile("infodoc.txt", "Content for import metadata test.");
+        mockEmbedding();
+
+        embeddingService.ingest(List.of("infodoc.txt"), 1L);
+
+        verify(chromaEmbeddingDao).addAll(anyList(), segmentsCaptor.capture());
+        List<TextSegment> segments = segmentsCaptor.getValue();
+        assertFalse(segments.isEmpty());
+        for (TextSegment segment : segments) {
+            assertEquals("1", segment.metadata().getString("importUserId"));
+            assertNotNull(segment.metadata().getString("importTime"));
+            assertFalse(segment.metadata().getString("importTime").isEmpty());
+        }
     }
 
     // ==================== embed ====================
@@ -212,11 +230,15 @@ class EmbeddingServiceImplTest {
         when(chromaEmbeddingDao.count()).thenReturn(100L);
         when(chromaEmbeddingDao.getDocuments()).thenReturn(
                 List.of(Map.of("fileName", "a.txt"), Map.of("fileName", "b.txt")));
+        when(chromaEmbeddingDao.getCollectionMetadata()).thenReturn(
+                Map.of("collectionName", "my_collection", "dimension", 384));
 
         Map<String, Object> stats = embeddingService.getCollectionStats();
 
         assertEquals(100L, stats.get("totalChunks"));
         assertEquals(2, stats.get("totalDocs"));
+        assertEquals("my_collection", stats.get("collectionName"));
+        assertEquals(384, stats.get("dimension"));
     }
 
     // ==================== getDocuments ====================

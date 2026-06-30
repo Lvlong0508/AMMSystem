@@ -382,6 +382,9 @@ public class ChromaEmbeddingDaoImpl implements ChromaEmbeddingDao {
                 Map<String, Object> doc = new LinkedHashMap<>();
                 doc.put("fileName", entry.getKey());
                 doc.put("chunkCount", entry.getValue().size());
+                Map<String, Object> firstMeta = entry.getValue().get(0);
+                Object importTime = firstMeta.get("importTime");
+                doc.put("importTime", importTime != null ? importTime.toString() : "");
                 docs.add(doc);
             }
             docs.sort(Comparator.comparing(d -> (String) d.get("fileName")));
@@ -410,6 +413,29 @@ public class ChromaEmbeddingDaoImpl implements ChromaEmbeddingDao {
         } catch (Exception e) {
             log.warn("Chroma 按文件名删除失败：{}", fileName, e);
             return 0;
+        }
+    }
+
+    @Override
+    public Map<String, Object> getCollectionMetadata() {
+        try {
+            String url = chromaBaseUrl + "/api/v2/tenants/" + tenant + "/databases/" + database + "/collections/" + collectionName;
+            Map<String, Object> result = restTemplate.getForObject(url, Map.class);
+            if (result == null) return Map.of();
+            Map<String, Object> meta = new LinkedHashMap<>();
+            meta.put("collectionName", result.getOrDefault("name", ""));
+            Object metadataMap = result.get("metadata");
+            if (metadataMap instanceof Map) {
+                Object dim = ((Map<?, ?>) metadataMap).get("dimension");
+                if (dim instanceof Number) {
+                    meta.put("dimension", ((Number) dim).intValue());
+                }
+            }
+            meta.putIfAbsent("dimension", 0);
+            return meta;
+        } catch (Exception e) {
+            log.warn("Chroma 获取集合元信息失败", e);
+            return Map.of("collectionName", collectionName, "dimension", 0);
         }
     }
 }

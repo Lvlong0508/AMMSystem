@@ -35,4 +35,9 @@ public interface ChromaEmbeddingDao extends EmbeddingStore<TextSegment> {
      * @return 删除的 chunk 数量
      */
     int deleteBySource(String fileName);
+
+    /**
+     * 获取集合元信息（名称、向量维度）。
+     */
+    Map<String, Object> getCollectionMetadata();
 }

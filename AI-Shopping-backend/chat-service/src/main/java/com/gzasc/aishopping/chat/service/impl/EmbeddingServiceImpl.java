@@ -18,6 +18,7 @@ import dev.langchain4j.store.embedding.EmbeddingSearchRequest;
 import dev.langchain4j.store.embedding.EmbeddingSearchResult;
 import dev.langchain4j.store.embedding.EmbeddingStoreIngestor;
 import jakarta.annotation.PostConstruct;
+import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -55,11 +56,10 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     }
 
     @Override
-    public List<Map<String, String>> ingest(List<String> fileNames) {
+    public List<Map<String, String>> ingest(List<String> fileNames, Long userId) {
         if (fileNames == null) {
             throw new NullPointerException("fileNames must not be null");
         }
-        // 遍历文件列表逐个处理，失败项记录后继续下一个
         List<Map<String, String>> failed = new ArrayList<>();
         for (String fileName : fileNames) {
             Path filePath = Path.of(uploadDir, fileName);
@@ -69,8 +69,7 @@ public class EmbeddingServiceImpl implements EmbeddingService {
                 continue;
             }
             try {
-                processDocument(filePath);
-                // 处理成功后异步移至 finish 目录
+                processDocument(filePath, userId);
                 fileService.move(fileName);
                 log.info("RAG 导入成功：{}", fileName);
             } catch (Exception e) {
@@ -89,11 +88,13 @@ public class EmbeddingServiceImpl implements EmbeddingService {
 
     @Override
     public Map<String, Object> getCollectionStats() {
-        // 通过 HTTP 管理 DAO 获取集合元信息
         long totalChunks = chromaEmbeddingDao.count();
         Map<String, Object> stats = new LinkedHashMap<>();
         stats.put("totalChunks", totalChunks);
         stats.put("totalDocs", chromaEmbeddingDao.getDocuments().size());
+        Map<String, Object> meta = chromaEmbeddingDao.getCollectionMetadata();
+        stats.put("collectionName", meta.getOrDefault("collectionName", ""));
+        stats.put("dimension", meta.getOrDefault("dimension", 0));
         return stats;
     }
 
@@ -135,20 +136,20 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         return chromaEmbeddingDao.deleteBySource(fileName);
     }
 
-    private void processDocument(Path path) {
+    private void processDocument(Path path, Long userId) {
         String fileName = path.getFileName().toString();
         try {
-            // 根据扩展名选择解析器（.txt 用纯文本，其余用 POI）
             Document document;
             if (fileName.toLowerCase().endsWith(".txt")) {
                 document = FileSystemDocumentLoader.loadDocument(path, new TextDocumentParser());
             } else {
                 document = FileSystemDocumentLoader.loadDocument(path, new ApachePoiDocumentParser());
             }
-            // 注入 source / file_path 元数据后写入向量库
             Metadata metadata = document.metadata().copy();
             metadata.put("source", fileName);
             metadata.put("file_path", path.toAbsolutePath().toString());
+            metadata.put("importUserId", userId != null ? userId.toString() : "");
+            metadata.put("importTime", LocalDateTime.now().toString());
             Document enrichedDocument = Document.from(document.text(), metadata);
             ingestor.ingest(enrichedDocument);
         } catch (Exception e) {

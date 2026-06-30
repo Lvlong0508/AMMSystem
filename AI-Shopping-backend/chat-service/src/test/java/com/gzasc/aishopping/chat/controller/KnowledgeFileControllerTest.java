@@ -112,11 +112,12 @@ class KnowledgeFileControllerTest {
     @Test
     @DisplayName("导入知识库 - 全部成功")
     void ingestFiles_allSuccess() throws Exception {
-        when(embeddingService.ingest(anyList())).thenReturn(List.of());
+        when(embeddingService.ingest(anyList(), any())).thenReturn(List.of());
 
         mockMvc.perform(post("/file/ingest")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[\"a.txt\"]"))
+                        .content("[\"a.txt\"]")
+                        .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data").isArray())
@@ -126,12 +127,13 @@ class KnowledgeFileControllerTest {
     @Test
     @DisplayName("导入知识库 - 部分失败")
     void ingestFiles_partialFail() throws Exception {
-        when(embeddingService.ingest(anyList())).thenReturn(
+        when(embeddingService.ingest(anyList(), any())).thenReturn(
                 List.of(Map.of("fileName", "b.txt", "error", "文件不存在")));
 
         mockMvc.perform(post("/file/ingest")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[\"a.txt\", \"b.txt\"]"))
+                        .content("[\"a.txt\", \"b.txt\"]")
+                        .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500))
                 .andExpect(jsonPath("$.message").value("部分文件导入失败"))
@@ -145,7 +147,8 @@ class KnowledgeFileControllerTest {
     void ingestFiles_emptyList() throws Exception {
         mockMvc.perform(post("/file/ingest")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("[]"))
+                        .content("[]")
+                        .header("X-User-Id", "1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(500));
     }
