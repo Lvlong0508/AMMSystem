@@ -12,4 +12,6 @@ public interface EmbeddingService {
      * @return 失败列表，每项含 fileName 和 error；空列表表示全部成功
      */
     List<Map<String, String>> ingest(List<String> fileNames);
+
+    float[] embed(String text);
 }

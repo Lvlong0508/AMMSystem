@@ -86,6 +86,11 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         return failed;
     }
 
+    @Override
+    public float[] embed(String text) {
+        return embeddingModel.embed(text).content().vector();
+    }
+
     /** 根据扩展名选择解析器（.txt → TextDocumentParser，其余 → ApachePoiDocumentParser），
      *  注入 source/file_path 元数据，调用 ingest 写入向量库 */
     private void processDocument(Path path) {
