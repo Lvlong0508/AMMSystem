@@ -231,14 +231,16 @@ class EmbeddingServiceImplTest {
         when(chromaEmbeddingDao.getDocuments()).thenReturn(
                 List.of(Map.of("fileName", "a.txt"), Map.of("fileName", "b.txt")));
         when(chromaEmbeddingDao.getCollectionMetadata()).thenReturn(
-                Map.of("collectionName", "my_collection", "dimension", 384));
+                Map.of("collectionName", "my_collection"));
+        when(embeddingModel.embed(".")).thenReturn(
+                Response.from(Embedding.from(new float[]{0.1f, 0.2f, 0.3f})));
 
         Map<String, Object> stats = embeddingService.getCollectionStats();
 
         assertEquals(100L, stats.get("totalChunks"));
         assertEquals(2, stats.get("totalDocs"));
         assertEquals("my_collection", stats.get("collectionName"));
-        assertEquals(384, stats.get("dimension"));
+        assertEquals(3, stats.get("dimension"));
     }
 
     // ==================== getDocuments ====================

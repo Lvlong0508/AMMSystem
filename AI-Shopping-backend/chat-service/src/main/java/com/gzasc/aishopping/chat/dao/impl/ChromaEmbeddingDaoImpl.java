@@ -416,14 +416,19 @@ public class ChromaEmbeddingDaoImpl implements ChromaEmbeddingDao {
         }
     }
 
+    // Chroma v2 GET collection API 获取集合名称和向量维度
     @Override
     public Map<String, Object> getCollectionMetadata() {
         try {
+            // 调用 Chroma v2 集合查询接口
             String url = chromaBaseUrl + "/api/v2/tenants/" + tenant + "/databases/" + database + "/collections/" + collectionName;
             Map<String, Object> result = restTemplate.getForObject(url, Map.class);
             if (result == null) return Map.of();
+
             Map<String, Object> meta = new LinkedHashMap<>();
+            // 从响应中提取集合名称
             meta.put("collectionName", result.getOrDefault("name", ""));
+            // 从 collection metadata 字典中尝试读取向量维度
             Object metadataMap = result.get("metadata");
             if (metadataMap instanceof Map) {
                 Object dim = ((Map<?, ?>) metadataMap).get("dimension");
@@ -431,6 +436,7 @@ public class ChromaEmbeddingDaoImpl implements ChromaEmbeddingDao {
                     meta.put("dimension", ((Number) dim).intValue());
                 }
             }
+            // 未获取到 dimension 时兜底返回 0
             meta.putIfAbsent("dimension", 0);
             return meta;
         } catch (Exception e) {

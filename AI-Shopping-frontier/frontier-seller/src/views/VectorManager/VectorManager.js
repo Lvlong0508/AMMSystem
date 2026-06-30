@@ -8,6 +8,12 @@ import {
 } from '@/api/knowledge'
 import * as T from './Text.js'
 
+function formatTime(iso) {
+  if (!iso) return ''
+  // 2026-06-30T17:27:36.191924800 → 2026-06-30 17:27:36
+  return iso.replace('T', ' ').replace(/\.\d+/, '')
+}
+
 export function useVectorManager() {
   const loading = ref(false)
   const activeTab = ref('overview')
@@ -139,6 +145,7 @@ export function useVectorManager() {
     documents, searchQuery, topK, searchResults, isSearching,
     refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
     batchMode, selectedFiles, isAllSelected,
-    toggleBatch, toggleSelectAll, batchDeleteSelected
+    toggleBatch, toggleSelectAll, batchDeleteSelected,
+    formatTime
   }
 }

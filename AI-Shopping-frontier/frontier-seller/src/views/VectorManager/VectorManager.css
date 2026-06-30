@@ -94,6 +94,10 @@
   width: 100%;
 }
 
+.vector-manager__time-text {
+  white-space: nowrap;
+}
+
 .vector-manager__search-bar {
   display: flex;
   gap: 10px;

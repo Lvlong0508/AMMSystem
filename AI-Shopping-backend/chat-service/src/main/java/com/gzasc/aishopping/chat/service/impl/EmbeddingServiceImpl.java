@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -44,6 +45,8 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     private String uploadDir;
 
     private EmbeddingStoreIngestor ingestor;
+
+    private volatile Integer cachedDimension;
 
     @PostConstruct
     public void init() {
@@ -86,15 +89,26 @@ public class EmbeddingServiceImpl implements EmbeddingService {
         return embeddingModel.embed(text).content().vector();
     }
 
+    private int getDimension() {
+        if (cachedDimension == null) {
+            // 嵌入一个短文本获取向量维度，结果缓存避免重复调用
+            cachedDimension = embeddingModel.embed(".").content().vector().length;
+        }
+        return cachedDimension;
+    }
+
     @Override
     public Map<String, Object> getCollectionStats() {
-        long totalChunks = chromaEmbeddingDao.count();
+        var f1 = CompletableFuture.supplyAsync(() -> chromaEmbeddingDao.count());
+        var f2 = CompletableFuture.supplyAsync(() -> chromaEmbeddingDao.getDocuments().size());
+        var f3 = CompletableFuture.supplyAsync(() -> chromaEmbeddingDao.getCollectionMetadata());
+
         Map<String, Object> stats = new LinkedHashMap<>();
-        stats.put("totalChunks", totalChunks);
-        stats.put("totalDocs", chromaEmbeddingDao.getDocuments().size());
-        Map<String, Object> meta = chromaEmbeddingDao.getCollectionMetadata();
+        stats.put("totalChunks", f1.join());
+        stats.put("totalDocs", f2.join());
+        Map<String, Object> meta = f3.join();
         stats.put("collectionName", meta.getOrDefault("collectionName", ""));
-        stats.put("dimension", meta.getOrDefault("dimension", 0));
+        stats.put("dimension", getDimension());
         return stats;
     }
 

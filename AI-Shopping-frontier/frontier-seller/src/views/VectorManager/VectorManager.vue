@@ -33,8 +33,12 @@
           </div>
           <el-table :data="recentDocs" class="vector-manager__table" stripe>
             <el-table-column prop="fileName" label="文件名" min-width="200" />
-            <el-table-column prop="chunkCount" label="Chunks" width="100" />
-            <el-table-column prop="importTime" label="导入时间" width="160" />
+            <el-table-column prop="chunkCount" label="Chunks" width="100" align="center" />
+            <el-table-column label="导入时间" width="220">
+              <template #default="{ row }">
+                <span class="vector-manager__time-text">{{ formatTime(row.importTime) }}</span>
+              </template>
+            </el-table-column>
           </el-table>
           <el-empty v-if="recentDocs.length === 0" :description="T.NO_DOCUMENTS" />
         </div>
@@ -104,7 +108,7 @@
               </div>
               <span class="vector-manager__doc-name">{{ doc.fileName }}</span>
               <span class="vector-manager__doc-chunks">{{ doc.chunkCount }} {{ T.LABEL_CHUNKS }}</span>
-              <span class="vector-manager__doc-time">{{ doc.importTime }}</span>
+              <span class="vector-manager__doc-time">{{ formatTime(doc.importTime) }}</span>
               <el-button size="small" type="danger" link @click="deleteDocument(doc.fileName)">{{ T.BTN_DELETE }}</el-button>
             </div>
           </div>
@@ -124,7 +128,8 @@ const {
   documents, searchQuery, topK, searchResults, isSearching,
   refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
   batchMode, selectedFiles, isAllSelected,
-  toggleBatch, toggleSelectAll, batchDeleteSelected
+  toggleBatch, toggleSelectAll, batchDeleteSelected,
+  formatTime
 } = useVectorManager()
 </script>
 
