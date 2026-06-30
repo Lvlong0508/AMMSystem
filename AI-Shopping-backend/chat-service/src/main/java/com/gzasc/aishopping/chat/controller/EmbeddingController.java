@@ -22,6 +22,11 @@ public class EmbeddingController {
         return ApiResponse.success(embeddingService.getCollectionStats());
     }
 
+    @PostMapping("/overview")
+    public ApiResponse<Map<String, Object>> getOverview() {
+        return ApiResponse.success(embeddingService.getOverview());
+    }
+
     @PostMapping("/documents")
     public ApiResponse<List<Map<String, Object>>> getDocuments() {
         return ApiResponse.success(embeddingService.getDocuments());

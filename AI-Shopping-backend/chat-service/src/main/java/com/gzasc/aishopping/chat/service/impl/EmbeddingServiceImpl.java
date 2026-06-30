@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +117,25 @@ public class EmbeddingServiceImpl implements EmbeddingService {
     public List<Map<String, Object>> getDocuments() {
         // 从 Chroma metadata 中按 source 字段聚合文档列表
         return chromaEmbeddingDao.getDocuments();
+    }
+
+    @Override
+    public List<Map<String, Object>> getRecentDocuments(int limit) {
+        return chromaEmbeddingDao.getDocuments().stream()
+                .filter(d -> d.get("importTime") != null && !d.get("importTime").toString().isEmpty())
+                .sorted(Comparator.comparing(d -> d.get("importTime").toString(), Comparator.reverseOrder()))
+                .limit(limit)
+                .toList();
+    }
+
+    @Override
+    public Map<String, Object> getOverview() {
+        var statsFuture = CompletableFuture.supplyAsync(() -> getCollectionStats());
+        var recentFuture = CompletableFuture.supplyAsync(() -> getRecentDocuments(5));
+
+        Map<String, Object> result = new LinkedHashMap<>(statsFuture.join());
+        result.put("recentDocs", recentFuture.join());
+        return result;
     }
 
     @Override

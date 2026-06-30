@@ -30,6 +30,16 @@ public interface EmbeddingService {
     List<Map<String, Object>> getDocuments();
 
     /**
+     * 获取最近导入的文档列表，按导入时间降序排列。
+     */
+    List<Map<String, Object>> getRecentDocuments(int limit);
+
+    /**
+     * 概览页统一数据：并发获取集合统计和最近导入文档。
+     */
+    Map<String, Object> getOverview();
+
+    /**
      * 语义搜索：文本向量化 → 向量检索 → 返回排序结果。
      *
      * @param query 自然语言查询字符串

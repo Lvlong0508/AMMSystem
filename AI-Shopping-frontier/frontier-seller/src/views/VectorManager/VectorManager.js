@@ -1,7 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  getVectorCollections,
+  getVectorOverview,
   getVectorDocuments,
   searchVector,
   deleteVectorDocuments
@@ -33,6 +33,8 @@ export function useVectorManager() {
     return documents.value.length > 0 && selectedFiles.value.length === documents.value.length
   })
 
+  let docsLoaded = false
+
   const searchQuery = ref('')
   const topK = ref(5)
   const searchResults = ref(null)
@@ -40,9 +42,16 @@ export function useVectorManager() {
 
   async function loadStats() {
     try {
-      const res = await getVectorCollections()
+      const res = await getVectorOverview()
       if (res?.code === 200) {
-        stats.value = res.data
+        const data = res.data
+        stats.value = {
+          totalDocs: data.totalDocs,
+          totalChunks: data.totalChunks,
+          collectionName: data.collectionName,
+          dimension: data.dimension
+        }
+        recentDocs.value = data.recentDocs || []
       }
     } catch {
       ElMessage.error(T.LOAD_FAILED)
@@ -132,12 +141,28 @@ export function useVectorManager() {
     }
   }
 
+  async function ensureDocs() {
+    if (docsLoaded) return
+    docsLoaded = true
+    loading.value = true
+    await loadDocuments()
+    loading.value = false
+  }
+
+  function onTabChange(tab) {
+    if (tab === 'library') {
+      ensureDocs()
+    }
+  }
+
   function goToLibrary() {
     activeTab.value = 'library'
+    ensureDocs()
   }
 
   onMounted(() => {
-    refresh()
+    loading.value = true
+    loadStats().finally(() => { loading.value = false })
   })
 
   return {
@@ -146,6 +171,6 @@ export function useVectorManager() {
     refresh, handleSearch, clearSearch, deleteDocument, goToLibrary,
     batchMode, selectedFiles, isAllSelected,
     toggleBatch, toggleSelectAll, batchDeleteSelected,
-    formatTime
+    formatTime, onTabChange
   }
 }

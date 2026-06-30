@@ -21,6 +21,8 @@ export const ingestFiles = (fileNames) => request.post(`${FILE_BASE}/ingest`, fi
 
 export const getVectorCollections = () => request.post(`${EMBEDDING_BASE}/collections`)
 
+export const getVectorOverview = () => request.post(`${EMBEDDING_BASE}/overview`)
+
 export const getVectorDocuments = () => request.post(`${EMBEDDING_BASE}/documents`)
 
 export const searchVector = (query, topK = 5) =>
