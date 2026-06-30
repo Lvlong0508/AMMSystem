@@ -119,14 +119,6 @@ spring:
           filters:
             - RewritePath=/api/seller/chat/(?<segment>.*), /chat/${segment}
         
-        # 商家知识库向量管理（集合概览 / 文档列表 / 搜索 / 删除）— 须排在 /** 之前
-        - id: seller-knowledge-embedding
-          uri: lb://chat-service
-          predicates:
-            - Path=/api/seller/knowledge/embedding/**
-          filters:
-            - RewritePath=/api/seller/knowledge/embedding/(?<segment>.*), /embedding/${segment}
-        
         # 商家知识库文件管理（上传 / 删除 / 导入向量库）
         - id: seller-knowledge
           uri: lb://chat-service
