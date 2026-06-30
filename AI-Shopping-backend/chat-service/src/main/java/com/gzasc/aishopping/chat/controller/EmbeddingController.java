@@ -17,11 +17,6 @@ public class EmbeddingController {
 
     private final EmbeddingService embeddingService;
 
-    @PostMapping("/collections")
-    public ApiResponse<Map<String, Object>> getCollectionStats() {
-        return ApiResponse.success(embeddingService.getCollectionStats());
-    }
-
     @PostMapping("/overview")
     public ApiResponse<Map<String, Object>> getOverview() {
         return ApiResponse.success(embeddingService.getOverview());

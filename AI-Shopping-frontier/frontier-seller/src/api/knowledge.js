@@ -19,8 +19,6 @@ export const deleteFinishFiles = (fileNames) => request.post(`${FILE_BASE}/delet
 
 export const ingestFiles = (fileNames) => request.post(`${FILE_BASE}/ingest`, fileNames)
 
-export const getVectorCollections = () => request.post(`${EMBEDDING_BASE}/collections`)
-
 export const getVectorOverview = () => request.post(`${EMBEDDING_BASE}/overview`)
 
 export const getVectorDocuments = () => request.post(`${EMBEDDING_BASE}/documents`)

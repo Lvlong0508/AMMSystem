@@ -33,25 +33,27 @@ class EmbeddingControllerTest {
         mockMvc = standaloneSetup(new EmbeddingController(embeddingService)).build();
     }
 
-    // ---- /embedding/collections ----
+    // ---- /embedding/overview ----
 
     @Test
-    @DisplayName("GET 集合统计 - 成功返回统计数据")
-    void collections_success() throws Exception {
-        when(embeddingService.getCollectionStats()).thenReturn(Map.of(
+    @DisplayName("概览 - 成功返回统计数据与最近导入")
+    void overview_success() throws Exception {
+        when(embeddingService.getOverview()).thenReturn(Map.of(
                 "totalChunks", 100L,
                 "totalDocs", 5,
                 "collectionName", "test_collection",
-                "dimension", 384
+                "dimension", 384,
+                "recentDocs", List.of(Map.of("fileName", "a.txt", "chunkCount", 3, "importTime", "2026-06-30 17:27:36"))
         ));
 
-        mockMvc.perform(post("/embedding/collections"))
+        mockMvc.perform(post("/embedding/overview"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.totalChunks").value(100))
                 .andExpect(jsonPath("$.data.totalDocs").value(5))
                 .andExpect(jsonPath("$.data.collectionName").value("test_collection"))
-                .andExpect(jsonPath("$.data.dimension").value(384));
+                .andExpect(jsonPath("$.data.dimension").value(384))
+                .andExpect(jsonPath("$.data.recentDocs[0].fileName").value("a.txt"));
     }
 
     // ---- /embedding/documents ----
