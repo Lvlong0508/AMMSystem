@@ -127,7 +127,6 @@ AI-Shopping
 ├── AI-Shopping-frontier
 │   ├── frontier-user
 │   └── frontier-seller
-├── 脚本                     本地开发启动脚本（Nacos / Sentinel / 后端 / 前端）
 ├── deploy                   Docker 部署文件（docker-compose、Dockerfile、nginx 配置等）
 ├── frontend-dist            前端构建产物，供 Docker volume 挂载
 ├── jar                     后端各模块打包后的 JAR（含 Sentinel Dashboard 1.8.10）
@@ -241,19 +240,15 @@ AI-Shopping-backend/sql/init
 
 #### 2. 启动基础设施
 
-使用项目提供的脚本可一键启动 Nacos 和 Sentinel：
+启动 Nacos（需要先配置 `JAVA_HOME`，使用 Nacos 安装目录下的启动脚本）和 Redis。Sentinel Dashboard 可在 Docker 上部署，或使用 `java -jar` 运行 Sentinel 的 JAR。
 
 ```bash
-# 启动 Nacos（需要先配置 JAVA_HOME）
-脚本\start-nacos.bat
+# 启动 Nacos
+startup.cmd -m standalone
 
-# 启动 Sentinel Dashboard（基于 jar/sentinel-dashboard-1.8.10.jar）
-脚本\start-sentinel.bat
+# 启动 Sentinel Dashboard
+java -Dserver.port=8888 -jar sentinel-dashboard-1.8.10.jar
 ```
-
-Redis 需要在本地另行启动。启动后确保后端配置中的连接信息与本地环境一致。
-
-也可选择在 Docker 上部署 Nacos、Sentinel、Redis。
 
 #### 3. 启动后端服务
 
@@ -264,11 +259,10 @@ cd AI-Shopping-backend
 mvn clean install
 ```
 
-可以按模块分别启动各 Spring Boot 服务，或使用项目脚本一键启动所有后端服务：
+可以按模块分别启动各 Spring Boot 服务：
 
 ```bash
-# 确保 Nacos 和 Sentinel 已启动后，运行：
-脚本\start-end.bat
+# 确保 Nacos 和 Sentinel 已启动后，运行各服务
 ```
 
 #### 4. 启动用户端
@@ -277,12 +271,6 @@ mvn clean install
 cd AI-Shopping-frontier/frontier-user
 npm install
 npm run dev
-```
-
-或使用脚本一键启动双端：
-
-```bash
-脚本\start-frontier.bat
 ```
 
 #### 5. 启动商家端
