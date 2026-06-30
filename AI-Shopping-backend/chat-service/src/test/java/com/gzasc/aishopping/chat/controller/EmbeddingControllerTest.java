@@ -43,7 +43,7 @@ class EmbeddingControllerTest {
                 "totalDocs", 5
         ));
 
-        mockMvc.perform(post("/file/embedding/collections"))
+        mockMvc.perform(post("/embedding/collections"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data.totalChunks").value(100))
@@ -60,7 +60,7 @@ class EmbeddingControllerTest {
                 Map.of("fileName", "b.txt", "chunkCount", 5)
         ));
 
-        mockMvc.perform(post("/file/embedding/documents"))
+        mockMvc.perform(post("/embedding/documents"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.data[0].fileName").value("a.txt"))
@@ -78,7 +78,7 @@ class EmbeddingControllerTest {
                 Map.of("chunkId", "c1", "fileName", "a.txt", "content", "hello", "score", 0.95)
         ));
 
-        mockMvc.perform(post("/file/embedding/search")
+        mockMvc.perform(post("/embedding/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"query\": \"test query\", \"topK\": 5}"))
                 .andExpect(status().isOk())
@@ -90,7 +90,7 @@ class EmbeddingControllerTest {
     @Test
     @DisplayName("搜索 - 查空字符串返回错误")
     void search_blankQuery() throws Exception {
-        mockMvc.perform(post("/file/embedding/search")
+        mockMvc.perform(post("/embedding/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"query\": \"\", \"topK\": 5}"))
                 .andExpect(status().isOk())
@@ -101,7 +101,7 @@ class EmbeddingControllerTest {
     @Test
     @DisplayName("搜索 - 没有 query 参数返回错误")
     void search_missingQuery() throws Exception {
-        mockMvc.perform(post("/file/embedding/search")
+        mockMvc.perform(post("/embedding/search")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"topK\": 5}"))
                 .andExpect(status().isOk())
@@ -117,7 +117,7 @@ class EmbeddingControllerTest {
         when(embeddingService.deleteFromVector("a.txt")).thenReturn(3);
         when(embeddingService.deleteFromVector("b.txt")).thenReturn(2);
 
-        mockMvc.perform(post("/file/embedding/delete")
+        mockMvc.perform(post("/embedding/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[\"a.txt\", \"b.txt\"]"))
                 .andExpect(status().isOk())
@@ -128,7 +128,7 @@ class EmbeddingControllerTest {
     @Test
     @DisplayName("删除 - 空列表返回错误")
     void delete_emptyList() throws Exception {
-        mockMvc.perform(post("/file/embedding/delete")
+        mockMvc.perform(post("/embedding/delete")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("[]"))
                 .andExpect(status().isOk())

@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/file/embedding")
+@RequestMapping("/embedding")
 @RequiredArgsConstructor
 public class EmbeddingController {
 

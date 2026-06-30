@@ -125,7 +125,7 @@ spring:
           predicates:
             - Path=/api/seller/knowledge/embedding/**
           filters:
-            - RewritePath=/api/seller/knowledge/embedding/(?<segment>.*), /file/embedding/${segment}
+            - RewritePath=/api/seller/knowledge/embedding/(?<segment>.*), /embedding/${segment}
         
         # 商家知识库文件管理（上传 / 删除 / 导入向量库）
         - id: seller-knowledge
