@@ -69,6 +69,11 @@ public class ShopAddressServiceImpl implements ShopAddressService {
     }
 
     @Override
+    public ShopAddress getDefaultReceiveAddressByShopId(String shopId) {
+        return shopAddressMapper.selectDefaultReceiveAddressByShopId(shopId);
+    }
+
+    @Override
     @Transactional
     public int setDefaultAddress(int id, String shopId) {
         ShopAddress address = getAddressById(id, shopId);

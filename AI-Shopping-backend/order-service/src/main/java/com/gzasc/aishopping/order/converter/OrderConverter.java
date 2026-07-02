@@ -5,6 +5,7 @@ import com.gzasc.aishopping.common.dto.product.ProductDTO;
 import com.gzasc.aishopping.common.dto.shop.ShopInfoDTO;
 import com.gzasc.aishopping.order.dto.*;
 import com.gzasc.aishopping.order.model.Order;
+import com.gzasc.aishopping.order.model.ReturnRequest;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -172,6 +173,28 @@ public class OrderConverter {
     }
 
     // ==================== 订单详情扩展（含商品/店铺信息） ====================
+
+    public AfterSaleVO toAfterSaleVO(OrderDetailDTO order, ReturnRequest r) {
+        AfterSaleVO vo = new AfterSaleVO();
+        vo.setOrderId(order.getOrderId());
+        vo.setOrderStatus(order.getOrderStatus());
+        vo.setOrderDate(order.getOrderDate());
+        vo.setShopId(r.getShopId());
+        vo.setShopName(order.getShopName());
+        vo.setShopLogoUrl(order.getShopLogoUrl());
+        vo.setProductName(order.getProductName());
+        vo.setProductImageUrl(order.getProductImageUrl());
+        vo.setProductType(order.getProductType());
+        vo.setQuantity(order.getQuantity());
+        vo.setTotalPrice(order.getTotalPrice());
+
+        vo.setReturnStatus(r.getStatus());
+        vo.setReturnReason(r.getReturnReason());
+        vo.setLogisticsId(r.getLogisticsId());
+        vo.setReturnCreatedDate(r.getCreatedDate());
+        vo.setReturnUpdatedDate(r.getUpdatedDate());
+        return vo;
+    }
 
     public OrderDetailDTO enrichDetailDTO(OrderDetailDTO dto, ProductDTO product, ShopInfoDTO shop, ContactDTO contactInfo, Map<String, Object> logisticsInfo) {
         if (product != null) {

@@ -106,6 +106,18 @@ public class MerchantContactController {
         return ApiResponse.success("查询成功", address != null ? AddressResponse.fromShopAddress(address) : null);
     }
 
+    @GetMapping("/receive-default")
+    public ApiResponse<?> getDefaultReceiveAddress(
+            @RequestHeader(value = "X-Shop-Id", required = false) String shopIdStr) {
+        String shopId = getShopId(shopIdStr);
+        if (shopId == null) {
+            return ApiResponse.error(401, "未获取到店铺ID");
+        }
+
+        ShopAddress address = shopAddressService.getDefaultReceiveAddressByShopId(shopId);
+        return ApiResponse.success("查询成功", address != null ? AddressResponse.fromShopAddress(address) : null);
+    }
+
     @PutMapping("/set-default/{id}")
     public ApiResponse<?> setDefaultAddress(
             @PathVariable("id") int id,

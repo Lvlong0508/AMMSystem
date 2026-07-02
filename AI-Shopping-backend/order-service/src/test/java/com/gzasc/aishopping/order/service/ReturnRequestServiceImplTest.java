@@ -9,6 +9,7 @@ import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+import com.gzasc.aishopping.order.converter.OrderConverter;
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.mapper.ReturnRequestMapper;
 import com.gzasc.aishopping.order.model.Order;
@@ -35,6 +36,7 @@ class ReturnRequestServiceImplTest {
     @Mock private ReturnRequestMapper returnRequestMapper;
     @Mock private OrderService orderService;
     @Mock private LogisticsFeignClient logisticsFeignClient;
+    @Mock private OrderConverter orderConverter;
 
     private ReturnRequestServiceImpl returnRequestService;
 
@@ -44,7 +46,7 @@ class ReturnRequestServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        returnRequestService = new ReturnRequestServiceImpl(returnRequestMapper, orderService, logisticsFeignClient);
+        returnRequestService = new ReturnRequestServiceImpl(returnRequestMapper, orderService, logisticsFeignClient, orderConverter);
     }
 
     @Test
@@ -339,6 +341,43 @@ class ReturnRequestServiceImplTest {
         when(orderService.getOrderDetailByUser(userId, "ORDER001")).thenReturn(o1);
         when(orderService.getOrderDetailByUser(userId, "ORDER002")).thenReturn(o2);
 
+        AfterSaleVO mockVo1 = new AfterSaleVO();
+        mockVo1.setOrderId("ORDER001");
+        mockVo1.setOrderStatus("RETURN_PENDING");
+        mockVo1.setOrderDate(new Timestamp(1000));
+        mockVo1.setShopId("SHOP001");
+        mockVo1.setShopName("店铺1");
+        mockVo1.setShopLogoUrl("logo1.jpg");
+        mockVo1.setProductName("手机");
+        mockVo1.setProductImageUrl("phone.jpg");
+        mockVo1.setProductType("数码");
+        mockVo1.setQuantity(1);
+        mockVo1.setTotalPrice(BigDecimal.valueOf(5000));
+        mockVo1.setReturnStatus("agreed");
+        mockVo1.setReturnReason("商品有瑕疵");
+        mockVo1.setLogisticsId(42);
+        mockVo1.setReturnCreatedDate(r1.getCreatedDate());
+        mockVo1.setReturnUpdatedDate(r1.getUpdatedDate());
+        when(orderConverter.toAfterSaleVO(o1, r1)).thenReturn(mockVo1);
+
+        AfterSaleVO mockVo2 = new AfterSaleVO();
+        mockVo2.setOrderId("ORDER002");
+        mockVo2.setOrderStatus("APPLYING");
+        mockVo2.setOrderDate(new Timestamp(2000));
+        mockVo2.setShopId("SHOP001");
+        mockVo2.setShopName("店铺1");
+        mockVo2.setShopLogoUrl("logo1.jpg");
+        mockVo2.setProductName("耳机");
+        mockVo2.setProductImageUrl("earphone.jpg");
+        mockVo2.setProductType("数码");
+        mockVo2.setQuantity(2);
+        mockVo2.setTotalPrice(BigDecimal.valueOf(200));
+        mockVo2.setReturnStatus("applying");
+        mockVo2.setReturnReason("商品有瑕疵");
+        mockVo2.setReturnCreatedDate(r2.getCreatedDate());
+        mockVo2.setReturnUpdatedDate(r2.getUpdatedDate());
+        when(orderConverter.toAfterSaleVO(o2, r2)).thenReturn(mockVo2);
+
         when(logisticsFeignClient.getLatestLogistics("ORDER001", "RETURN"))
                 .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF123456")));
 
@@ -382,6 +421,42 @@ class ReturnRequestServiceImplTest {
 
         List<AfterSaleVO> result = returnRequestService.getAfterSaleList(userId);
         assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void deleteReturnRequest_deletesWhenReturned() {
+        ReturnRequest r = returnRequest(ReturnRequest.AGREED);
+        r.setLogisticsId(42);
+        when(returnRequestMapper.selectByOrderIdAndUser(orderId, userId)).thenReturn(r);
+        OrderDetailDTO order = new OrderDetailDTO();
+        order.setOrderStatus(Order.RETURNED);
+        when(orderService.getOrderDetailByUser(userId, orderId)).thenReturn(order);
+        when(returnRequestMapper.deleteByOrderIdAndUser(orderId, userId)).thenReturn(1);
+        returnRequestService.deleteReturnRequest(userId, orderId);
+        verify(returnRequestMapper).deleteByOrderIdAndUser(orderId, userId);
+    }
+
+    @Test
+    void deleteReturnRequest_deletesWhenRejected() {
+        ReturnRequest r = returnRequest(ReturnRequest.REJECTED);
+        when(returnRequestMapper.selectByOrderIdAndUser(orderId, userId)).thenReturn(r);
+        when(returnRequestMapper.deleteByOrderIdAndUser(orderId, userId)).thenReturn(1);
+        returnRequestService.deleteReturnRequest(userId, orderId);
+        verify(returnRequestMapper).deleteByOrderIdAndUser(orderId, userId);
+    }
+
+    @Test
+    void deleteReturnRequest_throwsWhenNotFound() {
+        when(returnRequestMapper.selectByOrderIdAndUser(orderId, userId)).thenReturn(null);
+        assertThrows(OrderException.class, () -> returnRequestService.deleteReturnRequest(userId, orderId));
+    }
+
+    @Test
+    void deleteReturnRequest_throwsWhenNotReturnedOrRejected() {
+        ReturnRequest r = returnRequest(ReturnRequest.APPLYING);
+        r.setLogisticsId(null);
+        when(returnRequestMapper.selectByOrderIdAndUser(orderId, userId)).thenReturn(r);
+        assertThrows(OrderException.class, () -> returnRequestService.deleteReturnRequest(userId, orderId));
     }
 
     private SubmitReturnLogisticsRequest returnLogisticsRequest() {

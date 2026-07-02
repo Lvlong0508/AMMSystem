@@ -32,4 +32,7 @@ public interface ReturnRequestMapper {
 
     @Update("UPDATE return_requests SET logistics_id = #{logisticsId}, updated_date = CURRENT_TIMESTAMP WHERE order_id = #{orderId} AND status = 'agreed' AND logistics_id IS NULL")
     int updateLogisticsId(@Param("orderId") String orderId, @Param("logisticsId") Integer logisticsId);
+
+    @Delete("DELETE FROM return_requests WHERE order_id = #{orderId} AND user_id = #{userId}")
+    int deleteByOrderIdAndUser(@Param("orderId") String orderId, @Param("userId") Long userId);
 }

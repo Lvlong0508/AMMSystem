@@ -51,6 +51,12 @@ export const getAfterSaleList = () =>
 export const getLogisticsInfo = (orderId) =>
   request.get('/api/user/logistics/order/' + orderId)
 
-/** 查询商家默认退货地址 */
-export const getShopReturnAddress = (shopId) =>
-  request.get('/api/user/shop/' + shopId + '/return-address')
+/** 删除退货申请 */
+export const deleteReturnRequest = (orderId) =>
+  request.delete('/api/user/order/' + orderId + '/return-request')
+
+/** 查询商家默认退货地址（contact-service） */
+export const getMerchantReturnAddress = (shopId) =>
+  request.get('/api/merchant/address/receive-default', {
+    headers: { 'X-Shop-Id': shopId }
+  })

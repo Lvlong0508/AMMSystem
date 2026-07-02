@@ -58,14 +58,20 @@
           >
             {{ T.SUBMIT_LOGISTICS }}
           </button>
+          <button
+            v-if="showDeleteBtn(item)"
+            class="after-sale-card__btn after-sale-card__btn--danger"
+            @click.stop="handleDeleteReturn(item)"
+          >
+            删除
+          </button>
         </div>
       </div>
     </div>
 
     <ReturnLogisticsModal
       :visible="showReturnLogisticsModal"
-      :contacts="contacts"
-      :loading-address="loadingAddress"
+      :shop-return-name="shopReturnName"
       :shop-return-address="shopReturnAddress"
       :shop-return-phone="shopReturnPhone"
       @close="showReturnLogisticsModal = false"
@@ -142,13 +148,14 @@ const {
   loading,
   goBack,
   showSubmitLogisticsBtn,
+  showDeleteBtn,
   getReturnStatusTag,
   getReturnStatusClass,
+  handleDeleteReturn,
   handleSubmitLogistics,
   onLogisticsSubmit,
   showReturnLogisticsModal,
-  contacts,
-  loadingAddress,
+  shopReturnName,
   shopReturnAddress,
   shopReturnPhone,
   detailItem,

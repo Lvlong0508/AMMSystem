@@ -8,6 +8,7 @@ import com.gzasc.aishopping.common.dto.order.ShipOrderRequest;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface OrderService {
     // 用户端操作

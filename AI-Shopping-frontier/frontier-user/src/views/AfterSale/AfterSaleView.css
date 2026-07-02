@@ -168,14 +168,15 @@
   padding: 16px 24px;
 }
 .after-sale-card__btn {
-  padding: 12px 28px;
-  border-radius: var(--radius-md);
-  font-size: 18px;
+  padding: 6px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   border: none;
   font-family: var(--font-body);
-  transition: opacity 250ms ease-out;
+  line-height: 1.4;
+  transition: all 250ms ease-out;
 }
 .after-sale-card__btn:hover {
   opacity: 0.9;
@@ -286,4 +287,14 @@
 .detail-fade-leave-to .after-sale-detail-modal {
   transform: scale(0.92);
   opacity: 0;
+}
+
+.after-sale-card__btn--danger {
+  background: transparent;
+  border: 1.5px solid #fca5a5;
+  color: #dc2626;
+}
+.after-sale-card__btn--danger:hover {
+  background: #fef2f2;
+  border-color: #dc2626;
 }

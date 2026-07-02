@@ -1,17 +1,16 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getAfterSaleList, submitReturnLogistics, getShopReturnAddress } from '@/api/order'
-import { getContactList } from '@/api/contact'
+import { getAfterSaleList, submitReturnLogistics, getMerchantReturnAddress, deleteReturnRequest } from '@/api/order'
 import { showSuccess, showError } from '@/utils/swal'
+import Swal from 'sweetalert2'
 
 export function useAfterSale() {
   const router = useRouter()
   const list = ref([])
   const loading = ref(true)
   const showReturnLogisticsModal = ref(false)
-  const contacts = ref([])
-  const loadingAddress = ref(false)
   const currentItem = ref(null)
+  const shopReturnName = ref('')
   const shopReturnAddress = ref('')
   const shopReturnPhone = ref('')
 
@@ -35,6 +34,10 @@ export function useAfterSale() {
     return item?.returnStatus === 'agreed' && !item.logisticsId
   }
 
+  const showDeleteBtn = (item) => {
+    return item?.returnStatus === 'rejected' || item?.orderStatus === 'RETURNED'
+  }
+
   const getReturnStatusTag = (item) => {
     if (!item?.returnStatus) return ''
     if (item.orderStatus === 'RETURNING') return '退货中'
@@ -53,22 +56,15 @@ export function useAfterSale() {
   const handleSubmitLogistics = async (item) => {
     currentItem.value = item
     showReturnLogisticsModal.value = true
-    loadingAddress.value = true
     try {
-      const [contactRes, addrRes] = await Promise.all([
-        getContactList(),
-        getShopReturnAddress(item.shopId)
-      ])
-      contacts.value = contactRes?.data?.contacts || contactRes?.contacts || []
-      const addrData = addrRes?.data || {}
-      shopReturnAddress.value = addrData.address || ''
-      shopReturnPhone.value = addrData.phone || ''
+      const addrData = await getMerchantReturnAddress(item.shopId)
+      shopReturnName.value = addrData?.name || ''
+      shopReturnAddress.value = addrData?.address || ''
+      shopReturnPhone.value = addrData?.phone || ''
     } catch {
-      contacts.value = []
+      shopReturnName.value = ''
       shopReturnAddress.value = ''
       shopReturnPhone.value = ''
-    } finally {
-      loadingAddress.value = false
     }
   }
 
@@ -82,6 +78,25 @@ export function useAfterSale() {
       await loadData()
     } catch (e) {
       showError(e?.response?.data?.message || '提交退货物流失败')
+    }
+  }
+
+  const handleDeleteReturn = async (item) => {
+    const { isConfirmed } = await Swal.fire({
+      title: '确认删除',
+      text: '删除后将无法恢复，确定要删除该退货申请吗？',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: '确认删除',
+      cancelButtonText: '取消'
+    })
+    if (!isConfirmed) return
+    try {
+      await deleteReturnRequest(item.orderId)
+      showSuccess('退货申请已删除')
+      await loadData()
+    } catch (e) {
+      showError(e?.response?.data?.message || '删除退货申请失败')
     }
   }
 
@@ -104,13 +119,14 @@ export function useAfterSale() {
     loading,
     goBack,
     showSubmitLogisticsBtn,
+    showDeleteBtn,
     getReturnStatusTag,
     getReturnStatusClass,
+    handleDeleteReturn,
     handleSubmitLogistics,
     onLogisticsSubmit,
     showReturnLogisticsModal,
-    contacts,
-    loadingAddress,
+    shopReturnName,
     shopReturnAddress,
     shopReturnPhone,
     detailItem,

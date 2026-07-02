@@ -107,4 +107,12 @@ public class OrderUserController {
         returnRequestService.submitReturnLogistics(userId, orderId, request);
         return ApiResponse.success("退货物流已提交", null);
     }
+
+    @DeleteMapping("/{orderId}/return-request")
+    public ApiResponse<Void> deleteReturnRequest(
+            @RequestHeader("X-User-Id") Long userId,
+            @PathVariable("orderId") String orderId) {
+        returnRequestService.deleteReturnRequest(userId, orderId);
+        return ApiResponse.success("删除退货申请成功", null);
+    }
 }

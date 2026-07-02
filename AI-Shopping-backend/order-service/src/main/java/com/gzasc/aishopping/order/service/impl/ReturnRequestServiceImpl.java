@@ -9,6 +9,7 @@ import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
+import com.gzasc.aishopping.order.converter.OrderConverter;
 
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.mapper.ReturnRequestMapper;
@@ -35,6 +36,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
     private final ReturnRequestMapper returnRequestMapper;
     private final OrderService orderService;
     private final LogisticsFeignClient logisticsFeignClient;
+    private final OrderConverter orderConverter;
 
     @Override
     @Transactional
@@ -144,6 +146,38 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         log.info("退货物流已提交, orderId={}, logisticsId={}", orderId, logisticsId);
     }
 
+    @Override
+    @Transactional
+    public void deleteReturnRequest(Long userId, String orderId) {
+        ReturnRequest returnRequest = returnRequestMapper.selectByOrderIdAndUser(orderId, userId);
+        if (returnRequest == null) {
+            throw new OrderException("退货申请不存在");
+        }
+
+        if (ReturnRequest.REJECTED.equals(returnRequest.getStatus())) {
+            int deleted = returnRequestMapper.deleteByOrderIdAndUser(orderId, userId);
+            if (deleted <= 0) {
+                throw new OrderException("删除退货申请失败");
+            }
+            log.info("退货申请已删除, orderId={}", orderId);
+            return;
+        }
+
+        if (ReturnRequest.AGREED.equals(returnRequest.getStatus())) {
+            OrderDetailDTO order = orderService.getOrderDetailByUser(userId, orderId);
+            if (order != null && Order.RETURNED.equals(order.getOrderStatus())) {
+                int deleted = returnRequestMapper.deleteByOrderIdAndUser(orderId, userId);
+                if (deleted <= 0) {
+                    throw new OrderException("删除退货申请失败");
+                }
+                log.info("退货申请已删除, orderId={}", orderId);
+                return;
+            }
+        }
+
+        throw new OrderException("当前退货状态不允许删除");
+    }
+
     private int parseLogisticsId(Object id) {
         if (id == null) {
             throw new OrderException("获取物流ID失败");
@@ -180,24 +214,7 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         }
         if (order == null) return null;
 
-        AfterSaleVO vo = new AfterSaleVO();
-        vo.setOrderId(order.getOrderId());
-        vo.setOrderStatus(order.getOrderStatus());
-        vo.setOrderDate(order.getOrderDate());
-        vo.setShopId(r.getShopId());
-        vo.setShopName(order.getShopName());
-        vo.setShopLogoUrl(order.getShopLogoUrl());
-        vo.setProductName(order.getProductName());
-        vo.setProductImageUrl(order.getProductImageUrl());
-        vo.setProductType(order.getProductType());
-        vo.setQuantity(order.getQuantity());
-        vo.setTotalPrice(order.getTotalPrice());
-
-        vo.setReturnStatus(r.getStatus());
-        vo.setReturnReason(r.getReturnReason());
-        vo.setLogisticsId(r.getLogisticsId());
-        vo.setReturnCreatedDate(r.getCreatedDate());
-        vo.setReturnUpdatedDate(r.getUpdatedDate());
+        AfterSaleVO vo = orderConverter.toAfterSaleVO(order, r);
 
         if (r.getLogisticsId() != null) {
             try {

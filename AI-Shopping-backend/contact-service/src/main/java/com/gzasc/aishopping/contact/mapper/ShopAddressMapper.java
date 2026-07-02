@@ -39,6 +39,12 @@ public interface ShopAddressMapper {
     @ResultMap("SHOP_ADDRESS_MAPPING")
     ShopAddress selectDefaultShipAddressByShopId(String shopId);
 
+    @Select("SELECT id, name, phone, address, address_type, is_default, created_at, updated_at " +
+            "FROM shop_address WHERE id IN (SELECT address_id FROM shop_address_rel WHERE shop_id = #{shopId}) " +
+            "AND address_type = 2 AND is_default = 1")
+    @ResultMap("SHOP_ADDRESS_MAPPING")
+    ShopAddress selectDefaultReceiveAddressByShopId(String shopId);
+
     /* ========== 地址 CRUD ========== */
 
     @Insert("INSERT INTO shop_address (name, phone, address, address_type, is_default) " +

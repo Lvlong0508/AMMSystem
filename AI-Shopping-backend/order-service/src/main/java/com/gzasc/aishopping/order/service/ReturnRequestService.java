@@ -15,6 +15,8 @@ public interface ReturnRequestService {
 
     void submitReturnLogistics(Long userId, String orderId, SubmitReturnLogisticsRequest request);
 
+    void deleteReturnRequest(Long userId, String orderId);
+
     List<AfterSaleVO> getAfterSaleList(Long userId);
 
     ReturnRequestDTO getReturnRequestByOrderId(String orderId);

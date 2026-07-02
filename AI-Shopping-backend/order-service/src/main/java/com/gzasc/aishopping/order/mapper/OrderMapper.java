@@ -21,7 +21,7 @@ public interface OrderMapper {
     @Select("SELECT * FROM t_order WHERE order_id = #{orderId}")
     Order selectOrderById(@Param("orderId") String orderId);
 
-    @Select("SELECT order_id, user_id, shop_id, product_id, quantity, total_price, order_status, order_date FROM t_order WHERE user_id = #{userId}")
+    @Select("SELECT order_id, user_id, shop_id, product_id, quantity, total_price, order_status, order_date FROM t_order WHERE user_id = #{userId} ORDER BY order_date DESC")
     List<Order> selectAbstractOrdersByUserId(@Param("userId") Long userId);
 
     @Select("SELECT * FROM t_order WHERE user_id = #{userId} AND order_id = #{orderId}")
