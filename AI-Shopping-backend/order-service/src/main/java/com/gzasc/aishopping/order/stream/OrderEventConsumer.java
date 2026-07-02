@@ -18,6 +18,11 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Map;
 
+/**
+ * Redis Stream 消息消费者。
+ * 根据 eventType 将消息分发到对应的处理方法，处理成功后手动 ACK，
+ * 失败时异常抛出，消息留在 Pending 列表等待重新投递。
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -30,6 +35,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
     private final RedisTemplate<String, String> redisTemplate;
     private final RedisStreamConfig redisStreamConfig;
 
+    /**
+     * Redis Stream 消息回调入口。解析消息中的 eventType 和 orderId，
+     * 按事件类型分发处理，成功后发送 ACK 确认。
+     */
     @Override
     public void onMessage(MapRecord<String, String, String> record) {
         Map<String, String> msg = record.getValue();
@@ -56,6 +65,11 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         }
     }
 
+    /**
+     * 处理库存确认。根据订单当前状态决定调用 confirmReservation 还是 releaseReservation。
+     * - 已支付(PAID)：确认预占库存完成实际扣减
+     * - 其他状态：取消订单，释放预占库存
+     */
     private void handleStockConfirm(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         Order o = orderMapper.selectOrderById(orderId);
@@ -76,6 +90,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         }
     }
 
+    /**
+     * 处理库存恢复。先通过 Redis setIfAbsent 做幂等控制，
+     * 确保同一订单的库存恢复只执行一次，然后通过 Feign 调用商品服务恢复库存。
+     */
     private void handleStockRestore(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         String idempotentKey = "restore:done:" + orderId;
@@ -93,6 +111,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         log.info("库存恢复成功, orderId={}", orderId);
     }
 
+    /**
+     * 处理预占库存释放。通过 Redis 幂等键防止重复释放，
+     * 调用商品服务的 releaseReservation 接口完成释放。
+     */
     private void handleReservationRelease(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         String idempotentKey = "release:done:" + orderId;
@@ -105,6 +127,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         log.info("预占库存释放成功, orderId={}", orderId);
     }
 
+    /**
+     * 处理物流创建。先查询该订单是否已存在物流记录避免重复创建，
+     * 若不存在则组装 LogisticsRequest 通过 Feign 调用物流服务创建。
+     */
     private void handleLogistics(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         try {
@@ -125,6 +151,10 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         log.info("物流记录创建成功, orderId={}", orderId);
     }
 
+    /**
+     * 处理退货申请异步清理。根据订单号和用户 ID 删除关联的退货申请记录，
+     * 用于订单取消或售后流程完成后的数据清理。
+     */
     private void handleReturnRequestCleanup(Map<String, String> msg) {
         String orderId = msg.get("orderId");
         String userIdStr = msg.get("userId");

@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
+/**
+ * 用来特殊处理熔断规则触发后的报错
+ */
 @Slf4j
 @Component
 public class CustomBlockExceptionHandler implements BlockExceptionHandler {

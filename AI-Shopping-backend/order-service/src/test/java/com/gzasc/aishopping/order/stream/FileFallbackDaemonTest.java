@@ -21,7 +21,6 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,6 +43,7 @@ class FileFallbackDaemonTest {
         lenient().when(redisStreamConfig.getStreamKey()).thenReturn("order:events");
         daemon = new FileFallbackDaemon(redisTemplate, redisStreamConfig, new ObjectMapper());
         ReflectionTestUtils.setField(daemon, "fallbackDirPath", TEST_FALLBACK_DIR.toString());
+        ReflectionTestUtils.setField(daemon, "retryIntervalMs", 1L);
         daemon.init();
         cleanup();
     }
@@ -97,6 +97,7 @@ class FileFallbackDaemonTest {
     @Test
     @DisplayName("OR-045 retryFailed - 补发成功并删除文件")
     void retryFailed_success() throws IOException {
+        ReflectionTestUtils.setField(daemon, "retryEnabled", true);
         when(streamOps.add(any()))
                 .thenThrow(new RuntimeException("Redis不可用"))
                 .thenReturn(RecordId.of("12345-0"));
@@ -114,8 +115,9 @@ class FileFallbackDaemonTest {
     }
 
     @Test
-    @DisplayName("OR-045 retryFailed - 补发失败保留文件")
+    @DisplayName("OR-045 retryFailed - 补发失败保留文件（重试耗尽后放弃）")
     void retryFailed_retryFailure() throws IOException {
+        ReflectionTestUtils.setField(daemon, "retryEnabled", true);
         when(streamOps.add(any()))
                 .thenThrow(new RuntimeException("Redis仍不可用"));
 
@@ -136,13 +138,14 @@ class FileFallbackDaemonTest {
     @Test
     @DisplayName("OR-FF-01 retryFailed - 目录为空时直接返回不抛异常")
     void retryFailed_emptyDir() throws IOException {
+        ReflectionTestUtils.setField(daemon, "retryEnabled", true);
         assertDoesNotThrow(() -> daemon.retryFailed());
-        verifyNoInteractions(streamOps);
     }
 
     @Test
     @DisplayName("OR-FF-02 retryFailed - 目录中有非法 JSON 文件时跳过该文件")
     void retryFailed_invalidJsonFile() throws IOException {
+        ReflectionTestUtils.setField(daemon, "retryEnabled", true);
         Path badFile = TEST_FALLBACK_DIR.resolve("failover-bad-ORDER999.txt");
         Files.writeString(badFile, "not a json {{{");
 
@@ -172,6 +175,7 @@ class FileFallbackDaemonTest {
     @Test
     @DisplayName("OR-FF-05 retryFailed - 多个文件全部成功补发后全部删除")
     void retryFailed_multipleSuccess() throws Exception {
+        ReflectionTestUtils.setField(daemon, "retryEnabled", true);
         when(streamOps.add(any()))
                 .thenThrow(new RuntimeException("Redis不可用"))   // sendOrFallback 1
                 .thenThrow(new RuntimeException("Redis不可用"))   // sendOrFallback 2

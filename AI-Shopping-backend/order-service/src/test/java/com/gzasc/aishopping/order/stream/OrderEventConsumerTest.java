@@ -6,6 +6,7 @@ import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
+import com.gzasc.aishopping.order.mapper.ReturnRequestMapper;
 import com.gzasc.aishopping.order.model.Order;
 import org.springframework.data.redis.connection.stream.RecordId;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,6 +48,8 @@ class OrderEventConsumerTest {
     private StreamOperations<String, Object, Object> streamOps;
     @Mock
     private RedisStreamConfig redisStreamConfig;
+    @Mock
+    private ReturnRequestMapper returnRequestMapper;
 
     private OrderEventConsumer consumer;
 
@@ -80,8 +83,8 @@ class OrderEventConsumerTest {
         lenient().when(redisTemplate.opsForStream()).thenReturn(streamOps);
         lenient().when(redisStreamConfig.getStreamKey()).thenReturn("order:events");
         lenient().when(redisStreamConfig.getGroupName()).thenReturn("order:processors");
-        consumer = new OrderEventConsumer(orderMapper, productFeignClient,
-                logisticsFeignClient, redisTemplate, redisStreamConfig);
+        consumer = new OrderEventConsumer(orderMapper, returnRequestMapper,
+                productFeignClient, logisticsFeignClient, redisTemplate, redisStreamConfig);
     }
 
     // ==================== STOCK_CONFIRM (OR-040 ~ OR-041) ====================

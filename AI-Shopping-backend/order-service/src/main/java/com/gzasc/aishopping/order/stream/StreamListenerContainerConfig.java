@@ -14,12 +14,20 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer.Stre
 import java.time.Duration;
 import java.util.UUID;
 
+/**
+ * Stream 消息监听容器配置，负责创建和启动 StreamMessageListenerContainer，
+ * 将 OrderEventConsumer 注册为消费者组的订阅者。
+ */
 @Configuration
 @Slf4j
 public class StreamListenerContainerConfig {
 
     private final String consumerId = "consumer-" + UUID.randomUUID();
 
+    /**
+     * 创建 Stream 监听容器 Bean，应用关闭时自动停止。
+     * 使用 lastConsumed 偏移量从上次消费位置继续读取。
+     */
     @Bean(destroyMethod = "stop")
     StreamMessageListenerContainer<String, MapRecord<String, String, String>> container(
             RedisConnectionFactory cf,
