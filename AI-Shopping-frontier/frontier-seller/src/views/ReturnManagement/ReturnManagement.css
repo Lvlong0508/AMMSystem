@@ -119,6 +119,27 @@
   color: var(--color-text-secondary);
 }
 
+.detail-row--tracking {
+  background: #eff6ff;
+  border-radius: 6px;
+  padding: 10px 8px;
+  margin: 4px 0;
+}
+
+.detail-value--tracking {
+  font-weight: 700;
+  font-size: 16px;
+  color: #2563eb;
+  letter-spacing: 1px;
+}
+
+.return-card__tracking {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #2563eb;
+  margin-top: 2px;
+}
+
 .return-actions {
   display: flex;
   gap: var(--space-2);

@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAfterSaleList, submitReturnLogistics, getMerchantReturnAddress, deleteReturnRequest } from '@/api/order'
+import { getContactList } from '@/api/contact'
 import { showSuccess, showError } from '@/utils/swal'
 import Swal from 'sweetalert2'
 
@@ -13,6 +14,8 @@ export function useAfterSale() {
   const shopReturnName = ref('')
   const shopReturnAddress = ref('')
   const shopReturnPhone = ref('')
+  const contacts = ref([])
+  const loadingAddress = ref(false)
 
   const goBack = () => {
     router.push('/order')
@@ -56,15 +59,23 @@ export function useAfterSale() {
   const handleSubmitLogistics = async (item) => {
     currentItem.value = item
     showReturnLogisticsModal.value = true
+    loadingAddress.value = true
     try {
-      const addrData = await getMerchantReturnAddress(item.shopId)
+      const [addrData, contactData] = await Promise.all([
+        getMerchantReturnAddress(item.shopId),
+        getContactList()
+      ])
       shopReturnName.value = addrData?.name || ''
       shopReturnAddress.value = addrData?.address || ''
       shopReturnPhone.value = addrData?.phone || ''
+      contacts.value = contactData?.contacts || []
     } catch {
       shopReturnName.value = ''
       shopReturnAddress.value = ''
       shopReturnPhone.value = ''
+      contacts.value = []
+    } finally {
+      loadingAddress.value = false
     }
   }
 
@@ -129,6 +140,8 @@ export function useAfterSale() {
     shopReturnName,
     shopReturnAddress,
     shopReturnPhone,
+    contacts,
+    loadingAddress,
     detailItem,
     showDetailModal,
     openDetail,

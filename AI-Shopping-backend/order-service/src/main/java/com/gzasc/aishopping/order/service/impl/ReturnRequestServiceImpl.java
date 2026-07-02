@@ -255,6 +255,19 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         dto.setLogisticsId(returnRequest.getLogisticsId());
         dto.setCreatedDate(returnRequest.getCreatedDate());
         dto.setUpdatedDate(returnRequest.getUpdatedDate());
+
+        if (returnRequest.getLogisticsId() != null) {
+            try {
+                ApiResponse<Map<String, Object>> logisticsResp =
+                        logisticsFeignClient.getLatestLogistics(returnRequest.getOrderId(), "RETURN");
+                if (logisticsResp != null && logisticsResp.getData() != null) {
+                    dto.setReturnTrackingNumber((String) logisticsResp.getData().get("trackingNumber"));
+                }
+            } catch (Exception e) {
+                log.warn("获取退货物流信息失败, orderId={}", returnRequest.getOrderId(), e);
+            }
+        }
+
         return dto;
     }
 }

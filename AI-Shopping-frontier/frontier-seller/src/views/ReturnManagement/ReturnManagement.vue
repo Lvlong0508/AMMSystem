@@ -41,6 +41,7 @@
             <div class="return-card__meta">
               <span>{{ T.LABEL_DATE }}: {{ formatDate(item.createdDate) }}</span>
             </div>
+            <div v-if="item.returnTrackingNumber" class="return-card__tracking">{{ T.LABEL_TRACKING }}: {{ item.returnTrackingNumber }}</div>
           </div>
           <div class="return-card__status">
             <el-tag :type="getStatusType(item.status)" size="small">
@@ -82,6 +83,10 @@
           <div class="detail-row">
             <span class="detail-label">{{ T.LABEL_DATE }}</span>
             <span>{{ formatDate(selectedOrder.createdDate) }}</span>
+          </div>
+          <div v-if="selectedOrder.returnTrackingNumber" class="detail-row detail-row--tracking">
+            <span class="detail-label">{{ T.LABEL_TRACKING }}</span>
+            <span class="detail-value--tracking">{{ selectedOrder.returnTrackingNumber }}</span>
           </div>
         </div>
 

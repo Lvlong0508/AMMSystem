@@ -11,6 +11,7 @@ public class ReturnRequestDTO {
     private String returnReason;
     private String status;
     private Integer logisticsId;
+    private String returnTrackingNumber;
     private Timestamp createdDate;
     private Timestamp updatedDate;
 }

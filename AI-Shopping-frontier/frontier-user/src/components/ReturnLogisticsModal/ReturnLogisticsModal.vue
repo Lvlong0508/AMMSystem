@@ -27,6 +27,30 @@
                   type="text"
                 />
               </div>
+              <div class="rl-field">
+                <label class="rl-field__label">{{ T.CONTACTS_LABEL }}</label>
+                <div v-if="loadingAddress" class="rl-contacts-loading">{{ T.LOADING_ADDRESS }}</div>
+                <div v-else-if="contacts.length === 0" class="rl-contacts-empty">{{ T.NO_CONTACTS }}</div>
+                <div v-else class="rl-contacts-list">
+                  <label
+                    v-for="c in contacts"
+                    :key="c.id"
+                    class="rl-contact-item"
+                    :class="{ 'rl-contact-item--active': selectedContactId === c.id }"
+                  >
+                    <input
+                      type="radio"
+                      :value="c.id"
+                      v-model="selectedContactId"
+                      class="rl-contact-item__radio"
+                    />
+                    <div class="rl-contact-item__info">
+                      <div class="rl-contact-item__name">{{ c.name }} <span class="rl-contact-item__phone">{{ c.phone }}</span></div>
+                      <div class="rl-contact-item__address">{{ c.address }}</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
             </div>
 
             <div class="rl-modal__footer">
@@ -50,15 +74,20 @@ const props = defineProps({
   visible: { type: Boolean, default: false },
   shopReturnName: { type: String, default: '' },
   shopReturnAddress: { type: String, default: '' },
-  shopReturnPhone: { type: String, default: '' }
+  shopReturnPhone: { type: String, default: '' },
+  contacts: { type: Array, default: () => [] },
+  loadingAddress: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['close', 'submit'])
 
 const trackingNumber = ref('')
 const copied = ref(false)
+const selectedContactId = ref(null)
 
-const canSubmit = computed(() => trackingNumber.value.trim().length > 0)
+const canSubmit = computed(() => {
+  return trackingNumber.value.trim().length > 0 && selectedContactId.value !== null
+})
 
 async function copyAddress() {
   const parts = [props.shopReturnName, props.shopReturnAddress, props.shopReturnPhone].filter(Boolean)
@@ -72,12 +101,16 @@ async function copyAddress() {
 
 function handleSubmit() {
   if (!canSubmit.value) return
-  emit('submit', { trackingNumber: trackingNumber.value.trim() })
+  emit('submit', { trackingNumber: trackingNumber.value.trim(), contactId: Number(selectedContactId.value) })
   trackingNumber.value = ''
+  selectedContactId.value = null
 }
 
 watch(() => props.visible, (v) => {
-  if (!v) trackingNumber.value = ''
+  if (!v) {
+    trackingNumber.value = ''
+    selectedContactId.value = null
+  }
 })
 </script>
 

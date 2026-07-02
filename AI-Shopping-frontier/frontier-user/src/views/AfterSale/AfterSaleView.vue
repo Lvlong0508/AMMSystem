@@ -74,6 +74,8 @@
       :shop-return-name="shopReturnName"
       :shop-return-address="shopReturnAddress"
       :shop-return-phone="shopReturnPhone"
+      :contacts="contacts"
+      :loading-address="loadingAddress"
       @close="showReturnLogisticsModal = false"
       @submit="onLogisticsSubmit"
     />
@@ -158,6 +160,8 @@ const {
   shopReturnName,
   shopReturnAddress,
   shopReturnPhone,
+  contacts,
+  loadingAddress,
   detailItem,
   showDetailModal,
   openDetail,
