@@ -10,6 +10,10 @@
             </div>
 
             <div class="rl-modal__body">
+              <div v-if="shopReturnAddress" class="rl-shop-address">
+                <div class="rl-shop-address__title">{{ T.SHOP_RETURN_TITLE }}</div>
+                <div class="rl-shop-address__text">{{ shopReturnAddress }} {{ shopReturnPhone }}</div>
+              </div>
               <div class="rl-field">
                 <label class="rl-field__label">{{ T.TRACKING_LABEL }}</label>
                 <input
@@ -68,7 +72,9 @@ import * as T from './Text.js'
 const props = defineProps({
   visible: { type: Boolean, default: false },
   contacts: { type: Array, default: () => [] },
-  loadingAddress: { type: Boolean, default: false }
+  loadingAddress: { type: Boolean, default: false },
+  shopReturnAddress: { type: String, default: '' },
+  shopReturnPhone: { type: String, default: '' }
 })
 
 const emit = defineEmits(['close', 'submit'])

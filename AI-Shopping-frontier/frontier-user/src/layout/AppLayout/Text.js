@@ -8,6 +8,7 @@ export const text = {
   },
   user: {
     profile: '个人信息',
+    afterSale: '退款售后',
     logout: '退出登录',
     logoutTitle: '确认登出',
     logoutConfirm: '确定要退出登录吗？',

@@ -1,0 +1,15 @@
+export const AFTER_SALE_TEXT = {
+  BACK: '← 返回',
+  LOADING: '加载中...',
+  SUBMIT_LOGISTICS: '提交物流',
+  STATUS_APPLYING: '审核中',
+  STATUS_AGREED: '已同意',
+  STATUS_REJECTED: '已拒绝',
+  RETURN_REASON: '退货理由',
+  NO_RETURN_RECORD: '暂无退货记录',
+  DELIVERED: '已送达',
+  RETURN_PENDING: '待退货',
+  RETURNING: '退货中',
+  RETURNED: '已退货',
+  RETURN_TRACKING: '退货物流单号',
+}

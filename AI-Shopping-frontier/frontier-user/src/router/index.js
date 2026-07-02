@@ -24,6 +24,12 @@ const routes = [
     component: () => import('../views/Order/OrderDetailView/OrderDetailView.vue')
   },
   {
+    path: '/after-sales',
+    name: 'afterSales',
+    meta: { transition: 'slide-left' },
+    component: () => import('../views/AfterSale/AfterSaleView.vue')
+  },
+  {
     path: '/contact',
     name: 'contact',
     meta: { transition: 'slide-up' },

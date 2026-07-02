@@ -47,10 +47,9 @@
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
-      <button v-if="order.orderStatus === 'RETURN_PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('submitLogistics', order)">{{ T.SUBMIT_LOGISTICS }}</button>
-      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.RETURN }}</button>
-      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
-      <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
+      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.APPLY_RETURN }}</button>
+      <button v-if="['RETURN_PENDING', 'RETURNING'].includes(order.orderStatus)" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('afterSale', order)">{{ T.AFTER_SALE }}</button>
+      <button v-if="['DELIVERED', 'CANCELLED', 'RETURN_PENDING', 'RETURNING', 'RETURNED'].includes(order.orderStatus)" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
 
@@ -141,10 +140,9 @@
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
       <button v-if="order.orderStatus === 'SHIPPED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('confirm', order)">{{ T.CONFIRM }}</button>
       <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--outline" @click="$emit('viewLogistics', order)">{{ T.VIEW_LOGISTICS }}</button>
-      <button v-if="order.orderStatus === 'RETURN_PENDING'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('submitLogistics', order)">{{ T.SUBMIT_LOGISTICS }}</button>
-      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.RETURN }}</button>
-      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
-      <button v-if="order.orderStatus === 'CANCELLED'" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
+      <button v-if="order.orderStatus === 'DELIVERED'" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('return', order)">{{ T.APPLY_RETURN }}</button>
+      <button v-if="['RETURN_PENDING', 'RETURNING'].includes(order.orderStatus)" class="order-card__action-btn order-card__action-btn--primary" @click="$emit('afterSale', order)">{{ T.AFTER_SALE }}</button>
+      <button v-if="['DELIVERED', 'CANCELLED', 'RETURN_PENDING', 'RETURNING', 'RETURNED'].includes(order.orderStatus)" class="order-card__action-btn order-card__action-btn--danger" @click="$emit('delete', order)">{{ T.DELETE }}</button>
     </div>
   </div>
 </template>
@@ -159,7 +157,7 @@ const props = defineProps({
   order: { type: Object, required: true }
 })
 
-defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'return', 'delete', 'submitLogistics'])
+defineEmits(['click', 'cancel', 'pay', 'viewLogistics', 'confirm', 'return', 'delete', 'submitLogistics', 'afterSale'])
 
 const { formatDate, timelineProgress, steps } = useOrderCard(props)
 </script>

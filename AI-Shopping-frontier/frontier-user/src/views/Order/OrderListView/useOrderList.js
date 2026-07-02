@@ -1,9 +1,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder, submitReturnRequest, submitReturnLogistics } from '@/api/order'
-import { getContactList } from '@/api/contact'
-import ReturnLogisticsModal from '@/components/ReturnLogisticsModal/ReturnLogisticsModal.vue'
-import { ORDER_STATUS, STATUS_TEXT } from '@/config/orderStatus'
+import { getOrderList, cancelOrder, payOrder, confirmDelivery, deleteOrder, submitReturnRequest } from '@/api/order'
+import { ORDER_STATUS } from '@/config/orderStatus'
 import Swal from 'sweetalert2'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
 
@@ -12,22 +10,35 @@ export function useOrderList() {
   const orders = ref([])
   const loading = ref(true)
   const activeFilter = ref('ALL')
+  const searchQuery = ref('')
 
   const filters = [
     { key: 'ALL', label: '全部' },
-    { key: ORDER_STATUS.PENDING, label: STATUS_TEXT[ORDER_STATUS.PENDING] },
-    { key: ORDER_STATUS.PAID, label: STATUS_TEXT[ORDER_STATUS.PAID] },
-    { key: ORDER_STATUS.SHIPPED, label: STATUS_TEXT[ORDER_STATUS.SHIPPED] },
-    { key: ORDER_STATUS.DELIVERED, label: STATUS_TEXT[ORDER_STATUS.DELIVERED] },
-    { key: ORDER_STATUS.RETURN_PENDING, label: STATUS_TEXT[ORDER_STATUS.RETURN_PENDING] },
-    { key: ORDER_STATUS.RETURNING, label: STATUS_TEXT[ORDER_STATUS.RETURNING] },
-    { key: ORDER_STATUS.RETURNED, label: STATUS_TEXT[ORDER_STATUS.RETURNED] },
-    { key: ORDER_STATUS.CANCELLED, label: STATUS_TEXT[ORDER_STATUS.CANCELLED] }
+    { key: ORDER_STATUS.PENDING, label: '待支付' },
+    { key: ORDER_STATUS.PAID, label: '待发货' },
+    { key: 'COMPLETED', label: '已完成' }
   ]
 
   const filteredOrders = computed(() => {
-    if (activeFilter.value === 'ALL') return orders.value
-    return orders.value.filter(o => o.orderStatus === activeFilter.value)
+    let result = orders.value
+
+    if (activeFilter.value === 'COMPLETED') {
+      result = result.filter(o =>
+        [ORDER_STATUS.SHIPPED, ORDER_STATUS.DELIVERED, ORDER_STATUS.RETURNED].includes(o.orderStatus)
+      )
+    } else if (activeFilter.value !== 'ALL') {
+      result = result.filter(o => o.orderStatus === activeFilter.value)
+    }
+
+    if (searchQuery.value.trim()) {
+      const q = searchQuery.value.trim().toLowerCase()
+      result = result.filter(o =>
+        (o.productName && o.productName.toLowerCase().includes(q)) ||
+        (o.shopName && o.shopName.toLowerCase().includes(q))
+      )
+    }
+
+    return result
   })
 
   const loadOrders = async () => {
@@ -133,61 +144,29 @@ export function useOrderList() {
     }
   }
 
-  const returnLogisticsOrder = ref(null)
-  const showReturnLogisticsModal = ref(false)
-  const contacts = ref([])
-  const loadingAddress = ref(false)
-
-  const handleSubmitLogistics = async (order) => {
-    returnLogisticsOrder.value = order
-    showReturnLogisticsModal.value = true
-    loadingAddress.value = true
-    try {
-      const res = await getContactList()
-      contacts.value = res?.data?.contacts || res?.contacts || []
-    } catch {
-      contacts.value = []
-    } finally {
-      loadingAddress.value = false
-    }
-  }
-
-  const onLogisticsSubmit = async (data) => {
-    if (!returnLogisticsOrder.value) return
-    try {
-      await submitReturnLogistics(returnLogisticsOrder.value.orderId, data)
-      showSuccess('退货物流已提交')
-      showReturnLogisticsModal.value = false
-      returnLogisticsOrder.value = null
-      await loadOrders()
-    } catch (e) {
-      showError(e?.response?.data?.message || '提交退货物流失败')
-    }
+  const handleAfterSale = () => {
+    router.push('/after-sales')
   }
 
   onMounted(loadOrders)
 
   return {
-    logisticsVisible,
-    logisticsOrderId,
     orders,
     loading,
     activeFilter,
+    searchQuery,
     filters,
     filteredOrders,
     handleViewDetail,
+    handleAfterSale,
     handleCancel,
     handleDelete,
     handlePay,
     handleViewLogistics,
     handleConfirm,
     handleReturn,
-    handleSubmitLogistics,
-    onLogisticsSubmit,
-    returnLogisticsOrder,
-    showReturnLogisticsModal,
-    contacts,
-    loadingAddress,
+    logisticsVisible,
+    logisticsOrderId,
     payingOrder,
     showPaymentModal,
     onPaymentSuccess,

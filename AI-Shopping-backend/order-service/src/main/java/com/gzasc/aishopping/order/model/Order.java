@@ -34,8 +34,9 @@ public class Order {
             PAID, Set.of(SHIPPED, CANCELLED),
             SHIPPED, Set.of(DELIVERED, RETURN_PENDING),
             DELIVERED, Set.of(RETURN_PENDING, DELETED),
-            RETURN_PENDING, Set.of(RETURNING),
-            RETURNING, Set.of(RETURNED),
+            RETURN_PENDING, Set.of(RETURNING, DELETED),
+            RETURNING, Set.of(RETURNED, DELETED),
+            RETURNED, Set.of(DELETED),
             CANCELLED, Set.of(DELETED)
     );
 

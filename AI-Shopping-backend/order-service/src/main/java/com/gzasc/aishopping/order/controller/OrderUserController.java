@@ -2,6 +2,7 @@ package com.gzasc.aishopping.order.controller;
 
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.concurrency.OrderConcurrencyLimiter;
+import com.gzasc.aishopping.order.dto.AfterSaleVO;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.UserOrderCardDTO;
@@ -89,6 +90,13 @@ public class OrderUserController {
             @RequestBody @Valid CreateReturnRequest request) {
         returnRequestService.createReturnRequest(userId, orderId, request);
         return ApiResponse.success("退货申请已提交", null);
+    }
+
+    @GetMapping("/after-sales")
+    public ApiResponse<List<AfterSaleVO>> getAfterSaleList(
+            @RequestHeader("X-User-Id") Long userId) {
+        List<AfterSaleVO> list = returnRequestService.getAfterSaleList(userId);
+        return ApiResponse.success(list);
     }
 
     @PostMapping("/{orderId}/return-logistics")

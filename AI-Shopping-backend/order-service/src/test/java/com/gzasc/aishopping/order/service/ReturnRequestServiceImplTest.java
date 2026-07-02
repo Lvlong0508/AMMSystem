@@ -3,6 +3,7 @@ package com.gzasc.aishopping.order.service;
 import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.order.dto.AfterSaleVO;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
@@ -20,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
@@ -290,6 +292,96 @@ class ReturnRequestServiceImplTest {
 
         when(returnRequestMapper.selectByOrderId(orderId)).thenReturn(null);
         assertThrows(OrderException.class, () -> returnRequestService.getReturnRequestByOrderId(orderId));
+    }
+
+    @Test
+    void getAfterSaleList_empty_returnsEmptyList() {
+        when(returnRequestMapper.selectByUserId(userId)).thenReturn(List.of());
+        assertTrue(returnRequestService.getAfterSaleList(userId).isEmpty());
+    }
+
+    @Test
+    void getAfterSaleList_returnsAggregatedVoList() {
+        ReturnRequest r1 = returnRequest("agreed");
+        r1.setOrderId("ORDER001");
+        r1.setLogisticsId(42);
+        ReturnRequest r2 = returnRequest("applying");
+        r2.setOrderId("ORDER002");
+
+        when(returnRequestMapper.selectByUserId(userId)).thenReturn(List.of(r1, r2));
+
+        OrderDetailDTO o1 = new OrderDetailDTO();
+        o1.setOrderId("ORDER001");
+        o1.setOrderStatus("RETURN_PENDING");
+        o1.setOrderDate(new Timestamp(1000));
+        o1.setShopId("SHOP001");
+        o1.setShopName("店铺1");
+        o1.setShopLogoUrl("logo1.jpg");
+        o1.setProductName("手机");
+        o1.setProductImageUrl("phone.jpg");
+        o1.setProductType("数码");
+        o1.setQuantity(1);
+        o1.setTotalPrice(BigDecimal.valueOf(5000));
+
+        OrderDetailDTO o2 = new OrderDetailDTO();
+        o2.setOrderId("ORDER002");
+        o2.setOrderStatus("APPLYING");
+        o2.setOrderDate(new Timestamp(2000));
+        o2.setShopId("SHOP001");
+        o2.setShopName("店铺1");
+        o2.setShopLogoUrl("logo1.jpg");
+        o2.setProductName("耳机");
+        o2.setProductImageUrl("earphone.jpg");
+        o2.setProductType("数码");
+        o2.setQuantity(2);
+        o2.setTotalPrice(BigDecimal.valueOf(200));
+
+        when(orderService.getOrderDetailByUser(userId, "ORDER001")).thenReturn(o1);
+        when(orderService.getOrderDetailByUser(userId, "ORDER002")).thenReturn(o2);
+
+        when(logisticsFeignClient.getLatestLogistics("ORDER001", "RETURN"))
+                .thenReturn(ApiResponse.success(Map.of("trackingNumber", "SF123456")));
+
+        List<AfterSaleVO> result = returnRequestService.getAfterSaleList(userId);
+        assertEquals(2, result.size());
+
+        AfterSaleVO vo1 = result.get(0);
+        assertEquals("ORDER001", vo1.getOrderId());
+        assertEquals("RETURN_PENDING", vo1.getOrderStatus());
+        assertEquals("SHOP001", vo1.getShopId());
+        assertEquals("店铺1", vo1.getShopName());
+        assertEquals("手机", vo1.getProductName());
+        assertEquals("SF123456", vo1.getReturnTrackingNumber());
+        assertEquals("agreed", vo1.getReturnStatus());
+        assertEquals(Integer.valueOf(42), vo1.getLogisticsId());
+
+        AfterSaleVO vo2 = result.get(1);
+        assertEquals("ORDER002", vo2.getOrderId());
+        assertEquals("耳机", vo2.getProductName());
+        assertNull(vo2.getReturnTrackingNumber());
+        assertEquals("applying", vo2.getReturnStatus());
+    }
+
+    @Test
+    void getAfterSaleList_skipsOrderWhenGetDetailThrows() {
+        ReturnRequest r = returnRequest("agreed");
+        r.setOrderId("ORDER001");
+        when(returnRequestMapper.selectByUserId(userId)).thenReturn(List.of(r));
+        when(orderService.getOrderDetailByUser(userId, "ORDER001")).thenThrow(new RuntimeException("timeout"));
+
+        List<AfterSaleVO> result = returnRequestService.getAfterSaleList(userId);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getAfterSaleList_skipsOrderWhenGetDetailReturnsNull() {
+        ReturnRequest r = returnRequest("agreed");
+        r.setOrderId("ORDER001");
+        when(returnRequestMapper.selectByUserId(userId)).thenReturn(List.of(r));
+        when(orderService.getOrderDetailByUser(userId, "ORDER001")).thenReturn(null);
+
+        List<AfterSaleVO> result = returnRequestService.getAfterSaleList(userId);
+        assertTrue(result.isEmpty());
     }
 
     private SubmitReturnLogisticsRequest returnLogisticsRequest() {

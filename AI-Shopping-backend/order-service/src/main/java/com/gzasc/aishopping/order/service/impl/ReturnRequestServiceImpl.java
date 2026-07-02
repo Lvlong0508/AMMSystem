@@ -3,11 +3,13 @@ package com.gzasc.aishopping.order.service.impl;
 import com.gzasc.aishopping.common.dto.logistics.LogisticsRequest;
 import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
+import com.gzasc.aishopping.order.dto.AfterSaleVO;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
+import com.gzasc.aishopping.order.dto.OrderDetailDTO;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
 import com.gzasc.aishopping.order.dto.SubmitReturnLogisticsRequest;
-import com.gzasc.aishopping.order.dto.OrderDetailDTO;
+
 import com.gzasc.aishopping.order.exception.OrderException;
 import com.gzasc.aishopping.order.mapper.ReturnRequestMapper;
 import com.gzasc.aishopping.order.model.Order;
@@ -22,6 +24,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -152,6 +157,61 @@ public class ReturnRequestServiceImpl implements ReturnRequestService {
         } catch (NumberFormatException e) {
             throw new OrderException("获取物流ID失败");
         }
+    }
+
+    @Override
+    public List<AfterSaleVO> getAfterSaleList(Long userId) {
+        List<ReturnRequest> returnRequests = returnRequestMapper.selectByUserId(userId);
+        if (returnRequests.isEmpty()) return List.of();
+
+        return returnRequests.stream()
+                .map(r -> buildAfterSaleVO(userId, r))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private AfterSaleVO buildAfterSaleVO(Long userId, ReturnRequest r) {
+        OrderDetailDTO order;
+        try {
+            order = orderService.getOrderDetailByUser(userId, r.getOrderId());
+        } catch (Exception e) {
+            log.warn("获取订单详情失败, orderId={}, {}", r.getOrderId(), e.getMessage());
+            return null;
+        }
+        if (order == null) return null;
+
+        AfterSaleVO vo = new AfterSaleVO();
+        vo.setOrderId(order.getOrderId());
+        vo.setOrderStatus(order.getOrderStatus());
+        vo.setOrderDate(order.getOrderDate());
+        vo.setShopId(r.getShopId());
+        vo.setShopName(order.getShopName());
+        vo.setShopLogoUrl(order.getShopLogoUrl());
+        vo.setProductName(order.getProductName());
+        vo.setProductImageUrl(order.getProductImageUrl());
+        vo.setProductType(order.getProductType());
+        vo.setQuantity(order.getQuantity());
+        vo.setTotalPrice(order.getTotalPrice());
+
+        vo.setReturnStatus(r.getStatus());
+        vo.setReturnReason(r.getReturnReason());
+        vo.setLogisticsId(r.getLogisticsId());
+        vo.setReturnCreatedDate(r.getCreatedDate());
+        vo.setReturnUpdatedDate(r.getUpdatedDate());
+
+        if (r.getLogisticsId() != null) {
+            try {
+                ApiResponse<Map<String, Object>> logisticsResp =
+                        logisticsFeignClient.getLatestLogistics(r.getOrderId(), "RETURN");
+                if (logisticsResp != null && logisticsResp.getData() != null) {
+                    vo.setReturnTrackingNumber((String) logisticsResp.getData().get("trackingNumber"));
+                }
+            } catch (Exception e) {
+                log.warn("获取退货物流信息失败, orderId={}", r.getOrderId(), e);
+            }
+        }
+
+        return vo;
     }
 
     @Override

@@ -18,6 +18,9 @@ public interface ReturnRequestMapper {
     @Select("SELECT * FROM return_requests WHERE order_id = #{orderId} AND user_id = #{userId}")
     ReturnRequest selectByOrderIdAndUser(@Param("orderId") String orderId, @Param("userId") Long userId);
 
+    @Select("SELECT * FROM return_requests WHERE user_id = #{userId} ORDER BY created_date DESC")
+    List<ReturnRequest> selectByUserId(@Param("userId") Long userId);
+
     @Select("SELECT * FROM return_requests WHERE order_id = #{orderId} AND shop_id = #{shopId}")
     ReturnRequest selectByOrderIdAndShop(@Param("orderId") String orderId, @Param("shopId") String shopId);
 

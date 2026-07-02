@@ -1,5 +1,6 @@
 package com.gzasc.aishopping.order.service;
 
+import com.gzasc.aishopping.order.dto.AfterSaleVO;
 import com.gzasc.aishopping.order.dto.CreateReturnRequest;
 import com.gzasc.aishopping.order.dto.ReturnRequestDTO;
 import com.gzasc.aishopping.order.dto.ReviewReturnRequest;
@@ -13,6 +14,8 @@ public interface ReturnRequestService {
     void reviewReturnRequest(String shopId, String orderId, ReviewReturnRequest request);
 
     void submitReturnLogistics(Long userId, String orderId, SubmitReturnLogisticsRequest request);
+
+    List<AfterSaleVO> getAfterSaleList(Long userId);
 
     ReturnRequestDTO getReturnRequestByOrderId(String orderId);
 

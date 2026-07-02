@@ -1,7 +1,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { getOrderById, cancelOrder, confirmDelivery, deleteOrder, submitReturnRequest, submitReturnLogistics } from '@/api/order'
-import { getContactList } from '@/api/contact'
+import { getOrderById, cancelOrder, confirmDelivery, deleteOrder, submitReturnRequest } from '@/api/order'
 import Swal from 'sweetalert2'
 import { showSuccess, showError, showConfirm } from '@/utils/swal'
 
@@ -106,32 +105,8 @@ export function useOrderDetail() {
     }
   }
 
-  const showReturnLogisticsModal = ref(false)
-  const contacts = ref([])
-  const loadingAddress = ref(false)
-
-  const handleSubmitLogistics = async () => {
-    showReturnLogisticsModal.value = true
-    loadingAddress.value = true
-    try {
-      const res = await getContactList()
-      contacts.value = res?.data?.contacts || res?.contacts || []
-    } catch {
-      contacts.value = []
-    } finally {
-      loadingAddress.value = false
-    }
-  }
-
-  const onLogisticsSubmit = async (data) => {
-    try {
-      await submitReturnLogistics(order.value.orderId, data)
-      showSuccess('退货物流已提交')
-      showReturnLogisticsModal.value = false
-      await loadOrder()
-    } catch (e) {
-      showError(e?.response?.data?.message || '提交退货物流失败')
-    }
+  const handleAfterSale = () => {
+    router.push('/after-sales')
   }
 
   const confirmAction = async () => {
@@ -165,12 +140,8 @@ export function useOrderDetail() {
     handlePay,
     handleDelete,
     handleViewLogistics,
+    handleAfterSale,
     handleReturn,
-    handleSubmitLogistics,
-    onLogisticsSubmit,
-    showReturnLogisticsModal,
-    contacts,
-    loadingAddress,
     confirmAction,
     showPaymentModal,
     onPaymentSuccess,

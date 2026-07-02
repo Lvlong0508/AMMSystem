@@ -54,3 +54,8 @@ export function canTransition(fromStatus, toStatus) {
   const allowedTransitions = STATUS_TRANSITIONS[fromStatus]
   return allowedTransitions ? allowedTransitions.includes(toStatus) : false
 }
+
+export const FILTER_GROUPS = {
+  AFTER_SALE: 'AFTER_SALE',
+  COMPLETED: 'COMPLETED'
+}

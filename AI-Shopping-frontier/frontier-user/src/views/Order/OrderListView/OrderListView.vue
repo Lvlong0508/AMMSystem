@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="order-list-view" style="max-width:960px;margin:0 auto">
+  <div class="order-list-view" style="width:75%;max-width:1200px;margin:0 auto">
     <div class="order-list-view__filters">
       <button
         v-for="f in filters"
@@ -10,6 +10,16 @@
       >
         {{ f.label }}
       </button>
+    </div>
+
+    <div class="order-list-view__search">
+      <svg class="order-list-view__search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        v-model="searchQuery"
+        class="order-list-view__search-input"
+        type="text"
+        placeholder="搜索商品名称..."
+      />
     </div>
 
     <div v-if="loading" class="order-list-view__loading">
@@ -37,19 +47,12 @@
         @viewLogistics="handleViewLogistics"
         @confirm="handleConfirm"
         @return="handleReturn"
-        @submitLogistics="handleSubmitLogistics"
+        @afterSale="handleAfterSale"
       />
     </div>
 
     <PaymentModal :visible="showPaymentModal" :orderId="payingOrder?.orderId" :order="payingOrder" :orderDate="payingOrder?.orderDate" @close="showPaymentModal = false" @pay-success="onPaymentSuccess" @pay-later="onPayLater" />
     <LogisticsModal :visible="logisticsVisible" :loading="logisticsLoading" :logisticsList="logisticsList" @close="logisticsVisible = false" />
-    <ReturnLogisticsModal
-      :visible="showReturnLogisticsModal"
-      :contacts="contacts"
-      :loading-address="loadingAddress"
-      @close="showReturnLogisticsModal = false"
-      @submit="onLogisticsSubmit"
-    />
   </div>
 </template>
 
@@ -60,13 +63,13 @@ import { useOrderList } from './useOrderList'
 import OrderCard from '@/components/OrderCard/OrderCard.vue'
 import PaymentModal from '@/components/PaymentModal/PaymentModal.vue'
 import LogisticsModal from '@/components/LogisticsModal/LogisticsModal.vue'
-import ReturnLogisticsModal from '@/components/ReturnLogisticsModal/ReturnLogisticsModal.vue'
 import { useLogisticsModal } from '@/components/LogisticsModal/useLogisticsModal'
 
 const {
   orders,
   loading,
   activeFilter,
+  searchQuery,
   filters,
   filteredOrders,
   handleViewDetail,
@@ -76,12 +79,7 @@ const {
   handleViewLogistics,
   handleConfirm,
   handleReturn,
-  handleSubmitLogistics,
-  onLogisticsSubmit,
-  returnLogisticsOrder,
-  showReturnLogisticsModal,
-  contacts,
-  loadingAddress,
+  handleAfterSale,
   payingOrder,
   showPaymentModal,
   onPaymentSuccess,
