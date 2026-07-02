@@ -12,10 +12,15 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * 订单超时取消定时任务。
+ * 每分钟扫描支付超时的待支付订单，逐个调用 cancelOrder 自动取消。
+ * 通过配置 order.task.timeout.enabled 控制开关（默认关闭）。
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(name = "order.task.timeout.enabled", havingValue = "true", matchIfMissing = true)
+@ConditionalOnProperty(name = "order.task.timeout.enabled", havingValue = "False", matchIfMissing = true)
 public class OrderTimeoutTask {
 
 

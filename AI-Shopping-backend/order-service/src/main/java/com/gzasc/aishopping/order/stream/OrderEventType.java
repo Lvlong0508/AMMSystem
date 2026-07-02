@@ -18,6 +18,6 @@ public enum OrderEventType {
     /** 超时未支付或订单取消时释放预占库存 */
     RESERVATION_RELEASE,
 
-    /** 订单完成后异步清理关联的退货申请记录 */
+    /** 订单删除后异步清理关联的退货申请记录 */
     RETURN_REQUEST_CLEANUP
 }
