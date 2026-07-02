@@ -85,6 +85,18 @@ export function useAfterSale() {
     }
   }
 
+  const detailItem = ref(null)
+  const showDetailModal = ref(false)
+
+  const openDetail = (item) => {
+    detailItem.value = item
+    showDetailModal.value = true
+  }
+
+  const closeDetail = () => {
+    showDetailModal.value = false
+  }
+
   onMounted(loadData)
 
   return {
@@ -100,6 +112,10 @@ export function useAfterSale() {
     contacts,
     loadingAddress,
     shopReturnAddress,
-    shopReturnPhone
+    shopReturnPhone,
+    detailItem,
+    showDetailModal,
+    openDetail,
+    closeDetail
   }
 }

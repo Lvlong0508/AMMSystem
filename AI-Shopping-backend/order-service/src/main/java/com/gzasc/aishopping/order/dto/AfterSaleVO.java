@@ -14,7 +14,6 @@ public class AfterSaleVO {
     private String shopName;
     private String shopLogoUrl;
 
-    private String productId;
     private String productName;
     private String productImageUrl;
     private String productType;
