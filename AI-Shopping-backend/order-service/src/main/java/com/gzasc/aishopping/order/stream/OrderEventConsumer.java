@@ -6,6 +6,7 @@ import com.gzasc.aishopping.common.feign.logistics.LogisticsFeignClient;
 import com.gzasc.aishopping.common.feign.product.ProductFeignClient;
 import com.gzasc.aishopping.common.response.ApiResponse;
 import com.gzasc.aishopping.order.mapper.OrderMapper;
+import com.gzasc.aishopping.order.mapper.ReturnRequestMapper;
 import com.gzasc.aishopping.order.model.Order;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ import java.util.Map;
 public class OrderEventConsumer implements StreamListener<String, MapRecord<String, String, String>> {
 
     private final OrderMapper orderMapper;
+    private final ReturnRequestMapper returnRequestMapper;
     private final ProductFeignClient productFeignClient;
     private final LogisticsFeignClient logisticsFeignClient;
     private final RedisTemplate<String, String> redisTemplate;
@@ -41,6 +43,7 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
                 case STOCK_RESTORE      -> handleStockRestore(msg);
                 case LOGISTICS_CREATE   -> handleLogistics(msg);
                 case RESERVATION_RELEASE -> handleReservationRelease(msg);
+                case RETURN_REQUEST_CLEANUP -> handleReturnRequestCleanup(msg);
             }
             redisTemplate.opsForStream().acknowledge(
                     redisStreamConfig.getStreamKey(),
@@ -120,5 +123,17 @@ public class OrderEventConsumer implements StreamListener<String, MapRecord<Stri
         req.setTrackingNumber(msg.get("trackingNumber"));
         logisticsFeignClient.createLogistics(req);
         log.info("物流记录创建成功, orderId={}", orderId);
+    }
+
+    private void handleReturnRequestCleanup(Map<String, String> msg) {
+        String orderId = msg.get("orderId");
+        String userIdStr = msg.get("userId");
+        if (userIdStr == null) {
+            log.warn("userId 为空, 跳过删除退货申请, orderId={}", orderId);
+            return;
+        }
+        Long userId = Long.valueOf(userIdStr);
+        returnRequestMapper.deleteByOrderIdAndUser(orderId, userId);
+        log.info("异步删除退货申请成功, orderId={}, userId={}", orderId, userId);
     }
 }

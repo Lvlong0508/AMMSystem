@@ -130,6 +130,9 @@ public class OrderServiceImpl implements OrderService {
         if (deleted <= 0) {
             throw new OrderException("删除订单失败，状态可能已变更");
         }
+
+        eventPublisher.publishAfterCommit(OrderEventType.RETURN_REQUEST_CLEANUP.name(), orderId,
+                Map.of("userId", String.valueOf(userId)));
     }
 
     @Override
